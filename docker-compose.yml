@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: portal-pg
+    environment:
+      POSTGRES_USER: portal
+      POSTGRES_PASSWORD: portal
+      POSTGRES_DB: portal
+    ports:
+      - "55432:5432"
+    volumes:
+      - portal-pg-data:/var/lib/postgresql/data
+
+volumes:
+  portal-pg-data:
