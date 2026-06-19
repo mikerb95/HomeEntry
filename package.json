@@ -6,7 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:push": "drizzle-kit push",
+    "db:generate": "drizzle-kit generate",
+    "db:seed": "tsx --env-file=.env src/db/seed.ts",
+    "db:reset": "npm run db:push -- --force && npm run db:seed"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
