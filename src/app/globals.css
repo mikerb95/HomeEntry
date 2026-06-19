@@ -1,26 +1,97 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-jakarta);
+  --font-display: var(--font-grotesk);
+
+  /* PortAl brand palette */
+  --color-ink: #0f141a;
+  --color-canvas: #eaeef4;
+  --color-blue: #2f6bff;
+  --color-blue-dark: #1e54e0;
+  --color-blue-soft: #eaf1ff;
+  --color-green: #16a34a;
+  --color-green-dark: #15803d;
+  --color-green-soft: #e9f8ee;
+  --color-violet: #6d28d9;
+  --color-violet-dark: #5b21b6;
+  --color-violet-soft: #eee9ff;
+  --color-amber: #d97706;
+  --color-amber-soft: #fef3dc;
+  --color-rose: #e11d48;
+  --color-rose-dark: #be123c;
+  --color-muted: #6b7585;
+  --color-muted-2: #8a94a3;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-jakarta), system-ui, sans-serif;
+  background: #eaeef4;
+  color: #0f141a;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: #2f6bff;
+  color: #fff;
+}
+
+.pa-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.pa-scroll::-webkit-scrollbar-thumb {
+  background: #d2d9e3;
+  border-radius: 8px;
+}
+
+@keyframes paIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes paUp {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 14px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+@keyframes paPop {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-pa-in {
+  animation: paIn 0.3s ease;
+}
+.animate-pa-up {
+  animation: paUp 0.25s ease;
+}
+.animate-pa-pop {
+  animation: paPop 0.25s ease;
 }
