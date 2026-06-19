@@ -60,7 +60,7 @@ export function ParkingModal({
   return (
     <div
       onClick={onClose}
-      className="fixed inset-0 z-60 flex animate-pa-in items-center justify-center bg-[rgba(15,20,26,.5)] p-5 backdrop-blur-[3px]"
+      className="fixed inset-0 z-[60] flex animate-pa-in items-center justify-center bg-[rgba(15,20,26,.5)] p-5 backdrop-blur-[3px]"
     >
       <div
         onClick={(e) => e.stopPropagation()}
