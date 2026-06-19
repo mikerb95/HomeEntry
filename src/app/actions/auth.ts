@@ -16,7 +16,7 @@ function normalizeUser(u: string): string {
     .trim()
     .toLowerCase()
     .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "");
+    .replace(/\p{Diacritic}/gu, "");
 }
 
 export async function residentLogin(
