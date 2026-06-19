@@ -63,7 +63,13 @@ export default async function GuardPanelPage() {
         towers={config.towers}
         aptsPerTower={config.aptsPerTower}
         registry={registry}
-        parking={parking}
+        parking={parking.map((p) => ({
+          id: p.id,
+          kind: p.kind as "car" | "moto",
+          status: p.status as "free" | "resident" | "visitor",
+          plate: p.plate,
+          aptoKey: p.aptoKey,
+        }))}
         recent={events.slice(0, 4).map((e) => ({
           id: e.id,
           type: e.type,
