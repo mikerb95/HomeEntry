@@ -24,6 +24,10 @@ export async function getResident(aptoKey: string) {
   return rows[0] ?? null;
 }
 
+export async function listResidents() {
+  return db.select().from(residents);
+}
+
 export async function getResidentByPhone(phone: string) {
   const rows = await db
     .select()
