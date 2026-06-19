@@ -1,36 +1,55 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PortAl · Gestión Residencial
 
-## Getting Started
+Implementación del handoff de Claude Design (*Diseño de cuatro portales navegables*):
+gestión de portería residencial conectada por WhatsApp, con cuatro portales —
+**Residente**, **Portería/Vigilante** y **Administración**, más un **lanzador** de demo.
 
-First, run the development server:
+## Stack
+
+- **Next.js 16** (App Router) + **React 19** + **TypeScript**
+- **Tailwind CSS v4** (port pixel-perfecto del diseño)
+- **PostgreSQL** + **Drizzle ORM** (`postgres-js`)
+- Auth por **sesión JWT** en cookie httpOnly (`jose`), PIN/claves con **bcrypt**
+- **WhatsApp**: Meta Cloud API cuando hay credenciales; si no, link `wa.me` (como el prototipo)
+- QR reales generados en el servidor (`qrcode`)
+
+## Puesta en marcha
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env        # ajusta DATABASE_URL y AUTH_SECRET
+docker compose up -d        # Postgres local en :55432 (opcional)
+npm install
+npm run db:push             # crea el esquema
+npm run db:seed             # carga los datos demo del prototipo
+npm run dev                 # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Credenciales demo
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Portal         | Usuario / WhatsApp | Clave / PIN |
+| -------------- | ------------------ | ----------- |
+| Residente      | `3014567890`       | `1234`      |
+| Portería       | `portería`         | `1234`      |
+| Administración | `admin`            | `admin`     |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Rutas
 
-## Learn More
+- `/` — lanzador
+- `/residente/login`, `/residente/registro`, `/residente`, `/residente/autorizar`
+- `/porteria/login`, `/porteria` (tabs: Portería · Parqueadero · Escanear QR)
+- `/admin/login`, `/admin` (tabs: Dashboard · Parqueadero · Auditoría)
 
-To learn more about Next.js, take a look at the following resources:
+El gating de auth por rol vive en `src/proxy.ts` (convención `proxy` de Next 16,
+antes `middleware`).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Scripts de base de datos
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `npm run db:push` — aplica el esquema (`drizzle-kit push`)
+- `npm run db:seed` — reseed idempotente con los datos del prototipo
+- `npm run db:generate` — genera migraciones SQL
 
-## Deploy on Vercel
+## WhatsApp real
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Define `WHATSAPP_TOKEN` y `WHATSAPP_PHONE_ID` (Meta Cloud API) para enviar los
+avisos de portería directamente. Sin ellos, la portería abre un enlace `wa.me`
+con el mensaje prellenado, igual que el prototipo.
