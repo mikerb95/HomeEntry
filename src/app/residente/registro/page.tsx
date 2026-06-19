@@ -3,6 +3,8 @@ import { getSession } from "@/lib/auth";
 import { Shell } from "@/components/Shell";
 import { RegisterForm } from "./RegisterForm";
 
+export const dynamic = "force-dynamic";
+
 export default async function ResidentRegisterPage() {
   const config = await getConfig();
   const session = await getSession();

@@ -1,4 +1,6 @@
 import { requireGuard } from "@/lib/auth";
+
+export const dynamic = "force-dynamic";
 import {
   getConfig,
   listAuths,

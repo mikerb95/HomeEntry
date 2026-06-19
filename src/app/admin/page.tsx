@@ -1,4 +1,6 @@
 import { requireAdmin } from "@/lib/auth";
+
+export const dynamic = "force-dynamic";
 import {
   getConfig,
   listEvents,

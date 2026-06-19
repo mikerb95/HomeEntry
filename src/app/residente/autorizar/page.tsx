@@ -3,6 +3,8 @@ import { getConfig } from "@/db/queries";
 import { Shell } from "@/components/Shell";
 import { AuthorizeForm } from "./AuthorizeForm";
 
+export const dynamic = "force-dynamic";
+
 export default async function AuthorizePage() {
   const session = await requireResident();
   const config = await getConfig();

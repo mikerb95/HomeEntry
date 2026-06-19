@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { requireResident } from "@/lib/auth";
+
+export const dynamic = "force-dynamic";
 import {
   getConfig,
   listAuthsForApt,
