@@ -640,6 +640,7 @@ export function GuardPanel(props: Props) {
 
       {pkSpot && (
         <ParkingModal
+          slug={props.slug}
           spot={pkSpot}
           allApts={allApts}
           onClose={() => setPkSpot(null)}
