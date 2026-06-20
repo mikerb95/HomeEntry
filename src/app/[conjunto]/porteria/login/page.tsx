@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useParams } from "next/navigation";
 import { guardLogin } from "@/app/actions/auth";
 import { Shell } from "@/components/Shell";
 import { BackLink, Label, LoginCard } from "@/components/ui";
