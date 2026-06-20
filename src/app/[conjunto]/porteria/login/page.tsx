@@ -17,7 +17,7 @@ export default function GuardLoginPage() {
   function submit() {
     setErr("");
     start(async () => {
-      const res = await guardLogin(user, pass);
+      const res = await guardLogin(slug, user, pass);
       if (res && !res.ok) setErr(res.error || "Error");
     });
   }
