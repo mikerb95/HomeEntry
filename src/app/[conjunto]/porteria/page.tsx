@@ -2,7 +2,7 @@ import { requireGuard } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 import {
-  getConfig,
+  getConjuntoById,
   listAuths,
   listEvents,
   listParking,
@@ -14,14 +14,20 @@ import { isToday, todayStr } from "@/lib/format";
 import { Shell } from "@/components/Shell";
 import { GuardPanel } from "./GuardPanel";
 
-export default async function GuardPanelPage() {
-  await requireGuard();
+export default async function GuardPanelPage({
+  params,
+}: {
+  params: Promise<{ conjunto: string }>;
+}) {
+  const { conjunto: slug } = await params;
+  const session = await requireGuard(slug);
+  const cid = session.conjuntoId;
   const [config, parking, events, auths, residents] = await Promise.all([
-    getConfig(),
-    listParking(),
-    listEvents(),
-    listAuths(),
-    listResidents(),
+    getConjuntoById(cid),
+    listParking(cid),
+    listEvents(cid),
+    listAuths(cid),
+    listResidents(cid),
   ]);
 
   const registry: Record<string, string> = {};
@@ -53,7 +59,7 @@ export default async function GuardPanelPage() {
   return (
     <Shell
       chrome={{
-        title: config.name,
+        title: config?.name ?? "Conjunto",
         sub: "Portería · Turno activo",
         role: "Vigilante",
         badgeBg: "#E9F8EE",
@@ -61,9 +67,10 @@ export default async function GuardPanelPage() {
       }}
     >
       <GuardPanel
-        complexName={config.name}
-        towers={config.towers}
-        aptsPerTower={config.aptsPerTower}
+        slug={slug}
+        complexName={config?.name ?? "Conjunto"}
+        towers={config?.towers ?? 0}
+        aptsPerTower={config?.aptsPerTower ?? 0}
         registry={registry}
         parking={parking.map((p) => ({
           id: p.id,
