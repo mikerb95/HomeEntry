@@ -25,7 +25,7 @@ export default function GuardLoginPage() {
   return (
     <Shell>
       <div className="mx-auto mt-3.5 max-w-[430px] animate-pa-in">
-        <BackLink href="/">← Volver al inicio</BackLink>
+        <BackLink href={`/${slug}`}>← Volver al inicio</BackLink>
         <LoginCard>
           <div className="mb-[18px] flex h-[50px] w-[50px] items-center justify-center rounded-[15px] bg-[#E9F8EE] text-green">
             <IconShield size={24} />
