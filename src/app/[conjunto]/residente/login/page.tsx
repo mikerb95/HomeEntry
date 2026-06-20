@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { residentLogin } from "@/app/actions/auth";
 import { Shell } from "@/components/Shell";
 import { BackLink, Label, LoginCard } from "@/components/ui";
