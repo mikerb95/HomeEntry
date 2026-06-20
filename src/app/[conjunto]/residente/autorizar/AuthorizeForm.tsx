@@ -12,7 +12,7 @@ const inputCls =
 
 type Result = { code: string; qr: string; visitor: string; whenStr: string };
 
-export function AuthorizeForm() {
+export function AuthorizeForm({ slug }: { slug: string }) {
   const [visitor, setVisitor] = useState("");
   const [doc, setDoc] = useState("");
   const [plate, setPlate] = useState("");
