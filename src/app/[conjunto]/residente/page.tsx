@@ -83,7 +83,7 @@ export default async function ResidentDashboard({
               Autorizar ingreso
             </Link>
             <Link
-              href="/residente/registro"
+              href={`/${slug}/residente/registro`}
               className="flex items-center gap-2 rounded-[13px] border-[1.5px] border-[#E3E8EF] bg-white px-[18px] py-[13px] text-[14.5px] font-bold text-ink hover:bg-[#F6F8FB]"
             >
               Actualizar WhatsApp
