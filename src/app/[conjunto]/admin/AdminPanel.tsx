@@ -516,6 +516,7 @@ export function AdminPanel(props: Props) {
 
       {cfgOpen && (
         <ConfigModal
+          slug={props.slug}
           initial={{
             name: props.name,
             towers: props.towers,
