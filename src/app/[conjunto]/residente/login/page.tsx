@@ -87,7 +87,7 @@ export default function ResidentLoginPage() {
 
           <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
             <Link
-              href="/residente/registro"
+              href={`/${slug}/residente/registro`}
               className="text-[13.5px] font-bold text-blue"
             >
               ¿Primera vez? Regístrate
