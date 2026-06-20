@@ -59,7 +59,7 @@ export function RegisterForm({
   return (
     <div className="animate-pa-in">
       <Link
-        href={loggedIn ? "/residente" : "/residente/login"}
+        href={loggedIn ? `/${slug}/residente` : `/${slug}/residente/login`}
         className="mb-[18px] inline-flex items-center gap-[7px] rounded-[10px] px-3 py-[7px] text-[13.5px] font-bold text-[#6B7585]"
       >
         ← {loggedIn ? "Volver al panel" : "Ya tengo cuenta"}
