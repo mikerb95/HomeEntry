@@ -1,15 +1,28 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { residents, staffUsers } from "@/db/schema";
-import { getResidentByPhone } from "@/db/queries";
+import {
+  getConjuntoBySlug,
+  getResidentByPhone,
+  getStaff,
+} from "@/db/queries";
 import { hashSecret, verifySecret } from "@/lib/password";
-import { setSessionCookie, clearSessionCookie } from "@/lib/auth";
+import { encryptPII, piiHash } from "@/lib/crypto";
+import {
+  setSessionCookie,
+  clearSessionCookie,
+  getSession,
+} from "@/lib/auth";
 import { digits } from "@/lib/format";
 
 type Result = { ok: boolean; error?: string };
+
+// PIN brute-force protection.
+const MAX_FAILED = 5;
+const LOCK_MINUTES = 15;
 
 function normalizeUser(u: string): string {
   return (u || "")
@@ -20,36 +33,87 @@ function normalizeUser(u: string): string {
 }
 
 export async function residentLogin(
+  slug: string,
   phoneRaw: string,
   pin: string,
 ): Promise<Result> {
+  const conjunto = await getConjuntoBySlug(slug);
+  if (!conjunto) return { ok: false, error: "Conjunto no encontrado" };
+
   const phone = digits(phoneRaw);
-  const resident = await getResidentByPhone(phone);
+  const resident = await getResidentByPhone(conjunto.id, phone);
   if (!resident) {
     return {
       ok: false,
       error: "No encontramos ese número. ¿Primera vez? Regístrate.",
     };
   }
-  if (!verifySecret(pin, resident.pinHash)) {
-    return { ok: false, error: "PIN incorrecto. (demo: 1234)" };
+
+  if (resident.lockedUntil && resident.lockedUntil > new Date()) {
+    return {
+      ok: false,
+      error: "Demasiados intentos. Intenta de nuevo en unos minutos.",
+    };
   }
+
+  if (!verifySecret(pin, resident.pinHash)) {
+    const failed = resident.failedPins + 1;
+    const lockedUntil =
+      failed >= MAX_FAILED
+        ? new Date(Date.now() + LOCK_MINUTES * 60000)
+        : null;
+    await db
+      .update(residents)
+      .set({ failedPins: failed, lockedUntil })
+      .where(
+        and(
+          eq(residents.conjuntoId, conjunto.id),
+          eq(residents.aptoKey, resident.aptoKey),
+        ),
+      );
+    return {
+      ok: false,
+      error: lockedUntil
+        ? "PIN incorrecto. Cuenta bloqueada temporalmente."
+        : "PIN incorrecto.",
+    };
+  }
+
+  // Success — clear any failed-attempt state.
+  if (resident.failedPins !== 0 || resident.lockedUntil) {
+    await db
+      .update(residents)
+      .set({ failedPins: 0, lockedUntil: null })
+      .where(
+        and(
+          eq(residents.conjuntoId, conjunto.id),
+          eq(residents.aptoKey, resident.aptoKey),
+        ),
+      );
+  }
+
   await setSessionCookie({
     role: "resident",
+    conjuntoId: conjunto.id,
+    conjuntoSlug: conjunto.slug,
     aptoKey: resident.aptoKey,
     tower: resident.tower,
     apt: resident.apt,
-    phone: resident.phone,
+    v: resident.sessionVersion,
   });
-  redirect("/residente");
+  redirect(`/${slug}/residente`);
 }
 
 export async function residentRegister(
+  slug: string,
   towerId: string,
   aptId: string,
   phoneRaw: string,
   pin: string,
 ): Promise<Result> {
+  const conjunto = await getConjuntoBySlug(slug);
+  if (!conjunto) return { ok: false, error: "Conjunto no encontrado" };
+
   const phone = digits(phoneRaw);
   if (!towerId || !aptId)
     return { ok: false, error: "Selecciona torre y apartamento" };
@@ -62,57 +126,97 @@ export async function residentRegister(
   const pinHash = hashSecret(digits(pin));
   await db
     .insert(residents)
-    .values({ aptoKey, tower: towerId, apt: aptId, phone, pinHash })
+    .values({
+      conjuntoId: conjunto.id,
+      aptoKey,
+      tower: towerId,
+      apt: aptId,
+      phoneEnc: encryptPII(phone),
+      phoneHash: piiHash(phone),
+      pinHash,
+    })
     .onConflictDoUpdate({
-      target: residents.aptoKey,
-      set: { phone, pinHash, tower: towerId, apt: aptId },
+      target: [residents.conjuntoId, residents.aptoKey],
+      set: {
+        phoneEnc: encryptPII(phone),
+        phoneHash: piiHash(phone),
+        pinHash,
+        tower: towerId,
+        apt: aptId,
+      },
     });
   return { ok: true };
 }
 
 export async function guardLogin(
+  slug: string,
   user: string,
   pass: string,
 ): Promise<Result> {
+  const conjunto = await getConjuntoBySlug(slug);
+  if (!conjunto) return { ok: false, error: "Conjunto no encontrado" };
+
   const username = normalizeUser(user);
-  const rows = await db
-    .select()
-    .from(staffUsers)
-    .where(eq(staffUsers.username, username))
-    .limit(1);
-  const u = rows[0];
+  const u = await getStaff(conjunto.id, username);
   if (!u || u.role !== "guard" || !verifySecret(pass, u.passwordHash)) {
-    return {
-      ok: false,
-      error: "Usuario o clave incorrectos. (demo: portería / 1234)",
-    };
+    return { ok: false, error: "Usuario o clave incorrectos." };
   }
-  await setSessionCookie({ role: "guard", username: u.username });
-  redirect("/porteria");
+  await setSessionCookie({
+    role: "guard",
+    conjuntoId: conjunto.id,
+    conjuntoSlug: conjunto.slug,
+    username: u.username,
+    v: u.sessionVersion,
+  });
+  redirect(`/${slug}/porteria`);
 }
 
 export async function adminLogin(
+  slug: string,
   user: string,
   pass: string,
 ): Promise<Result> {
+  const conjunto = await getConjuntoBySlug(slug);
+  if (!conjunto) return { ok: false, error: "Conjunto no encontrado" };
+
   const username = normalizeUser(user);
-  const rows = await db
-    .select()
-    .from(staffUsers)
-    .where(eq(staffUsers.username, username))
-    .limit(1);
-  const u = rows[0];
+  const u = await getStaff(conjunto.id, username);
   if (!u || u.role !== "admin" || !verifySecret(pass, u.passwordHash)) {
+    return { ok: false, error: "Usuario o contraseña incorrectos." };
+  }
+  await setSessionCookie({
+    role: "admin",
+    conjuntoId: conjunto.id,
+    conjuntoSlug: conjunto.slug,
+    username: u.username,
+    v: u.sessionVersion,
+  });
+  redirect(`/${slug}/admin`);
+}
+
+export async function superadminLogin(
+  user: string,
+  pass: string,
+): Promise<Result> {
+  const envUser = process.env.SUPERADMIN_USER;
+  const envPass = process.env.SUPERADMIN_PASS;
+  if (!envUser || !envPass) {
     return {
       ok: false,
-      error: "Usuario o contraseña incorrectos. (demo: admin / admin)",
+      error: "Superadmin no configurado (SUPERADMIN_USER/PASS).",
     };
   }
-  await setSessionCookie({ role: "admin", username: u.username });
-  redirect("/admin");
+  if (normalizeUser(user) !== normalizeUser(envUser) || pass !== envPass) {
+    return { ok: false, error: "Credenciales incorrectas." };
+  }
+  await setSessionCookie({ role: "superadmin", username: normalizeUser(envUser) });
+  redirect("/superadmin");
 }
 
 export async function logout(): Promise<void> {
+  const s = await getSession();
   await clearSessionCookie();
+  if (s && s.role === "superadmin") redirect("/superadmin/login");
+  if (s && "conjuntoSlug" in s) redirect(`/${s.conjuntoSlug}`);
   redirect("/");
 }
