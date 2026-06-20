@@ -15,11 +15,13 @@ const inputCls =
   "w-full rounded-[13px] border-[1.5px] border-[#E3E8EF] bg-[#F6F8FB] p-[15px] text-[16px] font-semibold outline-none focus:border-blue";
 
 export function RegisterForm({
+  slug,
   towers,
   aptsPerTower,
   prefill,
   loggedIn,
 }: {
+  slug: string;
   towers: number;
   aptsPerTower: number;
   prefill: { tower: string; apt: string; phone: string } | null;
