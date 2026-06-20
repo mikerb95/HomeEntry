@@ -39,7 +39,12 @@ export function ParkingModal({
 
   function save() {
     start(async () => {
-      const res = await assignParking({ spotId: spot.id, plate, aptoKey: apto, kind });
+      const res = await assignParking(slug, {
+        spotId: spot.id,
+        plate,
+        aptoKey: apto,
+        kind,
+      });
       if (!res.ok) {
         show(res.error || "Error", "warn");
         return;
