@@ -3,7 +3,8 @@ import { requireResident } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 import {
-  getConfig,
+  getConjuntoById,
+  getResident,
   listAuthsForApt,
   listEventsForApt,
   listParking,
