@@ -71,12 +71,12 @@ export default async function ResidentDashboard({
               Hola, Apto {session.apt}
             </h1>
             <div className="mt-[3px] text-[14px] font-semibold text-[#8A94A3]">
-              WhatsApp +57 {fmtPhone(session.phone)}
+              WhatsApp +57 {fmtPhone(me?.phone ?? "")}
             </div>
           </div>
           <div className="flex flex-wrap gap-2.5">
             <Link
-              href="/residente/autorizar"
+              href={`/${slug}/residente/autorizar`}
               className="flex items-center gap-2 rounded-[13px] bg-blue px-[18px] py-[13px] text-[14.5px] font-bold text-white shadow-[0_10px_22px_-12px_rgba(47,107,255,.7)] hover:bg-blue-dark"
             >
               <IconAuthorize size={18} />
