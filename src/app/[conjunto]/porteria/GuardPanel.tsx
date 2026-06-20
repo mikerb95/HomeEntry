@@ -167,7 +167,7 @@ export function GuardPanel(props: Props) {
 
   function doConfirm() {
     start(async () => {
-      const res = await confirmAlert({
+      const res = await confirmAlert(props.slug, {
         type: gType,
         tower: gTower,
         apto: gApto,
