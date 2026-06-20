@@ -24,7 +24,7 @@ export function AuthorizeForm({ slug }: { slug: string }) {
 
   function generate() {
     start(async () => {
-      const res = await generateAuth({ visitor, doc, plate, date, time });
+      const res = await generateAuth(slug, { visitor, doc, plate, date, time });
       if (!res.ok) {
         show(res.error || "Error", "warn");
         return;
@@ -47,7 +47,7 @@ export function AuthorizeForm({ slug }: { slug: string }) {
   return (
     <div className="animate-pa-in">
       <Link
-        href="/residente"
+        href={`/${slug}/residente`}
         className="mb-4 inline-flex items-center gap-[7px] rounded-[10px] px-3 py-[7px] text-[13.5px] font-bold text-[#6B7585]"
       >
         ← Volver al panel
