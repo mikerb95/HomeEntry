@@ -21,13 +21,20 @@ import {
 } from "@/lib/meta";
 import { fmtDateTime, fmtPhone, fmtTime, isThisMonth } from "@/lib/format";
 
-export default async function ResidentDashboard() {
-  const session = await requireResident();
-  const [config, myEvents, myParkingAll, myAuths] = await Promise.all([
-    getConfig(),
-    listEventsForApt(session.tower, session.apt),
-    listParking(),
-    listAuthsForApt(session.aptoKey),
+export default async function ResidentDashboard({
+  params,
+}: {
+  params: Promise<{ conjunto: string }>;
+}) {
+  const { conjunto: slug } = await params;
+  const session = await requireResident(slug);
+  const cid = session.conjuntoId;
+  const [config, me, myEvents, myParkingAll, myAuths] = await Promise.all([
+    getConjuntoById(cid),
+    getResident(cid, session.aptoKey),
+    listEventsForApt(cid, session.tower, session.apt),
+    listParking(cid),
+    listAuthsForApt(cid, session.aptoKey),
   ]);
   const myParkings = myParkingAll.filter((p) => p.aptoKey === session.aptoKey);
 
@@ -50,7 +57,7 @@ export default async function ResidentDashboard() {
   return (
     <Shell
       chrome={{
-        title: config.name,
+        title: config?.name ?? "Conjunto",
         sub: `Apto ${session.apt} · Torre ${session.tower.slice(1)}`,
         role: "Residente",
         badgeBg: "#EAF1FF",
