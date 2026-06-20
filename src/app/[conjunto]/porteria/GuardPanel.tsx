@@ -147,7 +147,7 @@ export function GuardPanel(props: Props) {
       return;
     }
     start(async () => {
-      const prep = await prepareAlert({
+      const prep = await prepareAlert(props.slug, {
         type: gType,
         tower: gTower,
         apto: gApto,
