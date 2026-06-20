@@ -2,7 +2,7 @@ import { requireAdmin } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 import {
-  getConfig,
+  getConjuntoById,
   listEvents,
   listParking,
   listResidents,
@@ -12,15 +12,22 @@ import { isToday, todayStr } from "@/lib/format";
 import { Shell } from "@/components/Shell";
 import { AdminPanel } from "./AdminPanel";
 
-export default async function AdminPanelPage() {
-  await requireAdmin();
+export default async function AdminPanelPage({
+  params,
+}: {
+  params: Promise<{ conjunto: string }>;
+}) {
+  const { conjunto: slug } = await params;
+  const session = await requireAdmin(slug);
+  const cid = session.conjuntoId;
   const [config, events, parking, sessions, residents] = await Promise.all([
-    getConfig(),
-    listEvents(),
-    listParking(),
-    listSessions(),
-    listResidents(),
+    getConjuntoById(cid),
+    listEvents(cid),
+    listParking(cid),
+    listSessions(cid),
+    listResidents(cid),
   ]);
+  if (!config) return null;
 
   const totalApts = config.towers * config.aptsPerTower;
   const mVisits = events.filter((e) => e.type === "visita" && isToday(e.ts)).length;
@@ -48,6 +55,7 @@ export default async function AdminPanelPage() {
       }}
     >
       <AdminPanel
+        slug={slug}
         name={config.name}
         towers={config.towers}
         aptsPerTower={config.aptsPerTower}
