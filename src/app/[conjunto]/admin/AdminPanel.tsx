@@ -48,6 +48,7 @@ type Sess = {
 };
 
 type Props = {
+  slug: string;
   name: string;
   towers: number;
   aptsPerTower: number;
