@@ -529,7 +529,7 @@ export function AdminPanel(props: Props) {
       )}
 
       {pkSpot && (
-        <ParkingModal spot={pkSpot} allApts={allApts} onClose={() => setPkSpot(null)} />
+        <ParkingModal slug={props.slug} spot={pkSpot} allApts={allApts} onClose={() => setPkSpot(null)} />
       )}
     </div>
   );
