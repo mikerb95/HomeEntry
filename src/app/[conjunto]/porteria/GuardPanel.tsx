@@ -49,6 +49,7 @@ type Incoming = {
 type AlertType = "visita" | "encomienda" | "mensaje";
 
 type Props = {
+  slug: string;
   complexName: string;
   towers: number;
   aptsPerTower: number;
