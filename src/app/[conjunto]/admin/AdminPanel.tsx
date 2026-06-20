@@ -177,7 +177,7 @@ export function AdminPanel(props: Props) {
 
   function doFree(id: string) {
     start(async () => {
-      await freeParking(id);
+      await freeParking(props.slug, id);
       show("Parqueadero liberado", "ok");
       router.refresh();
     });
