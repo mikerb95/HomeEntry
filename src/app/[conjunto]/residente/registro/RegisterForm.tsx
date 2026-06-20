@@ -40,7 +40,7 @@ export function RegisterForm({
 
   function save() {
     start(async () => {
-      const res = await residentRegister(tower, apt, phone, pin);
+      const res = await residentRegister(slug, tower, apt, phone, pin);
       if (!res.ok) {
         show(res.error || "Error", "warn");
         return;
