@@ -1,43 +1,43 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { authGrants, events } from "@/db/schema";
-import { getConfig, getResident } from "@/db/queries";
+import { getConjuntoById, getResident, logAccess } from "@/db/queries";
 import { requireGuard } from "@/lib/auth";
-import {
-  AlertType,
-  buildMessage,
-  sendWhatsApp,
-} from "@/lib/whatsapp";
+import { AlertType, buildMessage, sendWhatsApp } from "@/lib/whatsapp";
 
 type PrepareResult =
   | { ok: true; phone: string; text: string; apto: string }
   | { ok: false; error: string };
 
-// Build the preview (does not send or log). Mirrors the design's preview step.
-export async function prepareAlert(input: {
-  type: AlertType;
-  tower: string;
-  apto: string;
-  note?: string;
-}): Promise<PrepareResult> {
-  await requireGuard();
+// Build the preview (does not send or log the event). Mirrors the design's
+// preview step. Reading the resident's phone here is recorded in the audit log.
+export async function prepareAlert(
+  slug: string,
+  input: {
+    type: AlertType;
+    tower: string;
+    apto: string;
+    note?: string;
+  },
+): Promise<PrepareResult> {
+  const session = await requireGuard(slug);
+  const cid = session.conjuntoId;
   if (!input.tower || !input.apto)
     return { ok: false, error: "Selecciona torre y apartamento" };
 
   const key = `${input.tower}-${input.apto}`;
-  const resident = await getResident(key);
+  const resident = await getResident(cid, key);
   if (!resident)
-    return {
-      ok: false,
-      error: "Ese apartamento no tiene WhatsApp registrado",
-    };
+    return { ok: false, error: "Ese apartamento no tiene WhatsApp registrado" };
 
-  const cfg = await getConfig();
+  await logAccess(cid, `guard:${session.username}`, "view_phone", key);
+
+  const cfg = await getConjuntoById(cid);
   const place = `${input.tower} - Apto ${input.apto}`;
-  const text = buildMessage(input.type, cfg.name, place, input.note);
+  const text = buildMessage(input.type, cfg?.name ?? "Conjunto", place, input.note);
   return { ok: true, phone: resident.phone, text, apto: key };
 }
 
@@ -45,15 +45,18 @@ type SendResultOut =
   | { ok: true; delivered: boolean; link?: string }
   | { ok: false; error: string };
 
-// Sends (via API if configured) and logs the event.
-export async function confirmAlert(input: {
-  type: AlertType;
-  tower: string;
-  apto: string;
-  note?: string;
-}): Promise<SendResultOut> {
-  await requireGuard();
-  const prep = await prepareAlert(input);
+export async function confirmAlert(
+  slug: string,
+  input: {
+    type: AlertType;
+    tower: string;
+    apto: string;
+    note?: string;
+  },
+): Promise<SendResultOut> {
+  const session = await requireGuard(slug);
+  const cid = session.conjuntoId;
+  const prep = await prepareAlert(slug, input);
   if (!prep.ok) return prep;
 
   const result = await sendWhatsApp(prep.phone, prep.text);
@@ -64,13 +67,14 @@ export async function confirmAlert(input: {
     mensaje: "Mensaje de administración",
   };
   await db.insert(events).values({
+    conjuntoId: cid,
     type: input.type,
     tower: input.tower,
     apto: input.apto,
     detail: `${labels[input.type]} enviado por WhatsApp`,
   });
-  revalidatePath("/porteria");
-  revalidatePath("/admin");
+  revalidatePath(`/${slug}/porteria`);
+  revalidatePath(`/${slug}/admin`);
 
   return result.delivered
     ? { ok: true, delivered: true }
@@ -78,12 +82,16 @@ export async function confirmAlert(input: {
 }
 
 // Confirm a scanned/selected authorization: mark used + log entry.
-export async function confirmScan(authId: string): Promise<{ ok: boolean; error?: string }> {
-  await requireGuard();
+export async function confirmScan(
+  slug: string,
+  authId: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const session = await requireGuard(slug);
+  const cid = session.conjuntoId;
   const rows = await db
     .select()
     .from(authGrants)
-    .where(eq(authGrants.id, authId))
+    .where(and(eq(authGrants.conjuntoId, cid), eq(authGrants.id, authId)))
     .limit(1);
   const a = rows[0];
   if (!a) return { ok: false, error: "Autorización no encontrada" };
@@ -93,14 +101,15 @@ export async function confirmScan(authId: string): Promise<{ ok: boolean; error?
   await db
     .update(authGrants)
     .set({ status: "usado" })
-    .where(eq(authGrants.id, authId));
+    .where(and(eq(authGrants.conjuntoId, cid), eq(authGrants.id, authId)));
   await db.insert(events).values({
+    conjuntoId: cid,
     type: "visita",
     tower: a.tower,
     apto: a.apt,
     detail: `Ingreso autorizado — ${a.visitor}${a.plate ? ` (${a.plate})` : ""}`,
   });
-  revalidatePath("/porteria");
-  revalidatePath("/admin");
+  revalidatePath(`/${slug}/porteria`);
+  revalidatePath(`/${slug}/admin`);
   return { ok: true };
 }
