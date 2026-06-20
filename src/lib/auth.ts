@@ -6,6 +6,10 @@ import {
   signSession,
   verifySession,
 } from "./session";
+import {
+  getResidentVersion,
+  getStaffVersion,
+} from "@/db/queries";
 
 export async function getSession(): Promise<Session | null> {
   const store = await cookies();
@@ -31,20 +35,37 @@ export async function clearSessionCookie(): Promise<void> {
   store.delete(SESSION_COOKIE);
 }
 
-export async function requireResident() {
+// Guards verify, in order: role, that the session belongs to the conjunto in the
+// URL (no cross-tenant access), and that the session has not been revoked.
+export async function requireResident(slug: string) {
   const s = await getSession();
-  if (!s || s.role !== "resident") redirect("/residente/login");
+  if (!s || s.role !== "resident") redirect(`/${slug}/residente/login`);
+  if (s.conjuntoSlug !== slug) redirect(`/${slug}`);
+  const v = await getResidentVersion(s.conjuntoId, s.aptoKey);
+  if (v === null || v !== s.v) redirect(`/${slug}/residente/login`);
   return s;
 }
 
-export async function requireGuard() {
+export async function requireGuard(slug: string) {
   const s = await getSession();
-  if (!s || s.role !== "guard") redirect("/porteria/login");
+  if (!s || s.role !== "guard") redirect(`/${slug}/porteria/login`);
+  if (s.conjuntoSlug !== slug) redirect(`/${slug}`);
+  const v = await getStaffVersion(s.conjuntoId, s.username);
+  if (v === null || v !== s.v) redirect(`/${slug}/porteria/login`);
   return s;
 }
 
-export async function requireAdmin() {
+export async function requireAdmin(slug: string) {
   const s = await getSession();
-  if (!s || s.role !== "admin") redirect("/admin/login");
+  if (!s || s.role !== "admin") redirect(`/${slug}/admin/login`);
+  if (s.conjuntoSlug !== slug) redirect(`/${slug}`);
+  const v = await getStaffVersion(s.conjuntoId, s.username);
+  if (v === null || v !== s.v) redirect(`/${slug}/admin/login`);
+  return s;
+}
+
+export async function requireSuperadmin() {
+  const s = await getSession();
+  if (!s || s.role !== "superadmin") redirect("/superadmin/login");
   return s;
 }
