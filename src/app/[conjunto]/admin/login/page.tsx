@@ -18,7 +18,7 @@ export default function AdminLoginPage() {
   function submit() {
     setErr("");
     start(async () => {
-      const res = await adminLogin(user, pass);
+      const res = await adminLogin(slug, user, pass);
       if (res && !res.ok) setErr(res.error || "Error");
     });
   }
