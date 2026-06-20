@@ -11,6 +11,7 @@ import { digits, fmtPhone } from "@/lib/format";
 import { useToast } from "@/lib/toast";
 
 export default function ResidentLoginPage() {
+  const slug = String(useParams().conjunto);
   const [phone, setPhone] = useState("");
   const [pin, setPin] = useState("");
   const [err, setErr] = useState("");
@@ -20,7 +21,7 @@ export default function ResidentLoginPage() {
   function submit() {
     setErr("");
     start(async () => {
-      const res = await residentLogin(phone, pin);
+      const res = await residentLogin(slug, phone, pin);
       if (res && !res.ok) setErr(res.error || "Error");
     });
   }
@@ -28,7 +29,7 @@ export default function ResidentLoginPage() {
   return (
     <Shell>
       <div className="mx-auto mt-3.5 max-w-[430px] animate-pa-in">
-        <BackLink href="/">← Volver al inicio</BackLink>
+        <BackLink href={`/${slug}`}>← Volver al inicio</BackLink>
         <LoginCard>
           <div className="mb-[18px] flex h-[50px] w-[50px] items-center justify-center rounded-[15px] bg-[#EAF1FF] text-blue">
             <IconUser size={24} />
