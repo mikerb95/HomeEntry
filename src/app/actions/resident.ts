@@ -9,7 +9,12 @@ import { qrDataUrl } from "@/lib/qr";
 import { fmtDateTime } from "@/lib/format";
 
 function makeCode(): string {
-  return randomBytes(3).toString("base64").replace(/[^A-Z0-9]/gi, "").slice(0, 4).toUpperCase().padEnd(4, "X");
+  return randomBytes(3)
+    .toString("base64")
+    .replace(/[^A-Z0-9]/gi, "")
+    .slice(0, 4)
+    .toUpperCase()
+    .padEnd(4, "X");
 }
 
 type GenResult =
@@ -22,14 +27,17 @@ type GenResult =
     }
   | { ok: false; error: string };
 
-export async function generateAuth(input: {
-  visitor: string;
-  doc: string;
-  plate: string;
-  date: string;
-  time: string;
-}): Promise<GenResult> {
-  const session = await requireResident();
+export async function generateAuth(
+  slug: string,
+  input: {
+    visitor: string;
+    doc: string;
+    plate: string;
+    date: string;
+    time: string;
+  },
+): Promise<GenResult> {
+  const session = await requireResident(slug);
   if (!input.visitor.trim())
     return { ok: false, error: "Ingresa el nombre del visitante" };
 
@@ -42,6 +50,7 @@ export async function generateAuth(input: {
 
   const code = makeCode();
   await db.insert(authGrants).values({
+    conjuntoId: session.conjuntoId,
     code,
     aptoKey: session.aptoKey,
     tower: session.tower,
@@ -53,7 +62,7 @@ export async function generateAuth(input: {
     status: "vigente",
   });
 
-  revalidatePath("/residente");
+  revalidatePath(`/${slug}/residente`);
   return {
     ok: true,
     code,
