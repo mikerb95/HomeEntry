@@ -188,7 +188,7 @@ export function RegisterForm({
                   La portería ahora podrá notificarte a este número.
                 </div>
                 <Link
-                  href="/residente/login"
+                  href={`/${slug}/residente/login`}
                   className="inline-block rounded-[11px] bg-green px-4 py-[9px] text-[13.5px] font-bold text-white"
                 >
                   Iniciar sesión →
