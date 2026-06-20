@@ -8,6 +8,7 @@ import { BackLink, Label, LoginCard } from "@/components/ui";
 import { IconAdminGrid } from "@/components/icons";
 
 export default function AdminLoginPage() {
+  const slug = String(useParams().conjunto);
   const [user, setUser] = useState("");
   const [pass, setPass] = useState("");
   const [remember, setRemember] = useState(true);
