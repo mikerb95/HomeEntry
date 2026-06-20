@@ -1,28 +1,32 @@
 import { db } from "./index";
 import {
-  config,
+  accessLog,
+  authGrants,
+  conjuntos,
+  events,
+  parkingSessions,
+  parkingSpots,
   residents,
   staffUsers,
-  parkingSpots,
-  events,
-  authGrants,
-  parkingSessions,
 } from "./schema";
 import { hashSecret } from "../lib/password";
+import { encryptPII, piiHash } from "../lib/crypto";
 
 async function main() {
   console.log("Seeding database…");
 
-  // Wipe (idempotent reseed)
+  // Wipe (idempotent reseed). Order respects FKs.
+  await db.delete(accessLog);
   await db.delete(parkingSessions);
   await db.delete(authGrants);
   await db.delete(events);
   await db.delete(parkingSpots);
   await db.delete(staffUsers);
   await db.delete(residents);
-  await db.delete(config);
+  await db.delete(conjuntos);
 
   const cfg = {
+    slug: "laspalmas",
     name: "Conjunto Las Acacias",
     towers: 3,
     aptsPerTower: 8,
@@ -30,9 +34,13 @@ async function main() {
     motoSpots: 8,
     visitorRate: 3000,
   };
-  await db.insert(config).values({ id: 1, ...cfg });
+  const [conjunto] = await db
+    .insert(conjuntos)
+    .values(cfg)
+    .returning({ id: conjuntos.id });
+  const cid = conjunto.id;
 
-  // Registry + PINs
+  // Registry + PINs (phones stored encrypted + hashed for lookup).
   const registry: Record<string, string> = {
     "T1-101": "3014567890",
     "T1-103": "3126549870",
@@ -45,14 +53,32 @@ async function main() {
   await db.insert(residents).values(
     Object.entries(registry).map(([key, phone]) => {
       const [tower, apt] = key.split("-");
-      return { aptoKey: key, tower, apt, phone, pinHash };
+      return {
+        conjuntoId: cid,
+        aptoKey: key,
+        tower,
+        apt,
+        phoneEnc: encryptPII(phone),
+        phoneHash: piiHash(phone),
+        pinHash,
+      };
     }),
   );
 
   // Staff (username stored normalized, accent-free)
   await db.insert(staffUsers).values([
-    { username: "porteria", passwordHash: hashSecret("1234"), role: "guard" },
-    { username: "admin", passwordHash: hashSecret("admin"), role: "admin" },
+    {
+      conjuntoId: cid,
+      username: "porteria",
+      passwordHash: hashSecret("1234"),
+      role: "guard",
+    },
+    {
+      conjuntoId: cid,
+      username: "admin",
+      passwordHash: hashSecret("admin"),
+      role: "admin",
+    },
   ]);
 
   // Parking
@@ -77,6 +103,7 @@ async function main() {
     const id = "P-" + String(i).padStart(2, "0");
     const s = carSeed[id];
     spots.push({
+      conjuntoId: cid,
       id,
       kind: "car",
       status: s ? s.status : "free",
@@ -88,6 +115,7 @@ async function main() {
     const id = "M-" + String(i).padStart(2, "0");
     const s = motoSeed[id];
     spots.push({
+      conjuntoId: cid,
       id,
       kind: "moto",
       status: s ? s.status : "free",
@@ -105,7 +133,14 @@ async function main() {
     tower: string,
     apto: string,
     detail: string,
-  ) => ({ ts: new Date(now - min * 60000), type, tower, apto, detail });
+  ) => ({
+    conjuntoId: cid,
+    ts: new Date(now - min * 60000),
+    type,
+    tower,
+    apto,
+    detail,
+  });
   await db.insert(events).values([
     ev(4, "visita", "T1", "101", "Visita autorizada — Carlos Méndez"),
     ev(22, "encomienda", "T2", "102", "Paquete de Servientrega"),
@@ -140,22 +175,27 @@ async function main() {
   const sessions: (typeof parkingSessions.$inferInsert)[] = [];
   for (let i = 0; i < 64; i++) {
     const daysAgo = Math.floor(rr() * 30);
-    const start =
-      now - daysAgo * 86400000 - Math.floor(rr() * 9) * 3600000;
+    const start = now - daysAgo * 86400000 - Math.floor(rr() * 9) * 3600000;
     const type = rr() > 0.45 ? "resident" : "visitor";
     const apto = aptoPool[Math.floor(rr() * aptoPool.length)];
     const kind = rr() > 0.72 ? "moto" : "car";
     const hours =
-      type === "visitor"
-        ? 1 + Math.floor(rr() * 6)
-        : 2 + Math.floor(rr() * 10);
-    sessions.push({ type, aptoKey: apto, kind, hours, start: new Date(start) });
+      type === "visitor" ? 1 + Math.floor(rr() * 6) : 2 + Math.floor(rr() * 10);
+    sessions.push({
+      conjuntoId: cid,
+      type,
+      aptoKey: apto,
+      kind,
+      hours,
+      start: new Date(start),
+    });
   }
   await db.insert(parkingSessions).values(sessions);
 
   // Authorizations
   await db.insert(authGrants).values([
     {
+      conjuntoId: cid,
       code: "8KQ2",
       aptoKey: "T1-101",
       tower: "T1",
@@ -168,6 +208,7 @@ async function main() {
       status: "vigente",
     },
     {
+      conjuntoId: cid,
       code: "3MZ9",
       aptoKey: "T1-101",
       tower: "T1",
@@ -180,6 +221,7 @@ async function main() {
       status: "vencido",
     },
     {
+      conjuntoId: cid,
       code: "7TX5",
       aptoKey: "T2-102",
       tower: "T2",
@@ -193,7 +235,7 @@ async function main() {
     },
   ]);
 
-  console.log("Seed complete.");
+  console.log(`Seed complete. Conjunto "/${cfg.slug}" listo.`);
   process.exit(0);
 }
 
