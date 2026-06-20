@@ -2,10 +2,34 @@ import { SignJWT, jwtVerify } from "jose";
 
 export const SESSION_COOKIE = "portal_session";
 
+// `v` is the session version snapshot — compared against the DB row so a
+// resident/staff account can be force-logged-out by bumping its sessionVersion.
+// Note: no PII (phone, etc.) is stored in the token; it is resolved server-side.
 export type Session =
-  | { role: "resident"; aptoKey: string; tower: string; apt: string; phone: string }
-  | { role: "guard"; username: string }
-  | { role: "admin"; username: string };
+  | {
+      role: "resident";
+      conjuntoId: string;
+      conjuntoSlug: string;
+      aptoKey: string;
+      tower: string;
+      apt: string;
+      v: number;
+    }
+  | {
+      role: "guard";
+      conjuntoId: string;
+      conjuntoSlug: string;
+      username: string;
+      v: number;
+    }
+  | {
+      role: "admin";
+      conjuntoId: string;
+      conjuntoSlug: string;
+      username: string;
+      v: number;
+    }
+  | { role: "superadmin"; username: string };
 
 function secret(): Uint8Array {
   const s = process.env.AUTH_SECRET;
