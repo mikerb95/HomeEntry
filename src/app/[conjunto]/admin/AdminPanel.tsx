@@ -171,7 +171,7 @@ export function AdminPanel(props: Props) {
     const value = Math.max(0, parseInt(v.replace(/\D/g, "") || "0", 10));
     setRate(value);
     start(async () => {
-      await updateRate(String(value));
+      await updateRate(props.slug, String(value));
     });
   }
 
