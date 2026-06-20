@@ -57,7 +57,7 @@ export function ParkingModal({
 
   function free() {
     start(async () => {
-      await freeParking(spot.id);
+      await freeParking(slug, spot.id);
       show("Parqueadero liberado", "ok");
       onClose();
       router.refresh();
