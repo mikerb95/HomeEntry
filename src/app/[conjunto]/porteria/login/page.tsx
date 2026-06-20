@@ -8,6 +8,7 @@ import { BackLink, Label, LoginCard } from "@/components/ui";
 import { IconShield } from "@/components/icons";
 
 export default function GuardLoginPage() {
+  const slug = String(useParams().conjunto);
   const [user, setUser] = useState("");
   const [pass, setPass] = useState("");
   const [err, setErr] = useState("");
