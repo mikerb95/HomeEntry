@@ -187,7 +187,7 @@ export function GuardPanel(props: Props) {
   function doScanConfirm() {
     if (!scan) return;
     start(async () => {
-      const res = await confirmScan(scan.id);
+      const res = await confirmScan(props.slug, scan.id);
       if (res.ok) show("Ingreso confirmado", "ok");
       else show(res.error || "Error", "warn");
       setScanId(null);
