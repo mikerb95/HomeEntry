@@ -15,10 +15,12 @@ export type ModalSpot = {
 };
 
 export function ParkingModal({
+  slug,
   spot,
   allApts,
   onClose,
 }: {
+  slug: string;
   spot: ModalSpot;
   allApts: { id: string; label: string }[];
   onClose: () => void;
