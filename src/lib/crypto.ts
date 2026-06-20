@@ -1,4 +1,6 @@
-import "server-only";
+// NOTE: not marked "server-only" because the seed script (tsx) imports it.
+// It is effectively server-side anyway: it relies on Node's crypto module and
+// the PII_SECRET env var, neither of which exist in the browser.
 import {
   createCipheriv,
   createDecipheriv,
