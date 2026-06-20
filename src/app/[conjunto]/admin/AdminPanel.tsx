@@ -628,9 +628,11 @@ function PagerBtn({
 }
 
 function ConfigModal({
+  slug,
   initial,
   onClose,
 }: {
+  slug: string;
   initial: {
     name: string;
     towers: number;
@@ -655,7 +657,7 @@ function ConfigModal({
 
   function apply() {
     start(async () => {
-      await updateConfig({
+      await updateConfig(slug, {
         name,
         towers,
         aptsPerTower: apts,
