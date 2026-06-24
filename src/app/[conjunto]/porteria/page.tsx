@@ -30,8 +30,11 @@ export default async function GuardPanelPage({
     listResidents(cid),
   ]);
 
-  const registry: Record<string, string> = {};
-  residents.forEach((r) => (registry[r.aptoKey] = r.phone));
+  // Only expose whether an apartment has a WhatsApp on file — never the numbers
+  // themselves. The actual phone is resolved on demand by prepareAlert, which
+  // records the access in access_log (auditoria1.MD S-3).
+  const hasWhatsApp: Record<string, boolean> = {};
+  residents.forEach((r) => (hasWhatsApp[r.aptoKey] = !!r.phone));
 
   const incoming = await Promise.all(
     auths
