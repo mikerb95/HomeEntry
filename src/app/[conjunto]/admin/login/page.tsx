@@ -83,16 +83,18 @@ export default function AdminLoginPage() {
           >
             {pending ? "Ingresando…" : "Ingresar"}
           </button>
-          <button
-            onClick={() => {
-              setUser("admin");
-              setPass("admin");
-              setErr("");
-            }}
-            className="mt-3.5 w-full rounded-[12px] border border-dashed border-[#C9D2DE] bg-[#F0F3F8] p-[11px] text-[13px] font-bold text-[#5B6675]"
-          >
-            Usar datos de prueba (admin · admin)
-          </button>
+          {DEMO && (
+            <button
+              onClick={() => {
+                setUser("admin");
+                setPass("admin");
+                setErr("");
+              }}
+              className="mt-3.5 w-full rounded-[12px] border border-dashed border-[#C9D2DE] bg-[#F0F3F8] p-[11px] text-[13px] font-bold text-[#5B6675]"
+            >
+              Usar datos de prueba (admin · admin)
+            </button>
+          )}
         </LoginCard>
       </div>
     </Shell>

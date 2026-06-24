@@ -7,6 +7,9 @@ import { Shell } from "@/components/Shell";
 import { BackLink, Label, LoginCard } from "@/components/ui";
 import { IconShield } from "@/components/icons";
 
+// Demo-only auto-fill never renders in production.
+const DEMO = process.env.NODE_ENV !== "production";
+
 export default function GuardLoginPage() {
   const slug = String(useParams().conjunto);
   const [user, setUser] = useState("");
