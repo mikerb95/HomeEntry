@@ -5,8 +5,11 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["src/**/*.test.ts"],
-    // crypto.ts reads PII_SECRET at use-time; give the suite a stable key.
-    env: { PII_SECRET: "test-pii-secret-value-do-not-use-in-prod" },
+    // crypto.ts / otp.ts read these at use-time; give the suite stable values.
+    env: {
+      PII_SECRET: "test-pii-secret-value-do-not-use-in-prod",
+      AUTH_SECRET: "test-auth-secret-value-at-least-32-chars-long",
+    },
   },
   resolve: {
     alias: {

@@ -2,6 +2,15 @@ export function digits(s: string | null | undefined): string {
   return (s || "").replace(/\D/g, "");
 }
 
+// Trim + hard length cap for free-text fields persisted from user input, so a
+// single field can't be used to store unbounded content (auditoria1.MD S-11).
+export function clampText(
+  s: string | null | undefined,
+  max: number,
+): string {
+  return (s || "").trim().slice(0, max);
+}
+
 export function fmtPhone(p: string | null | undefined): string {
   const d = digits(p);
   return d.length === 10

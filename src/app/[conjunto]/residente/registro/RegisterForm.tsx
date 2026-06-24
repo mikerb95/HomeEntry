@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
-import { residentRegister } from "@/app/actions/auth";
+import { requestRegisterOtp, verifyRegisterOtp } from "@/app/actions/auth";
 import { Label } from "@/components/ui";
 import { IconCheck } from "@/components/icons";
 import { towersArr, aptsArr } from "@/lib/meta";
@@ -45,21 +45,45 @@ export function RegisterForm({
   const [phone, setPhone] = useState(prefill?.phone ?? "");
   const [pin, setPin] = useState("");
   const [done, setDone] = useState(false);
+  // OTP step: once a code is requested we hold the signed token and switch the
+  // card to the code-entry view until it is verified.
+  const [token, setToken] = useState<string | null>(null);
+  const [code, setCode] = useState("");
   const [pending, start] = useTransition();
   const show = useToast((s) => s.show);
 
   const towerList = towersArr(towers);
   const aptList = aptsArr(aptsPerTower, tower);
 
-  function save() {
+  function requestOtp() {
     start(async () => {
-      const res = await residentRegister(slug, tower, apt, phone, pin);
+      const res = await requestRegisterOtp(slug, tower, apt, phone, pin);
+      if (!res.ok || !res.token) {
+        show(res.error || "Error", "warn");
+        return;
+      }
+      setToken(res.token);
+      setCode("");
+      show(
+        res.devCode
+          ? `Demo: tu código es ${res.devCode}`
+          : "Te enviamos un código por WhatsApp",
+        "ok",
+      );
+    });
+  }
+
+  function verifyOtp() {
+    if (!token) return;
+    start(async () => {
+      const res = await verifyRegisterOtp(token, code);
       if (!res.ok) {
         show(res.error || "Error", "warn");
         return;
       }
+      setToken(null);
       setDone(true);
-      show("Contacto guardado correctamente", "ok");
+      show("Contacto verificado correctamente", "ok");
     });
   }
 
@@ -104,95 +128,146 @@ export function RegisterForm({
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            save();
+            if (token) verifyOtp();
+            else requestOtp();
           }}
           className="mt-6 rounded-[24px] border border-[#E6EBF2] bg-white p-8 shadow-[0_18px_44px_-26px_rgba(15,20,26,.34)] min-[780px]:mt-0"
         >
-          <Label htmlFor="reg-tower">Selecciona tu torre</Label>
-          <div className="relative mb-4">
-            <select
-              id="reg-tower"
-              value={tower}
-              onChange={(e) => {
-                setTower(e.target.value);
-                setApt("");
-                setDone(false);
-              }}
-              className={selectCls}
-            >
-              <option value="">Selecciona tu torre…</option>
-              {towerList.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.label}
-                </option>
-              ))}
-            </select>
-            <Chevron />
-          </div>
+          {!token && !done && (
+            <>
+              <Label htmlFor="reg-tower">Selecciona tu torre</Label>
+              <div className="relative mb-4">
+                <select
+                  id="reg-tower"
+                  value={tower}
+                  onChange={(e) => {
+                    setTower(e.target.value);
+                    setApt("");
+                    setDone(false);
+                  }}
+                  className={selectCls}
+                >
+                  <option value="">Selecciona tu torre…</option>
+                  {towerList.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.label}
+                    </option>
+                  ))}
+                </select>
+                <Chevron />
+              </div>
 
-          <Label htmlFor="reg-apt">Selecciona tu apartamento</Label>
-          <div className="relative mb-4">
-            <select
-              id="reg-apt"
-              value={apt}
-              disabled={!tower}
-              onChange={(e) => {
-                setApt(e.target.value);
-                setDone(false);
-              }}
-              className={`${selectCls} disabled:opacity-60`}
-            >
-              <option value="">Selecciona tu apartamento…</option>
-              {aptList.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.label}
-                </option>
-              ))}
-            </select>
-            <Chevron />
-          </div>
+              <Label htmlFor="reg-apt">Selecciona tu apartamento</Label>
+              <div className="relative mb-4">
+                <select
+                  id="reg-apt"
+                  value={apt}
+                  disabled={!tower}
+                  onChange={(e) => {
+                    setApt(e.target.value);
+                    setDone(false);
+                  }}
+                  className={`${selectCls} disabled:opacity-60`}
+                >
+                  <option value="">Selecciona tu apartamento…</option>
+                  {aptList.map((a) => (
+                    <option key={a.id} value={a.id}>
+                      {a.label}
+                    </option>
+                  ))}
+                </select>
+                <Chevron />
+              </div>
 
-          <Label htmlFor="reg-phone">Número de celular (WhatsApp)</Label>
-          <div className="mb-4 flex gap-2.5">
-            <div className="flex items-center rounded-[13px] border-[1.5px] border-[#E3E8EF] bg-[#F6F8FB] px-3.5 text-[16px] font-bold text-[#5B6675]">
-              +57
+              <Label htmlFor="reg-phone">Número de celular (WhatsApp)</Label>
+              <div className="mb-4 flex gap-2.5">
+                <div className="flex items-center rounded-[13px] border-[1.5px] border-[#E3E8EF] bg-[#F6F8FB] px-3.5 text-[16px] font-bold text-[#5B6675]">
+                  +57
+                </div>
+                <input
+                  id="reg-phone"
+                  value={fmtPhone(phone)}
+                  onChange={(e) => {
+                    setPhone(digits(e.target.value).slice(0, 10));
+                    setDone(false);
+                  }}
+                  inputMode="numeric"
+                  autoComplete="tel-national"
+                  placeholder="300 123 4567"
+                  className={`flex-1 ${inputCls}`}
+                />
+              </div>
+
+              <Label htmlFor="reg-pin">Crea tu PIN (4 dígitos)</Label>
+              <input
+                id="reg-pin"
+                value={pin}
+                onChange={(e) => {
+                  setPin(digits(e.target.value).slice(0, 4));
+                  setDone(false);
+                }}
+                type="password"
+                inputMode="numeric"
+                autoComplete="new-password"
+                placeholder="••••"
+                className={`mb-[22px] tracking-[4px] text-[18px] ${inputCls}`}
+              />
+
+              <button
+                type="submit"
+                disabled={pending}
+                className="w-full rounded-[14px] bg-blue p-[17px] text-[16px] font-extrabold tracking-[.3px] text-white shadow-[0_10px_22px_-10px_rgba(47,107,255,.7)] hover:bg-blue-dark disabled:opacity-70"
+              >
+                ENVIAR CÓDIGO POR WHATSAPP
+              </button>
+            </>
+          )}
+
+          {token && !done && (
+            <div className="animate-pa-in">
+              <Label htmlFor="reg-otp">Código de verificación</Label>
+              <p className="mb-3 text-[13.5px] leading-[1.45] text-[#5B6675]">
+                Ingresa el código de 6 dígitos que enviamos por WhatsApp al{" "}
+                <span className="font-bold text-ink">+57 {fmtPhone(phone)}</span>.
+              </p>
+              <input
+                id="reg-otp"
+                value={code}
+                onChange={(e) => setCode(digits(e.target.value).slice(0, 6))}
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                placeholder="••••••"
+                className={`mb-[22px] text-center text-[22px] tracking-[10px] ${inputCls}`}
+              />
+              <button
+                type="submit"
+                disabled={pending || code.length < 6}
+                className="w-full rounded-[14px] bg-blue p-[17px] text-[16px] font-extrabold tracking-[.3px] text-white shadow-[0_10px_22px_-10px_rgba(47,107,255,.7)] hover:bg-blue-dark disabled:opacity-70"
+              >
+                VERIFICAR Y GUARDAR
+              </button>
+              <div className="mt-4 flex items-center justify-between gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setToken(null);
+                    setCode("");
+                  }}
+                  className="text-[13.5px] font-bold text-[#6B7585]"
+                >
+                  ← Editar datos
+                </button>
+                <button
+                  type="button"
+                  onClick={requestOtp}
+                  disabled={pending}
+                  className="text-[13.5px] font-bold text-blue disabled:opacity-60"
+                >
+                  Reenviar código
+                </button>
+              </div>
             </div>
-            <input
-              id="reg-phone"
-              value={fmtPhone(phone)}
-              onChange={(e) => {
-                setPhone(digits(e.target.value).slice(0, 10));
-                setDone(false);
-              }}
-              inputMode="numeric"
-              autoComplete="tel-national"
-              placeholder="300 123 4567"
-              className={`flex-1 ${inputCls}`}
-            />
-          </div>
-
-          <Label htmlFor="reg-pin">Crea tu PIN (4 dígitos)</Label>
-          <input
-            id="reg-pin"
-            value={pin}
-            onChange={(e) => {
-              setPin(digits(e.target.value).slice(0, 4));
-              setDone(false);
-            }}
-            type="password"
-            inputMode="numeric"
-            autoComplete="new-password"
-            placeholder="••••"
-            className={`mb-[22px] tracking-[4px] text-[18px] ${inputCls}`}
-          />
-
-          <button
-            type="submit"
-            disabled={pending}
-            className="w-full rounded-[14px] bg-blue p-[17px] text-[16px] font-extrabold tracking-[.3px] text-white shadow-[0_10px_22px_-10px_rgba(47,107,255,.7)] hover:bg-blue-dark disabled:opacity-70"
-          >
-            GUARDAR / ACTUALIZAR CONTACTO
-          </button>
+          )}
 
           {done && (
             <div className="mt-[18px] flex animate-pa-in items-start gap-3 rounded-[15px] border border-[#B7E6C7] bg-[#E9F8EE] p-4">

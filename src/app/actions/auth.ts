@@ -19,6 +19,13 @@ import {
 } from "@/lib/auth";
 import { digits } from "@/lib/format";
 import { isLocked, recordFailure, recordSuccess } from "@/lib/throttle";
+import {
+  makeOtpCode,
+  hashOtpCode,
+  signOtpToken,
+  verifyOtpToken,
+} from "@/lib/otp";
+import { sendWhatsApp } from "@/lib/whatsapp";
 import { createHash, timingSafeEqual } from "crypto";
 
 type Result = { ok: boolean; error?: string };
@@ -117,13 +124,18 @@ export async function residentLogin(
   redirect(`/${slug}/residente`);
 }
 
-export async function residentRegister(
+// Step 1 of registration: validate, enforce the create-only ownership rule,
+// and send a one-time code to the WhatsApp number. Nothing is written to the DB
+// here — the pending registration lives in a short-lived signed token so we can
+// only persist it once the code (delivered to the phone) is verified. This is
+// what proves the caller owns the number and closes the takeover path (S-1/S-5).
+export async function requestRegisterOtp(
   slug: string,
   towerId: string,
   aptId: string,
   phoneRaw: string,
   pin: string,
-): Promise<Result> {
+): Promise<{ ok: boolean; token?: string; devCode?: string; error?: string }> {
   const conjunto = await getConjuntoBySlug(slug);
   if (!conjunto) return { ok: false, error: "Conjunto no encontrado" };
 
@@ -136,12 +148,9 @@ export async function residentRegister(
     return { ok: false, error: "Crea un PIN de 4 dígitos" };
 
   const aptoKey = `${towerId}-${aptId}`;
-  const pinHash = hashSecret(digits(pin));
 
-  // Account-takeover guard: registration is *create-only*. An existing
-  // apartment can only be updated by its own authenticated resident — never by
-  // an anonymous caller selecting someone else's tower/apt. (See auditoria1.MD
-  // S-1; full ownership proof should move to a WhatsApp OTP flow.)
+  // An existing apartment can only be re-registered by its own authenticated
+  // resident; an anonymous caller picking someone else's tower/apt is refused.
   const existing = await getResident(conjunto.id, aptoKey);
   if (existing) {
     const s = await getSession();
@@ -156,33 +165,79 @@ export async function residentRegister(
           "Este apartamento ya está registrado. Inicia sesión para actualizar tus datos.",
       };
     }
-    await db
-      .update(residents)
-      .set({
-        phoneEnc: encryptPII(phone),
-        phoneHash: piiHash(phone),
-        pinHash,
-        tower: towerId,
-        apt: aptId,
-      })
-      .where(
-        and(
-          eq(residents.conjuntoId, conjunto.id),
-          eq(residents.aptoKey, aptoKey),
-        ),
-      );
-    return { ok: true };
   }
 
-  await db.insert(residents).values({
+  const code = makeOtpCode();
+  const token = await signOtpToken({
+    purpose: "register-otp",
     conjuntoId: conjunto.id,
+    slug: conjunto.slug,
     aptoKey,
     tower: towerId,
     apt: aptId,
     phoneEnc: encryptPII(phone),
     phoneHash: piiHash(phone),
-    pinHash,
+    pinHash: hashSecret(digits(pin)),
+    codeHash: hashOtpCode(code),
   });
+
+  const send = await sendWhatsApp(
+    phone,
+    `Tu código de verificación para ${conjunto.name} es ${code}. Vence en 10 minutos.`,
+  );
+
+  // Without Meta WhatsApp credentials a code cannot actually be delivered, so in
+  // non-production we surface it to keep the flow testable (mirrors the demo
+  // affordances). In production this requires WHATSAPP_TOKEN/WHATSAPP_PHONE_ID.
+  const devCode =
+    process.env.NODE_ENV !== "production" && !send.delivered ? code : undefined;
+  return { ok: true, token, devCode };
+}
+
+// Step 2: verify the code against the signed token and only then persist the
+// resident (insert, or update for the authenticated owner).
+export async function verifyRegisterOtp(
+  token: string,
+  code: string,
+): Promise<Result> {
+  const claims = await verifyOtpToken(token);
+  if (!claims)
+    return { ok: false, error: "El código expiró. Solicítalo de nuevo." };
+
+  const throttleKey = `otp:${claims.conjuntoId}:${claims.aptoKey}`;
+  if (isLocked(throttleKey)) return { ok: false, error: LOCKED_MSG };
+
+  if (!safeEqual(hashOtpCode(digits(code)), claims.codeHash)) {
+    const locked = recordFailure(throttleKey);
+    return { ok: false, error: locked ? LOCKED_MSG : "Código incorrecto." };
+  }
+  recordSuccess(throttleKey);
+
+  const fields = {
+    phoneEnc: claims.phoneEnc,
+    phoneHash: claims.phoneHash,
+    pinHash: claims.pinHash,
+    tower: claims.tower,
+    apt: claims.apt,
+  };
+  const existing = await getResident(claims.conjuntoId, claims.aptoKey);
+  if (existing) {
+    await db
+      .update(residents)
+      .set(fields)
+      .where(
+        and(
+          eq(residents.conjuntoId, claims.conjuntoId),
+          eq(residents.aptoKey, claims.aptoKey),
+        ),
+      );
+  } else {
+    await db.insert(residents).values({
+      conjuntoId: claims.conjuntoId,
+      aptoKey: claims.aptoKey,
+      ...fields,
+    });
+  }
   return { ok: true };
 }
 

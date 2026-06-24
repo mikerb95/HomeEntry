@@ -6,6 +6,7 @@ import { conjuntos, parkingSpots, staffUsers } from "@/db/schema";
 import { getConjuntoBySlug } from "@/db/queries";
 import { requireSuperadmin } from "@/lib/auth";
 import { hashSecret } from "@/lib/password";
+import { clampText } from "@/lib/format";
 
 type Result = { ok: boolean; error?: string };
 
@@ -65,7 +66,7 @@ export async function createConjunto(input: {
   if (await getConjuntoBySlug(slug))
     return { ok: false, error: "Ya existe un conjunto con ese identificador" };
 
-  const name = (input.name || "").trim();
+  const name = clampText(input.name, 80);
   if (!name) return { ok: false, error: "Ingresa el nombre del conjunto" };
 
   const adminUser = normalizeUser(input.adminUser);

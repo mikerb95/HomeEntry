@@ -6,6 +6,7 @@ import { db } from "@/db";
 import { authGrants, events } from "@/db/schema";
 import { getConjuntoById, getResident, logAccess } from "@/db/queries";
 import { requireGuard } from "@/lib/auth";
+import { clampText } from "@/lib/format";
 import { isGrantExpired } from "@/lib/code";
 import { AlertType, buildMessage, sendWhatsApp } from "@/lib/whatsapp";
 
@@ -36,7 +37,8 @@ async function resolveAlert(
 
   const cfg = await getConjuntoById(cid);
   const place = `${input.tower} - Apto ${input.apto}`;
-  const text = buildMessage(input.type, cfg?.name ?? "Conjunto", place, input.note);
+  const note = clampText(input.note, 280);
+  const text = buildMessage(input.type, cfg?.name ?? "Conjunto", place, note);
   return { ok: true, phone: resident.phone, text, apto: key };
 }
 

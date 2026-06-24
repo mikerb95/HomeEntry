@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useParams } from "next/navigation";
 import { adminLogin } from "@/app/actions/auth";
 import { Shell } from "@/components/Shell";
@@ -17,6 +17,11 @@ export default function AdminLoginPage() {
   const [remember, setRemember] = useState(true);
   const [err, setErr] = useState("");
   const [pending, start] = useTransition();
+  const errRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (err) errRef.current?.focus();
+  }, [err]);
 
   function submit() {
     setErr("");
@@ -83,8 +88,10 @@ export default function AdminLoginPage() {
             </label>
             {err && (
               <div
+                ref={errRef}
+                tabIndex={-1}
                 role="alert"
-                className="mt-2.5 text-[13px] font-semibold text-[#DC2626]"
+                className="mt-2.5 text-[13px] font-semibold text-[#DC2626] outline-none"
               >
                 {err}
               </div>

@@ -1,5 +1,6 @@
 import "server-only";
-import { and, asc, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, lt } from "drizzle-orm";
+import { GRANT_GRACE_MS } from "@/lib/code";
 import { db } from "./index";
 import {
   accessLog,
@@ -194,7 +195,25 @@ export async function listSessions(conjuntoId: string) {
 
 // --- Authorizations ------------------------------------------------------
 
+// Idempotent sweep: flip still-"vigente" grants whose visit time is past the
+// grace window to "vencido". Runs before listing so the persisted status stays
+// truthful for the admin audit views, not just at scan time (auditoria1.MD S-8).
+async function expireStaleGrants(conjuntoId: string): Promise<void> {
+  const cutoff = new Date(Date.now() - GRANT_GRACE_MS);
+  await db
+    .update(authGrants)
+    .set({ status: "vencido" })
+    .where(
+      and(
+        eq(authGrants.conjuntoId, conjuntoId),
+        eq(authGrants.status, "vigente"),
+        lt(authGrants.whenTs, cutoff),
+      ),
+    );
+}
+
 export async function listAuths(conjuntoId: string) {
+  await expireStaleGrants(conjuntoId);
   return db
     .select()
     .from(authGrants)
@@ -203,6 +222,7 @@ export async function listAuths(conjuntoId: string) {
 }
 
 export async function listAuthsForApt(conjuntoId: string, aptoKey: string) {
+  await expireStaleGrants(conjuntoId);
   return db
     .select()
     .from(authGrants)

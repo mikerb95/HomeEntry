@@ -26,30 +26,32 @@ junto con un conjunto amplio de mejoras de seguridad, accesibilidad y calidad.
 | Severidad | Total | ✅ Resuelto | 🟡 Parcial | ⏳ Pendiente |
 |-----------|-------|------------|-----------|-------------|
 | 🔴 Crítico | 2 | 2 | – | – |
-| 🟠 Alto | 4 | 3 | 1 (S-5) | – |
+| 🟠 Alto | 4 | 4 | – | – |
 | 🟡 Medio | 8 | 8 | – | – |
-| 🟢 Bajo / mejora | 11 | 6 | 1 (UX-4) | 4 |
+| 🟢 Bajo / mejora | 11 | 4 | 1 (A11Y-4) | 6 |
 
-**Resueltos:** S-1, S-2, S-3, S-4, S-6, S-7, S-8, S-9, S-10, S-12, UX-1, UX-2, UX-3, UX-5, UX-6,
-A11Y-1, A11Y-2, A11Y-3, A11Y-5, BP-1 (base), BP-2, + bug `Chevron` en render.
-**Parcial:** S-5 (mitigado por throttle; falta 2º factor), UX-4 (`role="alert"` añadido; falta gestión de foco).
-**Pendiente:** S-11, A11Y-4, UI-1, UI-2, UI-3, BP-3..BP-7 (varios), ampliar BP-1.
+**Resueltos:** S-1, S-2, S-3, S-4, S-5, S-6, S-7, S-8, S-9, S-10, S-11, S-12, UX-1, UX-2, UX-3,
+UX-4, UX-5, UX-6, A11Y-1, A11Y-2, A11Y-3, A11Y-5, BP-1 (base), BP-2, + bug `Chevron` en render.
+**Parcial:** A11Y-4 (algunos `aria-hidden`; falta pasada general + focus ring).
+**Pendiente:** UI-1, UI-2, UI-3, BP-3, BP-4, BP-5, BP-6, BP-7, ampliar BP-1.
 
 ---
 
 ## 1. Seguridad
 
-### 🔴 S-1 · Toma de control de cuentas en el registro de residentes — ✅ Resuelto (mitigado)
-**Archivo:** `src/app/actions/auth.ts` → `residentRegister`.
+### 🔴 S-1 · Toma de control de cuentas en el registro de residentes — ✅ Resuelto
+**Archivos:** `src/lib/otp.ts` (nuevo), `src/app/actions/auth.ts`, `RegisterForm.tsx`.
 
 El registro anónimo hacía `onConflictDoUpdate`, reescribiendo teléfono y PIN de un apartamento
 ya registrado → secuestro de cuenta.
 
-**Remediación aplicada:** `residentRegister` es ahora *create-only*. Si el `aptoKey` ya existe,
-solo se actualiza cuando la sesión activa es la del residente dueño de ese apartamento; un
-llamador anónimo es rechazado ("Este apartamento ya está registrado. Inicia sesión…").
-**Pendiente recomendado:** verificación de propiedad por **OTP de WhatsApp** en el primer
-registro (ver S-5). Por eso se marca *mitigado*, no cerrado del todo.
+**Remediación aplicada:** registro en dos pasos con **verificación OTP por WhatsApp**.
+`requestRegisterOtp` valida, aplica la regla *create-only* de propiedad y envía un código de 6
+dígitos; no escribe nada. El estado pendiente vive en un **JWT firmado** (HS256/`AUTH_SECRET`,
+TTL 10 min) que embebe `phoneEnc`/`pinHash`/tower/apt + el HMAC del código (nunca el código en
+claro). `verifyRegisterOtp` comprueba firma, expiración y código (`safeEqual` + throttle) y solo
+entonces persiste el residente. La acción antigua `residentRegister` fue **eliminada**, de modo
+que no queda ninguna ruta pública que escriba un residente sin OTP.
 
 ### 🔴 S-2 · Secretos en texto plano en el árbol de trabajo (`.secrets_tmp`) — ✅ Resuelto
 **Remediación aplicada:** archivo eliminado; `.gitignore` ampliado con `.secrets*` y `*.secret*`.
@@ -72,9 +74,11 @@ muestra texto neutro; el número solo aparece en el modal de previsualización (
 **Limitación documentada:** el throttle es por instancia de servidor (best-effort). Para
 garantía fuerte: store compartido (Upstash Redis) o columnas de bloqueo en `staff_users`.
 
-### 🟠 S-5 · PIN de 4 dígitos como único factor del residente — 🟡 Parcial
-Mitigado por el bloqueo de fuerza bruta existente. **Pendiente:** segundo factor (OTP por
-WhatsApp) en acciones sensibles y/o en el registro; queda ligado al flujo OTP de S-1.
+### 🟠 S-5 · PIN de 4 dígitos como único factor del residente — ✅ Resuelto (en registro)
+El registro/actualización de número exige ahora un **segundo factor**: OTP de 6 dígitos
+entregado por WhatsApp (ver S-1). Esto verifica la posesión del número al crear o cambiar la
+cuenta. *(El login diario sigue siendo celular + PIN con bloqueo por fuerza bruta; añadir OTP
+también al login queda como mejora opcional de mayor fricción.)*
 
 ### 🟡 S-6 · Doble registro de auditoría y consulta redundante en `confirmAlert` — ✅ Resuelto
 **Archivo:** `src/app/actions/guard.ts`.
@@ -90,15 +94,14 @@ distinta `send_alert`. Fin del doble `view_phone` y de la consulta extra.
 (32⁸ ≈ 1.1×10¹²) con muestreo uniforme. `generateAuth` usa `uniqueCode()` con verificación
 de colisión por conjunto (reintentos). Cubierto por tests.
 
-### 🟡 S-8 · Estados sin caducidad automática (`vigente` → `vencido`) — ✅ Resuelto (en escaneo/lista)
-**Archivos:** `src/lib/code.ts`, `src/app/actions/guard.ts`, `porteria/page.tsx`.
+### 🟡 S-8 · Estados sin caducidad automática (`vigente` → `vencido`) — ✅ Resuelto
+**Archivos:** `src/lib/code.ts`, `src/app/actions/guard.ts`, `porteria/page.tsx`, `src/db/queries.ts`.
 
 **Remediación aplicada:** `isGrantExpired()` con ventana de gracia de 12 h sobre la hora
 programada. `confirmScan` marca `vencido` y rechaza el ingreso si caducó; la lista de escaneo
-filtra los vencidos.
-**Pendiente menor:** un grant vencido sigue como `vigente` en la BD hasta que se escanea o se
-filtra, lo que puede confundir los reportes de `listAuths` del admin. Cerrar con un **barrido
-al leer** en `listAuths`/`listAuthsForApt` o un **cron** de expiración.
+filtra los vencidos. Además, `expireStaleGrants()` hace un barrido idempotente (un único
+`UPDATE` por conjunto) al inicio de `listAuths`/`listAuthsForApt`, de modo que el estado
+`vencido` **persiste en la BD** y los reportes de auditoría del admin quedan fieles.
 
 ### 🟡 S-9 · Falta de cabeceras de seguridad HTTP — ✅ Resuelto
 **Archivo:** `next.config.ts`.
@@ -114,9 +117,12 @@ documentado para endurecer con nonces más adelante), HSTS, `X-Frame-Options: DE
 **Remediación aplicada:** en producción, `AUTH_SECRET` y `PII_SECRET` fallan rápido si usan el
 valor de ejemplo o miden <32 chars; `superadminLogin` rechaza `SUPERADMIN_PASS=change-me`.
 
-### 🟢 S-11 · Sin límites de longitud/validación en campos de texto libre — ⏳ Pendiente
-`visitor`, `note`, `plate`, `doc` siguen sin tope de longitud. Validar y truncar en los
-server actions.
+### 🟢 S-11 · Sin límites de longitud/validación en campos de texto libre — ✅ Resuelto
+**Archivos:** `src/lib/format.ts` (helper `clampText`), `resident.ts`, `guard.ts`, `parking.ts`,
+`admin.ts`, `superadmin.ts`.
+
+**Remediación aplicada:** `clampText(s, max)` (trim + corte) aplicado a `visitor` (80), `doc` (40),
+`plate` (12), `note` (280) y `name` de conjunto (80). Cubierto por test.
 
 ### 🟢 S-12 · `parking.ts` lanza `Error` en vez de devolver `Result` — ✅ Resuelto (sin cambios pendientes)
 Revisado: el `throw` de `requireStaff` es interno y los handlers de cliente lo gestionan vía
@@ -139,9 +145,9 @@ con `<button type="submit">`. Enter funciona y hay semántica nativa.
 ### 🟡 UX-3 · Sin `autoComplete` en campos de credenciales — ✅ Resuelto
 Añadidos `tel-national`, `current-password`/`new-password`, `username`.
 
-### 🟡 UX-4 · Errores solo en línea, sin foco ni anuncio — 🟡 Parcial
-Los errores de login llevan `role="alert"` (se anuncian). **Pendiente:** mover el foco al
-mensaje de error / al primer campo inválido.
+### 🟡 UX-4 · Errores solo en línea, sin foco ni anuncio — ✅ Resuelto
+Los errores de login llevan `role="alert"` y, vía `errRef` + `useEffect`, el foco se mueve al
+mensaje cuando aparece (los tres logins). Se anuncia y el usuario de teclado aterriza en él.
 
 ### 🟢 UX-5 · Toast no pausable y de duración fija — ✅ Resuelto
 Acción `dismiss()` + botón ✕ con `aria-label`. El usuario puede cerrarlo cuando quiera.
@@ -191,10 +197,11 @@ Bloque en `globals.css` que neutraliza animaciones/transiciones para esa prefere
 ## 5. Buenas prácticas / Calidad de código
 
 ### 🟡 BP-1 · Sin pruebas automatizadas — ✅ Resuelto (base) / ⏳ ampliar
-Configurado **Vitest 4** (`vitest.config.ts`, scripts `test`/`test:watch`). **18 tests** sobre
+Configurado **Vitest 4** (`vitest.config.ts`, scripts `test`/`test:watch`). **23 tests** sobre
 `lib/crypto` (cifrado PII, no filtra plaintext, IV aleatorio, manejo de input manipulado),
 `lib/throttle` (bloqueo, reset, ventana), `lib/code` (entropía/alfabeto, ausencia de colisiones,
-caducidad) y `lib/format`.
+caducidad), `lib/otp` (código de 6 dígitos, hash que oculta el código, round-trip y rechazo de
+token manipulado) y `lib/format` (incl. `clampText`).
 **Pendiente:** tests de aislamiento multi-tenant (guards `require*`, `residentLogin`) — requieren
 una BD de prueba.
 
@@ -224,18 +231,17 @@ Condicionar/retirar para despliegue público.
 
 | # | Acción | Severidad | Esfuerzo |
 |---|--------|-----------|----------|
-| 1 | Verificación OTP por WhatsApp (cierra S-1 del todo y S-5) | 🟠 | Medio |
-| 2 | Barrido/cron de expiración de grants (cierra el resto de S-8) | 🟡 | Bajo |
-| 3 | Mover foco al error en formularios (UX-4) | 🟢 | Bajo |
-| 4 | Validar/truncar longitudes de texto libre (S-11) | 🟢 | Bajo |
-| 5 | Tests de aislamiento multi-tenant con BD de prueba (ampliar BP-1) | 🟡 | Alto |
-| 6 | Tokenizar paleta y escala (UI-1/UI-2) | 🟡 | Medio |
-| 7 | Pasada general de `aria-hidden`/focus ring (A11Y-4) | 🟢 | Bajo |
-| 8 | Reordenar `export const dynamic` (BP-3), revisar caché (BP-4) | 🟢 | Bajo |
+| 1 | Tests de aislamiento multi-tenant con BD de prueba (ampliar BP-1) | 🟡 | Alto |
+| 2 | Tokenizar paleta y escala (UI-1/UI-2) | 🟡 | Medio |
+| 3 | Pasada general de `aria-hidden`/focus ring (A11Y-4) | 🟢 | Bajo |
+| 4 | Reordenar `export const dynamic` (BP-3), revisar caché (BP-4) | 🟢 | Bajo |
 
 ### Acciones del operador (fuera de código)
 - **Rotar `SUPERADMIN_PASS`** (consecuencia de S-2).
 - Definir `AUTH_SECRET`/`PII_SECRET` fuertes (≥32 chars) en el entorno de producción (S-10).
+- Configurar `WHATSAPP_TOKEN` + `WHATSAPP_PHONE_ID` (Meta Cloud API) en producción: el OTP de
+  registro (S-1/S-5) no puede entregar el código sin ellas. En desarrollo el código se muestra
+  en pantalla para poder probar el flujo.
 
 ---
 
@@ -255,16 +261,18 @@ Condicionar/retirar para despliegue público.
 
 ## Anexo · Registro de cambios (2026-06-24)
 
-Archivos nuevos: `src/lib/throttle.ts`, `src/lib/code.ts`, `src/app/not-found.tsx`,
-`vitest.config.ts`, `src/test/server-only-stub.ts`, y tests
-`src/lib/{crypto,throttle,code,format}.test.ts`.
+Archivos nuevos: `src/lib/throttle.ts`, `src/lib/code.ts`, `src/lib/otp.ts`,
+`src/app/not-found.tsx`, `vitest.config.ts`, `src/test/server-only-stub.ts`, y tests
+`src/lib/{crypto,throttle,code,otp,format}.test.ts`.
 
-Archivos modificados: `src/app/actions/{auth,guard,resident,admin}.ts`,
-`src/app/[conjunto]/porteria/{page.tsx,GuardPanel.tsx}`,
+Archivos modificados: `src/app/actions/{auth,guard,resident,admin,parking,superadmin}.ts`,
+`src/db/queries.ts`, `src/app/[conjunto]/porteria/{page.tsx,GuardPanel.tsx}`,
 `src/app/[conjunto]/{residente/login,admin/login,porteria/login}/page.tsx`,
 `src/app/[conjunto]/residente/registro/RegisterForm.tsx`,
-`src/lib/{session,crypto,toast}.ts`, `src/components/{ui,Toaster}.tsx`,
+`src/lib/{session,crypto,toast,format}.ts`, `src/components/{ui,Toaster}.tsx`,
 `src/app/globals.css`, `next.config.ts`, `.gitignore`, `package.json`.
+Acción eliminada (sin reemplazo público directo): `residentRegister` → sustituida por
+`requestRegisterOtp` + `verifyRegisterOtp`.
 
-Verificación: `npm test` (18/18 ✅), `tsc --noEmit` (limpio), `eslint src/` (limpio),
+Verificación: `npm test` (23/23 ✅), `tsc --noEmit` (limpio), `eslint src/` (limpio),
 `npm run build` (correcto).

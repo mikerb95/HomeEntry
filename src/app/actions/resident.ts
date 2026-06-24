@@ -7,7 +7,7 @@ import { getAuthByCode } from "@/db/queries";
 import { requireResident } from "@/lib/auth";
 import { makeAuthCode } from "@/lib/code";
 import { qrDataUrl } from "@/lib/qr";
-import { fmtDateTime } from "@/lib/format";
+import { clampText, fmtDateTime } from "@/lib/format";
 
 // Generate a code that is unique within the conjunto. Collisions are already
 // astronomically unlikely (32^8), but a few retries make it a guarantee.
@@ -41,7 +41,8 @@ export async function generateAuth(
   },
 ): Promise<GenResult> {
   const session = await requireResident(slug);
-  if (!input.visitor.trim())
+  const visitor = clampText(input.visitor, 80);
+  if (!visitor)
     return { ok: false, error: "Ingresa el nombre del visitante" };
 
   let when = Date.now() + 2 * 3600000;
@@ -58,9 +59,9 @@ export async function generateAuth(
     aptoKey: session.aptoKey,
     tower: session.tower,
     apt: session.apt,
-    visitor: input.visitor.trim(),
-    doc: input.doc.trim() || "—",
-    plate: input.plate.trim().toUpperCase(),
+    visitor,
+    doc: clampText(input.doc, 40) || "—",
+    plate: clampText(input.plate, 12).toUpperCase(),
     whenTs: new Date(when),
     status: "vigente",
   });
@@ -70,7 +71,7 @@ export async function generateAuth(
     ok: true,
     code,
     qr: await qrDataUrl(code),
-    visitor: input.visitor.trim(),
+    visitor,
     whenStr: fmtDateTime(when),
   };
 }

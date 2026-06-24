@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { residentLogin } from "@/app/actions/auth";
@@ -20,6 +20,12 @@ export default function ResidentLoginPage() {
   const [err, setErr] = useState("");
   const [pending, start] = useTransition();
   const show = useToast((s) => s.show);
+  const errRef = useRef<HTMLDivElement>(null);
+
+  // Move focus to the error so it is announced and keyboard users land on it.
+  useEffect(() => {
+    if (err) errRef.current?.focus();
+  }, [err]);
 
   function submit() {
     setErr("");
@@ -86,8 +92,10 @@ export default function ResidentLoginPage() {
 
             {err && (
               <div
+                ref={errRef}
+                tabIndex={-1}
                 role="alert"
-                className="mt-2 text-[13px] font-semibold text-[#DC2626]"
+                className="mt-2 text-[13px] font-semibold text-[#DC2626] outline-none"
               >
                 {err}
               </div>

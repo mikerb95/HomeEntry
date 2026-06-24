@@ -5,6 +5,7 @@ import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { events, parkingSpots } from "@/db/schema";
 import { getSession } from "@/lib/auth";
+import { clampText } from "@/lib/format";
 
 type Result = { ok: boolean; error?: string };
 
@@ -32,12 +33,11 @@ export async function assignParking(
 ): Promise<Result> {
   const session = await requireStaff(slug);
   const cid = session.conjuntoId;
-  if (!input.plate.trim())
-    return { ok: false, error: "Ingresa la placa del vehículo" };
+  const plate = clampText(input.plate, 12).toUpperCase();
+  if (!plate) return { ok: false, error: "Ingresa la placa del vehículo" };
   if (!input.aptoKey) return { ok: false, error: "Selecciona el apartamento" };
 
   const status = input.kind === "visitor" ? "visitor" : "resident";
-  const plate = input.plate.trim().toUpperCase();
   await db
     .update(parkingSpots)
     .set({ status, plate, aptoKey: input.aptoKey })

@@ -6,6 +6,7 @@ import { db } from "@/db";
 import { conjuntos, parkingSpots } from "@/db/schema";
 import { getConjuntoById, listParking } from "@/db/queries";
 import { requireAdmin } from "@/lib/auth";
+import { clampText } from "@/lib/format";
 
 type Result = { ok: boolean; error?: string };
 
@@ -31,7 +32,7 @@ export async function updateConfig(
   if (!current) return { ok: false, error: "Conjunto no encontrado" };
 
   const next = {
-    name: (input.name || "").trim() || "Conjunto",
+    name: clampText(input.name, 80) || "Conjunto",
     towers: clamp(input.towers, 1, 12, 1),
     aptsPerTower: clamp(input.aptsPerTower, 1, 40, 1),
     carSpots: clamp(input.carSpots, 0, 80, 0),
