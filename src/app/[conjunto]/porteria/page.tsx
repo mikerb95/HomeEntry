@@ -9,6 +9,7 @@ import {
   listResidents,
 } from "@/db/queries";
 import { qrDataUrl } from "@/lib/qr";
+import { isGrantExpired } from "@/lib/code";
 import { whatsappMode } from "@/lib/whatsapp";
 import { isToday, todayStr } from "@/lib/format";
 import { Shell } from "@/components/Shell";
@@ -38,7 +39,7 @@ export default async function GuardPanelPage({
 
   const incoming = await Promise.all(
     auths
-      .filter((a) => a.status === "vigente")
+      .filter((a) => a.status === "vigente" && !isGrantExpired(a.whenTs))
       .map(async (a) => ({
         id: a.id,
         code: a.code,
