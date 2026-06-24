@@ -7,6 +7,9 @@ import { Shell } from "@/components/Shell";
 import { BackLink, Label, LoginCard } from "@/components/ui";
 import { IconAdminGrid } from "@/components/icons";
 
+// Demo-only auto-fill never renders in production.
+const DEMO = process.env.NODE_ENV !== "production";
+
 export default function AdminLoginPage() {
   const slug = String(useParams().conjunto);
   const [user, setUser] = useState("");
