@@ -8,23 +8,23 @@ import { getConjuntoById, getResident, logAccess } from "@/db/queries";
 import { requireGuard } from "@/lib/auth";
 import { AlertType, buildMessage, sendWhatsApp } from "@/lib/whatsapp";
 
+type AlertInput = {
+  type: AlertType;
+  tower: string;
+  apto: string;
+  note?: string;
+};
+
 type PrepareResult =
   | { ok: true; phone: string; text: string; apto: string }
   | { ok: false; error: string };
 
-// Build the preview (does not send or log the event). Mirrors the design's
-// preview step. Reading the resident's phone here is recorded in the audit log.
-export async function prepareAlert(
-  slug: string,
-  input: {
-    type: AlertType;
-    tower: string;
-    apto: string;
-    note?: string;
-  },
+// Resolve the resident's phone + build the WhatsApp text. Pure: no audit log,
+// no event row — callers decide what to record so we never double-log.
+async function resolveAlert(
+  cid: string,
+  input: AlertInput,
 ): Promise<PrepareResult> {
-  const session = await requireGuard(slug);
-  const cid = session.conjuntoId;
   if (!input.tower || !input.apto)
     return { ok: false, error: "Selecciona torre y apartamento" };
 
@@ -33,12 +33,26 @@ export async function prepareAlert(
   if (!resident)
     return { ok: false, error: "Ese apartamento no tiene WhatsApp registrado" };
 
-  await logAccess(cid, `guard:${session.username}`, "view_phone", key);
-
   const cfg = await getConjuntoById(cid);
   const place = `${input.tower} - Apto ${input.apto}`;
   const text = buildMessage(input.type, cfg?.name ?? "Conjunto", place, input.note);
   return { ok: true, phone: resident.phone, text, apto: key };
+}
+
+// Build the preview. Showing the number to the guard is the access we audit
+// (view_phone). The send itself is audited separately in confirmAlert, so a
+// preview-then-confirm flow no longer logs view_phone twice (auditoria1.MD S-6).
+export async function prepareAlert(
+  slug: string,
+  input: AlertInput,
+): Promise<PrepareResult> {
+  const session = await requireGuard(slug);
+  const cid = session.conjuntoId;
+  const prep = await resolveAlert(cid, input);
+  if (prep.ok) {
+    await logAccess(cid, `guard:${session.username}`, "view_phone", prep.apto);
+  }
+  return prep;
 }
 
 type SendResultOut =
@@ -47,18 +61,14 @@ type SendResultOut =
 
 export async function confirmAlert(
   slug: string,
-  input: {
-    type: AlertType;
-    tower: string;
-    apto: string;
-    note?: string;
-  },
+  input: AlertInput,
 ): Promise<SendResultOut> {
   const session = await requireGuard(slug);
   const cid = session.conjuntoId;
-  const prep = await prepareAlert(slug, input);
+  const prep = await resolveAlert(cid, input);
   if (!prep.ok) return prep;
 
+  await logAccess(cid, `guard:${session.username}`, "send_alert", prep.apto);
   const result = await sendWhatsApp(prep.phone, prep.text);
 
   const labels: Record<AlertType, string> = {

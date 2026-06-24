@@ -18,6 +18,13 @@ import {
 function piiSecret(): string {
   const s = process.env.PII_SECRET;
   if (!s) throw new Error("PII_SECRET is not set. Copy .env.example to .env.");
+  if (process.env.NODE_ENV === "production") {
+    if (s === "change-me-to-another-long-random-string" || s.length < 32) {
+      throw new Error(
+        "PII_SECRET is using the example value or is too short (<32 chars). Set a strong secret.",
+      );
+    }
+  }
   return s;
 }
 

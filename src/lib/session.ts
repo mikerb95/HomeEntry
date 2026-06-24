@@ -34,6 +34,13 @@ export type Session =
 function secret(): Uint8Array {
   const s = process.env.AUTH_SECRET;
   if (!s) throw new Error("AUTH_SECRET is not set.");
+  if (process.env.NODE_ENV === "production") {
+    if (s === "change-me-to-a-long-random-string" || s.length < 32) {
+      throw new Error(
+        "AUTH_SECRET is using the example value or is too short (<32 chars). Set a strong secret.",
+      );
+    }
+  }
   return new TextEncoder().encode(s);
 }
 

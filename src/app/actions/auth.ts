@@ -18,8 +18,20 @@ import {
   getSession,
 } from "@/lib/auth";
 import { digits } from "@/lib/format";
+import { isLocked, recordFailure, recordSuccess } from "@/lib/throttle";
+import { createHash, timingSafeEqual } from "crypto";
 
 type Result = { ok: boolean; error?: string };
+
+const LOCKED_MSG = "Demasiados intentos. Intenta de nuevo en unos minutos.";
+
+// Constant-time string compare (length-independent: both sides are hashed to a
+// fixed width first, so neither value nor its length leaks via timing).
+function safeEqual(a: string, b: string): boolean {
+  const ha = createHash("sha256").update(a).digest();
+  const hb = createHash("sha256").update(b).digest();
+  return timingSafeEqual(ha, hb);
+}
 
 // PIN brute-force protection.
 const MAX_FAILED = 5;
@@ -183,10 +195,15 @@ export async function guardLogin(
   if (!conjunto) return { ok: false, error: "Conjunto no encontrado" };
 
   const username = normalizeUser(user);
+  const throttleKey = `staff:${conjunto.id}:guard:${username}`;
+  if (isLocked(throttleKey)) return { ok: false, error: LOCKED_MSG };
+
   const u = await getStaff(conjunto.id, username);
   if (!u || u.role !== "guard" || !verifySecret(pass, u.passwordHash)) {
-    return { ok: false, error: "Usuario o clave incorrectos." };
+    const locked = recordFailure(throttleKey);
+    return { ok: false, error: locked ? LOCKED_MSG : "Usuario o clave incorrectos." };
   }
+  recordSuccess(throttleKey);
   await setSessionCookie({
     role: "guard",
     conjuntoId: conjunto.id,
@@ -206,10 +223,15 @@ export async function adminLogin(
   if (!conjunto) return { ok: false, error: "Conjunto no encontrado" };
 
   const username = normalizeUser(user);
+  const throttleKey = `staff:${conjunto.id}:admin:${username}`;
+  if (isLocked(throttleKey)) return { ok: false, error: LOCKED_MSG };
+
   const u = await getStaff(conjunto.id, username);
   if (!u || u.role !== "admin" || !verifySecret(pass, u.passwordHash)) {
-    return { ok: false, error: "Usuario o contraseña incorrectos." };
+    const locked = recordFailure(throttleKey);
+    return { ok: false, error: locked ? LOCKED_MSG : "Usuario o contraseña incorrectos." };
   }
+  recordSuccess(throttleKey);
   await setSessionCookie({
     role: "admin",
     conjuntoId: conjunto.id,
@@ -232,9 +254,23 @@ export async function superadminLogin(
       error: "Superadmin no configurado (SUPERADMIN_USER/PASS).",
     };
   }
-  if (normalizeUser(user) !== normalizeUser(envUser) || pass !== envPass) {
-    return { ok: false, error: "Credenciales incorrectas." };
+  if (process.env.NODE_ENV === "production" && envPass === "change-me") {
+    return {
+      ok: false,
+      error: "Superadmin sin configurar: cambia SUPERADMIN_PASS.",
+    };
   }
+
+  const throttleKey = `superadmin:${normalizeUser(user)}`;
+  if (isLocked(throttleKey)) return { ok: false, error: LOCKED_MSG };
+
+  const okUser = safeEqual(normalizeUser(user), normalizeUser(envUser));
+  const okPass = safeEqual(pass, envPass);
+  if (!okUser || !okPass) {
+    const locked = recordFailure(throttleKey);
+    return { ok: false, error: locked ? LOCKED_MSG : "Credenciales incorrectas." };
+  }
+  recordSuccess(throttleKey);
   await setSessionCookie({ role: "superadmin", username: normalizeUser(envUser) });
   redirect("/superadmin");
 }
