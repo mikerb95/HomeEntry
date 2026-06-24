@@ -73,16 +73,18 @@ export default function GuardLoginPage() {
           >
             {pending ? "Ingresando…" : "Ingresar"}
           </button>
-          <button
-            onClick={() => {
-              setUser("portería");
-              setPass("1234");
-              setErr("");
-            }}
-            className="mt-3.5 w-full rounded-[12px] border border-dashed border-[#C9D2DE] bg-[#F0F3F8] p-[11px] text-[13px] font-bold text-[#5B6675]"
-          >
-            Usar datos de prueba (portería · 1234)
-          </button>
+          {DEMO && (
+            <button
+              onClick={() => {
+                setUser("portería");
+                setPass("1234");
+                setErr("");
+              }}
+              className="mt-3.5 w-full rounded-[12px] border border-dashed border-[#C9D2DE] bg-[#F0F3F8] p-[11px] text-[13px] font-bold text-[#5B6675]"
+            >
+              Usar datos de prueba (portería · 1234)
+            </button>
+          )}
         </LoginCard>
       </div>
     </Shell>
