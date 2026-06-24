@@ -80,26 +80,26 @@ export async function updateConfig(
     );
   }
 
-  // Delete spots no longer in range, upsert the rest.
-  for (const p of existing) {
-    if (!keepIds.has(p.id)) {
-      await db
-        .delete(parkingSpots)
-        .where(
-          and(
-            eq(parkingSpots.conjuntoId, cid),
-            eq(parkingSpots.id, p.id),
-          ),
-        );
-    }
+  // Delete spots no longer in range (one statement) and upsert the rest (one
+  // multi-row statement) instead of a query per spot (auditoria1.MD BP-2).
+  const toDelete = existing.filter((p) => !keepIds.has(p.id)).map((p) => p.id);
+  if (toDelete.length) {
+    await db
+      .delete(parkingSpots)
+      .where(
+        and(
+          eq(parkingSpots.conjuntoId, cid),
+          inArray(parkingSpots.id, toDelete),
+        ),
+      );
   }
-  for (const d of desired) {
+  if (desired.length) {
     await db
       .insert(parkingSpots)
-      .values(d)
+      .values(desired)
       .onConflictDoUpdate({
         target: [parkingSpots.conjuntoId, parkingSpots.id],
-        set: { kind: d.kind },
+        set: { kind: sql`excluded.kind` },
       });
   }
 
