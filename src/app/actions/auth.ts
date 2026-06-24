@@ -125,27 +125,52 @@ export async function residentRegister(
 
   const aptoKey = `${towerId}-${aptId}`;
   const pinHash = hashSecret(digits(pin));
-  await db
-    .insert(residents)
-    .values({
-      conjuntoId: conjunto.id,
-      aptoKey,
-      tower: towerId,
-      apt: aptId,
-      phoneEnc: encryptPII(phone),
-      phoneHash: piiHash(phone),
-      pinHash,
-    })
-    .onConflictDoUpdate({
-      target: [residents.conjuntoId, residents.aptoKey],
-      set: {
+
+  // Account-takeover guard: registration is *create-only*. An existing
+  // apartment can only be updated by its own authenticated resident — never by
+  // an anonymous caller selecting someone else's tower/apt. (See auditoria1.MD
+  // S-1; full ownership proof should move to a WhatsApp OTP flow.)
+  const existing = await getResident(conjunto.id, aptoKey);
+  if (existing) {
+    const s = await getSession();
+    const isOwner =
+      s?.role === "resident" &&
+      s.conjuntoId === conjunto.id &&
+      s.aptoKey === aptoKey;
+    if (!isOwner) {
+      return {
+        ok: false,
+        error:
+          "Este apartamento ya está registrado. Inicia sesión para actualizar tus datos.",
+      };
+    }
+    await db
+      .update(residents)
+      .set({
         phoneEnc: encryptPII(phone),
         phoneHash: piiHash(phone),
         pinHash,
         tower: towerId,
         apt: aptId,
-      },
-    });
+      })
+      .where(
+        and(
+          eq(residents.conjuntoId, conjunto.id),
+          eq(residents.aptoKey, aptoKey),
+        ),
+      );
+    return { ok: true };
+  }
+
+  await db.insert(residents).values({
+    conjuntoId: conjunto.id,
+    aptoKey,
+    tower: towerId,
+    apt: aptId,
+    phoneEnc: encryptPII(phone),
+    phoneHash: piiHash(phone),
+    pinHash,
+  });
   return { ok: true };
 }
 
