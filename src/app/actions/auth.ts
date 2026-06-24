@@ -6,6 +6,7 @@ import { db } from "@/db";
 import { residents, staffUsers } from "@/db/schema";
 import {
   getConjuntoBySlug,
+  getResident,
   getResidentByPhone,
   getStaff,
 } from "@/db/queries";
