@@ -14,6 +14,19 @@ const selectCls =
 const inputCls =
   "w-full rounded-[13px] border-[1.5px] border-[#E3E8EF] bg-[#F6F8FB] p-[15px] text-[16px] font-semibold outline-none focus:border-blue";
 
+// Static decorative caret for the custom selects. Defined at module scope so it
+// is not re-created on every render (a real component identity bug otherwise).
+function Chevron() {
+  return (
+    <span
+      aria-hidden="true"
+      className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[13px] text-[#8A94A3]"
+    >
+      ▾
+    </span>
+  );
+}
+
 export function RegisterForm({
   slug,
   towers,
@@ -49,12 +62,6 @@ export function RegisterForm({
       show("Contacto guardado correctamente", "ok");
     });
   }
-
-  const Chevron = () => (
-    <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[13px] text-[#8A94A3]">
-      ▾
-    </span>
-  );
 
   return (
     <div className="animate-pa-in">
@@ -94,10 +101,17 @@ export function RegisterForm({
           </div>
         </aside>
 
-        <div className="mt-6 rounded-[24px] border border-[#E6EBF2] bg-white p-8 shadow-[0_18px_44px_-26px_rgba(15,20,26,.34)] min-[780px]:mt-0">
-          <Label>Selecciona tu torre</Label>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            save();
+          }}
+          className="mt-6 rounded-[24px] border border-[#E6EBF2] bg-white p-8 shadow-[0_18px_44px_-26px_rgba(15,20,26,.34)] min-[780px]:mt-0"
+        >
+          <Label htmlFor="reg-tower">Selecciona tu torre</Label>
           <div className="relative mb-4">
             <select
+              id="reg-tower"
               value={tower}
               onChange={(e) => {
                 setTower(e.target.value);
@@ -116,9 +130,10 @@ export function RegisterForm({
             <Chevron />
           </div>
 
-          <Label>Selecciona tu apartamento</Label>
+          <Label htmlFor="reg-apt">Selecciona tu apartamento</Label>
           <div className="relative mb-4">
             <select
+              id="reg-apt"
               value={apt}
               disabled={!tower}
               onChange={(e) => {
@@ -137,25 +152,28 @@ export function RegisterForm({
             <Chevron />
           </div>
 
-          <Label>Número de celular (WhatsApp)</Label>
+          <Label htmlFor="reg-phone">Número de celular (WhatsApp)</Label>
           <div className="mb-4 flex gap-2.5">
             <div className="flex items-center rounded-[13px] border-[1.5px] border-[#E3E8EF] bg-[#F6F8FB] px-3.5 text-[16px] font-bold text-[#5B6675]">
               +57
             </div>
             <input
+              id="reg-phone"
               value={fmtPhone(phone)}
               onChange={(e) => {
                 setPhone(digits(e.target.value).slice(0, 10));
                 setDone(false);
               }}
               inputMode="numeric"
+              autoComplete="tel-national"
               placeholder="300 123 4567"
               className={`flex-1 ${inputCls}`}
             />
           </div>
 
-          <Label>Crea tu PIN (4 dígitos)</Label>
+          <Label htmlFor="reg-pin">Crea tu PIN (4 dígitos)</Label>
           <input
+            id="reg-pin"
             value={pin}
             onChange={(e) => {
               setPin(digits(e.target.value).slice(0, 4));
@@ -163,12 +181,13 @@ export function RegisterForm({
             }}
             type="password"
             inputMode="numeric"
+            autoComplete="new-password"
             placeholder="••••"
             className={`mb-[22px] tracking-[4px] text-[18px] ${inputCls}`}
           />
 
           <button
-            onClick={save}
+            type="submit"
             disabled={pending}
             className="w-full rounded-[14px] bg-blue p-[17px] text-[16px] font-extrabold tracking-[.3px] text-white shadow-[0_10px_22px_-10px_rgba(47,107,255,.7)] hover:bg-blue-dark disabled:opacity-70"
           >
@@ -196,7 +215,7 @@ export function RegisterForm({
               </div>
             </div>
           )}
-        </div>
+        </form>
       </div>
     </div>
   );

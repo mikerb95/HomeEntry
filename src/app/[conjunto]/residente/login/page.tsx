@@ -44,49 +44,63 @@ export default function ResidentLoginPage() {
             Ingresa con tu WhatsApp y tu PIN.
           </p>
 
-          <Label>Número de WhatsApp</Label>
-          <div className="mb-4 flex gap-2.5">
-            <div className="flex items-center rounded-[13px] border-[1.5px] border-[#E3E8EF] bg-[#F6F8FB] px-3.5 text-[16px] font-bold text-[#5B6675]">
-              +57
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              submit();
+            }}
+          >
+            <Label htmlFor="login-phone">Número de WhatsApp</Label>
+            <div className="mb-4 flex gap-2.5">
+              <div className="flex items-center rounded-[13px] border-[1.5px] border-[#E3E8EF] bg-[#F6F8FB] px-3.5 text-[16px] font-bold text-[#5B6675]">
+                +57
+              </div>
+              <input
+                id="login-phone"
+                value={fmtPhone(phone)}
+                onChange={(e) => {
+                  setPhone(digits(e.target.value).slice(0, 10));
+                  setErr("");
+                }}
+                inputMode="numeric"
+                autoComplete="tel-national"
+                placeholder="300 123 4567"
+                className="w-full flex-1 rounded-[13px] border-[1.5px] border-[#E3E8EF] bg-[#F6F8FB] p-[15px] text-[16px] font-semibold outline-none focus:border-blue"
+              />
             </div>
+
+            <Label htmlFor="login-pin">PIN</Label>
             <input
-              value={fmtPhone(phone)}
+              id="login-pin"
+              value={pin}
               onChange={(e) => {
-                setPhone(digits(e.target.value).slice(0, 10));
+                setPin(digits(e.target.value).slice(0, 4));
                 setErr("");
               }}
+              type="password"
               inputMode="numeric"
-              placeholder="300 123 4567"
-              className="w-full flex-1 rounded-[13px] border-[1.5px] border-[#E3E8EF] bg-[#F6F8FB] p-[15px] text-[16px] font-semibold outline-none focus:border-blue"
+              autoComplete="current-password"
+              placeholder="••••"
+              className="mb-1.5 w-full rounded-[13px] border-[1.5px] border-[#E3E8EF] bg-[#F6F8FB] p-[15px] text-[18px] font-semibold tracking-[4px] outline-none focus:border-blue"
             />
-          </div>
 
-          <Label>PIN</Label>
-          <input
-            value={pin}
-            onChange={(e) => {
-              setPin(digits(e.target.value).slice(0, 4));
-              setErr("");
-            }}
-            type="password"
-            inputMode="numeric"
-            placeholder="••••"
-            className="mb-1.5 w-full rounded-[13px] border-[1.5px] border-[#E3E8EF] bg-[#F6F8FB] p-[15px] text-[18px] font-semibold tracking-[4px] outline-none focus:border-blue"
-          />
+            {err && (
+              <div
+                role="alert"
+                className="mt-2 text-[13px] font-semibold text-[#DC2626]"
+              >
+                {err}
+              </div>
+            )}
 
-          {err && (
-            <div className="mt-2 text-[13px] font-semibold text-[#DC2626]">
-              {err}
-            </div>
-          )}
-
-          <button
-            onClick={submit}
-            disabled={pending}
-            className="mt-[18px] w-full rounded-[14px] bg-blue p-[17px] text-[16px] font-extrabold text-white shadow-[0_10px_22px_-10px_rgba(47,107,255,.7)] hover:bg-blue-dark disabled:opacity-70"
-          >
-            {pending ? "Ingresando…" : "Ingresar"}
-          </button>
+            <button
+              type="submit"
+              disabled={pending}
+              className="mt-[18px] w-full rounded-[14px] bg-blue p-[17px] text-[16px] font-extrabold text-white shadow-[0_10px_22px_-10px_rgba(47,107,255,.7)] hover:bg-blue-dark disabled:opacity-70"
+            >
+              {pending ? "Ingresando…" : "Ingresar"}
+            </button>
+          </form>
 
           <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
             <Link

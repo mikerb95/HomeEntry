@@ -40,39 +40,53 @@ export default function GuardLoginPage() {
             Ingresa con tu usuario y clave del turno.
           </p>
 
-          <Label>Usuario</Label>
-          <input
-            value={user}
-            onChange={(e) => {
-              setUser(e.target.value);
-              setErr("");
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              submit();
             }}
-            placeholder="portería"
-            className="mb-4 w-full rounded-[13px] border-[1.5px] border-[#E3E8EF] bg-[#F6F8FB] p-[15px] text-[16px] font-semibold outline-none focus:border-green"
-          />
-          <Label>Clave</Label>
-          <input
-            value={pass}
-            onChange={(e) => {
-              setPass(e.target.value);
-              setErr("");
-            }}
-            type="password"
-            placeholder="••••"
-            className="w-full rounded-[13px] border-[1.5px] border-[#E3E8EF] bg-[#F6F8FB] p-[15px] text-[16px] font-semibold outline-none focus:border-green"
-          />
-          {err && (
-            <div className="mt-2.5 text-[13px] font-semibold text-[#DC2626]">
-              {err}
-            </div>
-          )}
-          <button
-            onClick={submit}
-            disabled={pending}
-            className="mt-[18px] w-full rounded-[14px] bg-green p-[17px] text-[16px] font-extrabold text-white shadow-[0_10px_22px_-10px_rgba(22,163,74,.7)] hover:bg-green-dark disabled:opacity-70"
           >
-            {pending ? "Ingresando…" : "Ingresar"}
-          </button>
+            <Label htmlFor="guard-user">Usuario</Label>
+            <input
+              id="guard-user"
+              value={user}
+              onChange={(e) => {
+                setUser(e.target.value);
+                setErr("");
+              }}
+              autoComplete="username"
+              placeholder="portería"
+              className="mb-4 w-full rounded-[13px] border-[1.5px] border-[#E3E8EF] bg-[#F6F8FB] p-[15px] text-[16px] font-semibold outline-none focus:border-green"
+            />
+            <Label htmlFor="guard-pass">Clave</Label>
+            <input
+              id="guard-pass"
+              value={pass}
+              onChange={(e) => {
+                setPass(e.target.value);
+                setErr("");
+              }}
+              type="password"
+              autoComplete="current-password"
+              placeholder="••••"
+              className="w-full rounded-[13px] border-[1.5px] border-[#E3E8EF] bg-[#F6F8FB] p-[15px] text-[16px] font-semibold outline-none focus:border-green"
+            />
+            {err && (
+              <div
+                role="alert"
+                className="mt-2.5 text-[13px] font-semibold text-[#DC2626]"
+              >
+                {err}
+              </div>
+            )}
+            <button
+              type="submit"
+              disabled={pending}
+              className="mt-[18px] w-full rounded-[14px] bg-green p-[17px] text-[16px] font-extrabold text-white shadow-[0_10px_22px_-10px_rgba(22,163,74,.7)] hover:bg-green-dark disabled:opacity-70"
+            >
+              {pending ? "Ingresando…" : "Ingresar"}
+            </button>
+          </form>
           {DEMO && (
             <button
               onClick={() => {

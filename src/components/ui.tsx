@@ -9,9 +9,18 @@ export const ACCENTS = {
 
 export type Accent = keyof typeof ACCENTS;
 
-export function Label({ children }: { children: React.ReactNode }) {
+export function Label({
+  children,
+  htmlFor,
+}: {
+  children: React.ReactNode;
+  htmlFor?: string;
+}) {
   return (
-    <label className="mb-2 block text-[12.5px] font-bold uppercase tracking-[.5px] text-[#5B6675]">
+    <label
+      htmlFor={htmlFor}
+      className="mb-2 block text-[12.5px] font-bold uppercase tracking-[.5px] text-[#5B6675]"
+    >
       {children}
     </label>
   );
