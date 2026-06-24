@@ -10,6 +10,9 @@ import { IconUser } from "@/components/icons";
 import { digits, fmtPhone } from "@/lib/format";
 import { useToast } from "@/lib/toast";
 
+// Demo-only affordances (auto-fill, "tu PIN es 1234") never render in production.
+const DEMO = process.env.NODE_ENV !== "production";
+
 export default function ResidentLoginPage() {
   const slug = String(useParams().conjunto);
   const [phone, setPhone] = useState("");
@@ -93,23 +96,32 @@ export default function ResidentLoginPage() {
               ¿Primera vez? Regístrate
             </Link>
             <button
-              onClick={() => show("Demo: tu PIN es 1234", "ok")}
+              onClick={() =>
+                show(
+                  DEMO
+                    ? "Demo: tu PIN es 1234"
+                    : "Pídele a la administración que restablezca tu PIN.",
+                  "ok",
+                )
+              }
               className="text-[13.5px] font-bold text-[#8A94A3]"
             >
               Olvidé mi PIN
             </button>
           </div>
 
-          <button
-            onClick={() => {
-              setPhone("3014567890");
-              setPin("1234");
-              setErr("");
-            }}
-            className="mt-[18px] w-full rounded-[12px] border border-dashed border-[#C9D2DE] bg-[#F0F3F8] p-[11px] text-[13px] font-bold text-[#5B6675]"
-          >
-            Usar datos de prueba (3014567890 · PIN 1234)
-          </button>
+          {DEMO && (
+            <button
+              onClick={() => {
+                setPhone("3014567890");
+                setPin("1234");
+                setErr("");
+              }}
+              className="mt-[18px] w-full rounded-[12px] border border-dashed border-[#C9D2DE] bg-[#F0F3F8] p-[11px] text-[13px] font-bold text-[#5B6675]"
+            >
+              Usar datos de prueba (3014567890 · PIN 1234)
+            </button>
+          )}
         </LoginCard>
       </div>
     </Shell>
