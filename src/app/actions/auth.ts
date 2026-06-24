@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { residents, staffUsers } from "@/db/schema";
+import { residents } from "@/db/schema";
 import {
   getConjuntoBySlug,
   getResident,
