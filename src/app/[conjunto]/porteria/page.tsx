@@ -74,7 +74,7 @@ export default async function GuardPanelPage({
         complexName={config?.name ?? "Conjunto"}
         towers={config?.towers ?? 0}
         aptsPerTower={config?.aptsPerTower ?? 0}
-        registry={registry}
+        hasWhatsApp={hasWhatsApp}
         parking={parking.map((p) => ({
           id: p.id,
           kind: p.kind as "car" | "moto",

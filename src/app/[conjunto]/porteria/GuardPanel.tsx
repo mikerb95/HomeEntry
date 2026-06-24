@@ -53,7 +53,7 @@ type Props = {
   complexName: string;
   towers: number;
   aptsPerTower: number;
-  registry: Record<string, string>;
+  hasWhatsApp: Record<string, boolean>;
   parking: Spot[];
   recent: { id: string; type: string; tower: string; apto: string; tsIso: string }[];
   incoming: Incoming[];
