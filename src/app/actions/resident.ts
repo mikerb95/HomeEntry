@@ -1,20 +1,23 @@
 "use server";
 
-import { randomBytes } from "crypto";
 import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import { authGrants } from "@/db/schema";
+import { getAuthByCode } from "@/db/queries";
 import { requireResident } from "@/lib/auth";
+import { makeAuthCode } from "@/lib/code";
 import { qrDataUrl } from "@/lib/qr";
 import { fmtDateTime } from "@/lib/format";
 
-function makeCode(): string {
-  return randomBytes(3)
-    .toString("base64")
-    .replace(/[^A-Z0-9]/gi, "")
-    .slice(0, 4)
-    .toUpperCase()
-    .padEnd(4, "X");
+// Generate a code that is unique within the conjunto. Collisions are already
+// astronomically unlikely (32^8), but a few retries make it a guarantee.
+async function uniqueCode(conjuntoId: string): Promise<string> {
+  for (let i = 0; i < 5; i++) {
+    const code = makeAuthCode();
+    if (!(await getAuthByCode(conjuntoId, code))) return code;
+  }
+  // Extremely improbable; widen the space rather than fail the request.
+  return makeAuthCode(12);
 }
 
 type GenResult =
@@ -48,7 +51,7 @@ export async function generateAuth(
     if (!isNaN(parsed.getTime())) when = parsed.getTime();
   }
 
-  const code = makeCode();
+  const code = await uniqueCode(session.conjuntoId);
   await db.insert(authGrants).values({
     conjuntoId: session.conjuntoId,
     code,

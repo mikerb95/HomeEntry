@@ -6,6 +6,7 @@ import { db } from "@/db";
 import { authGrants, events } from "@/db/schema";
 import { getConjuntoById, getResident, logAccess } from "@/db/queries";
 import { requireGuard } from "@/lib/auth";
+import { isGrantExpired } from "@/lib/code";
 import { AlertType, buildMessage, sendWhatsApp } from "@/lib/whatsapp";
 
 type AlertInput = {
@@ -107,6 +108,17 @@ export async function confirmScan(
   if (!a) return { ok: false, error: "Autorización no encontrada" };
   if (a.status !== "vigente")
     return { ok: false, error: "La autorización no está vigente" };
+
+  // Expired grants are no longer valid: mark them so and refuse entry (S-8).
+  if (isGrantExpired(a.whenTs)) {
+    await db
+      .update(authGrants)
+      .set({ status: "vencido" })
+      .where(and(eq(authGrants.conjuntoId, cid), eq(authGrants.id, authId)));
+    revalidatePath(`/${slug}/porteria`);
+    revalidatePath(`/${slug}/admin`);
+    return { ok: false, error: "La autorización está vencida" };
+  }
 
   await db
     .update(authGrants)
