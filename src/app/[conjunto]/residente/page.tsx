@@ -70,7 +70,7 @@ export default async function ResidentDashboard({
             <h1 className="font-display text-[26px] font-bold tracking-[-.6px]">
               Hola, Apto {session.apt}
             </h1>
-            <div className="mt-[3px] text-[14px] font-semibold text-[#8A94A3]">
+            <div className="mt-[3px] text-[14px] font-semibold text-[#6B7585]">
               WhatsApp +57 {fmtPhone(me?.phone ?? "")}
             </div>
           </div>
@@ -143,7 +143,7 @@ export default async function ResidentDashboard({
                 );
               })}
               {notifs.length === 0 && (
-                <div className="px-5 py-9 text-center text-[14px] text-[#8A94A3]">
+                <div className="px-5 py-9 text-center text-[14px] text-[#6B7585]">
                   Aún no tienes notificaciones.
                 </div>
               )}
@@ -182,7 +182,7 @@ export default async function ResidentDashboard({
                   );
                 })}
                 {myParkings.length === 0 && (
-                  <div className="p-3.5 text-center text-[13.5px] text-[#8A94A3]">
+                  <div className="p-3.5 text-center text-[13.5px] text-[#6B7585]">
                     Sin parqueaderos asignados.
                   </div>
                 )}
@@ -219,7 +219,7 @@ export default async function ResidentDashboard({
                   );
                 })}
                 {auths.length === 0 && (
-                  <div className="p-3.5 text-center text-[13.5px] text-[#8A94A3]">
+                  <div className="p-3.5 text-center text-[13.5px] text-[#6B7585]">
                     No has autorizado ingresos.
                   </div>
                 )}

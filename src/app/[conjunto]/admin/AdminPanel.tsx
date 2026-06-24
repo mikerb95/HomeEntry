@@ -198,7 +198,7 @@ export function AdminPanel(props: Props) {
   ];
 
   const th =
-    "px-3.5 py-[13px] text-left text-[11.5px] font-bold uppercase tracking-[.5px] text-[#8A94A3]";
+    "px-3.5 py-[13px] text-left text-[11.5px] font-bold uppercase tracking-[.5px] text-[#6B7585]";
 
   return (
     <div className="animate-pa-in">
@@ -240,11 +240,11 @@ export function AdminPanel(props: Props) {
           <div className="overflow-hidden rounded-[20px] border border-[#E8ECF2] bg-white">
             <div className="border-b border-[#EEF1F6] px-[22px] py-5">
               <h2 className="font-display text-[19px] font-bold">Historial general</h2>
-              <div className="mt-0.5 text-[13px] text-[#8A94A3]">{props.todayStr}</div>
+              <div className="mt-0.5 text-[13px] text-[#6B7585]">{props.todayStr}</div>
             </div>
             <div className="flex flex-wrap items-center gap-3 border-b border-[#EEF1F6] bg-[#FAFBFD] px-[22px] py-4">
               <div className="relative min-w-[200px] flex-1">
-                <span className="absolute left-[13px] top-1/2 -translate-y-1/2 text-[#8A94A3]">
+                <span className="absolute left-[13px] top-1/2 -translate-y-1/2 text-[#6B7585]">
                   <IconSearch size={17} />
                 </span>
                 <input
@@ -299,13 +299,13 @@ export function AdminPanel(props: Props) {
                 </tbody>
               </table>
               {filtered.length === 0 && (
-                <div className="px-[22px] py-12 text-center text-[14px] text-[#8A94A3]">
+                <div className="px-[22px] py-12 text-center text-[14px] text-[#6B7585]">
                   No hay eventos que coincidan con los filtros.
                 </div>
               )}
             </div>
             <div className="flex items-center justify-between border-t border-[#EEF1F6] px-[22px] py-3.5">
-              <span className="text-[13px] font-semibold text-[#8A94A3]">
+              <span className="text-[13px] font-semibold text-[#6B7585]">
                 Página {curPage} de {totalPages} · {filtered.length} eventos
               </span>
               <div className="flex gap-2">
@@ -323,7 +323,7 @@ export function AdminPanel(props: Props) {
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#EEF1F6] px-[22px] py-5">
             <div>
               <h2 className="font-display text-[19px] font-bold">Gestión de parqueaderos</h2>
-              <div className="mt-0.5 text-[13px] text-[#8A94A3]">
+              <div className="mt-0.5 text-[13px] text-[#6B7585]">
                 Carros {carFree}/{carTotal} libres · Motos {motoFree}/{motoTotal} libres
               </div>
             </div>
@@ -427,11 +427,11 @@ export function AdminPanel(props: Props) {
             {auPreset === "custom" && (
               <div className="mt-3.5 flex flex-wrap gap-3">
                 <div>
-                  <label className="mb-1.5 block text-[11.5px] font-bold uppercase tracking-[.5px] text-[#8A94A3]">Desde</label>
+                  <label className="mb-1.5 block text-[11.5px] font-bold uppercase tracking-[.5px] text-[#6B7585]">Desde</label>
                   <input type="date" value={auFrom} onChange={(e) => setAuFrom(e.target.value)} className="rounded-[11px] border-[1.5px] border-[#E3E8EF] bg-[#F6F8FB] px-[13px] py-[11px] text-[14px] font-semibold outline-none" />
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-[11.5px] font-bold uppercase tracking-[.5px] text-[#8A94A3]">Hasta</label>
+                  <label className="mb-1.5 block text-[11.5px] font-bold uppercase tracking-[.5px] text-[#6B7585]">Hasta</label>
                   <input type="date" value={auTo} onChange={(e) => setAuTo(e.target.value)} className="rounded-[11px] border-[1.5px] border-[#E3E8EF] bg-[#F6F8FB] px-[13px] py-[11px] text-[14px] font-semibold outline-none" />
                 </div>
               </div>
@@ -474,7 +474,7 @@ export function AdminPanel(props: Props) {
                   </tbody>
                 </table>
                 {usageArr.length === 0 && (
-                  <div className="p-[30px] text-center text-[13.5px] text-[#8A94A3]">Sin datos en el período.</div>
+                  <div className="p-[30px] text-center text-[13.5px] text-[#6B7585]">Sin datos en el período.</div>
                 )}
               </div>
             </div>
@@ -482,7 +482,7 @@ export function AdminPanel(props: Props) {
             <div className="overflow-hidden rounded-[20px] border border-[#E8ECF2] bg-white">
               <div className="border-b border-[#EEF1F6] px-5 py-[18px]">
                 <h3 className="font-display text-[17px] font-bold">Ranking de uso</h3>
-                <div className="mt-0.5 text-[12.5px] text-[#8A94A3]">Apartamentos que más usan el parqueadero</div>
+                <div className="mt-0.5 text-[12.5px] text-[#6B7585]">Apartamentos que más usan el parqueadero</div>
               </div>
               <div className="px-5 pb-4 pt-2">
                 {rankRows.map((r, i) => (
@@ -491,7 +491,7 @@ export function AdminPanel(props: Props) {
                       className="flex h-[26px] w-[26px] flex-none items-center justify-center rounded-[8px] font-display text-[13px] font-bold"
                       style={{
                         background: i === 0 ? "#EEE9FF" : "#F0F3F8",
-                        color: i === 0 ? "#6D28D9" : "#8A94A3",
+                        color: i === 0 ? "#6D28D9" : "#6B7585",
                       }}
                     >
                       {i + 1}
@@ -506,7 +506,7 @@ export function AdminPanel(props: Props) {
                   </div>
                 ))}
                 {rankRows.length === 0 && (
-                  <div className="p-6 text-center text-[13.5px] text-[#8A94A3]">Sin datos en el período.</div>
+                  <div className="p-6 text-center text-[13.5px] text-[#6B7585]">Sin datos en el período.</div>
                 )}
               </div>
             </div>
@@ -601,7 +601,7 @@ function FilterSelect({
           </option>
         ))}
       </select>
-      <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[12px] text-[#8A94A3]">▾</span>
+      <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[12px] text-[#6B7585]">▾</span>
     </div>
   );
 }
@@ -681,7 +681,7 @@ function ConfigModal({
       >
         <div className="border-b border-[#EEF1F6] px-[22px] py-5">
           <h2 className="font-display text-[18px] font-bold">Configurar conjunto</h2>
-          <div className="mt-0.5 text-[13px] text-[#8A94A3]">
+          <div className="mt-0.5 text-[13px] text-[#6B7585]">
             Define la estructura según tu conjunto residencial.
           </div>
         </div>

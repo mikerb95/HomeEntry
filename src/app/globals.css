@@ -21,7 +21,7 @@
   --color-rose: #e11d48;
   --color-rose-dark: #be123c;
   --color-muted: #6b7585;
-  --color-muted-2: #8a94a3;
+  --color-muted-2: #6B7585;
 }
 
 * {
@@ -94,4 +94,17 @@ body {
 }
 .animate-pa-pop {
   animation: paPop 0.25s ease;
+}
+
+/* Respect users who prefer reduced motion: drop entrance animations and
+   transitions instead of moving content around. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }

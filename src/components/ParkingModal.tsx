@@ -76,7 +76,7 @@ export function ParkingModal({
         <div className="flex items-center justify-between border-b border-[#EEF1F6] px-[22px] py-[18px]">
           <div className="flex items-center gap-[11px]">
             <span className="font-display text-[22px] font-bold">{spot.id}</span>
-            <span className="text-[13px] font-semibold text-[#8A94A3]">
+            <span className="text-[13px] font-semibold text-[#6B7585]">
               {spot.kind === "moto" ? "Moto" : "Carro"}
             </span>
           </div>
@@ -115,7 +115,7 @@ export function ParkingModal({
                   </option>
                 ))}
               </select>
-              <span className="pointer-events-none absolute right-[15px] top-1/2 -translate-y-1/2 text-[12px] text-[#8A94A3]">
+              <span className="pointer-events-none absolute right-[15px] top-1/2 -translate-y-1/2 text-[12px] text-[#6B7585]">
                 ▾
               </span>
             </div>
@@ -169,13 +169,13 @@ export function ParkingModal({
               </span>
             </div>
             <div className="flex justify-between border-b border-[#F0F3F7] py-[11px]">
-              <span className="text-[14px] text-[#8A94A3]">Placa</span>
+              <span className="text-[14px] text-[#6B7585]">Placa</span>
               <span className="text-[15px] font-bold tracking-[1px]">
                 {spot.plate || "—"}
               </span>
             </div>
             <div className="mb-[18px] flex justify-between py-[11px]">
-              <span className="text-[14px] text-[#8A94A3]">Apartamento</span>
+              <span className="text-[14px] text-[#6B7585]">Apartamento</span>
               <span className="text-[15px] font-bold">{aptoLabel}</span>
             </div>
             <button

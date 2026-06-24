@@ -118,7 +118,7 @@ export default function ResidentLoginPage() {
                   "ok",
                 )
               }
-              className="text-[13.5px] font-bold text-[#8A94A3]"
+              className="text-[13.5px] font-bold text-[#6B7585]"
             >
               Olvidé mi PIN
             </button>

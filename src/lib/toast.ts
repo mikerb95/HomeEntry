@@ -7,6 +7,7 @@ export type ToastKind = "ok" | "warn";
 interface ToastState {
   toast: { id: number; text: string; kind: ToastKind } | null;
   show: (text: string, kind?: ToastKind) => void;
+  dismiss: () => void;
 }
 
 export const useToast = create<ToastState>((set, get) => ({
@@ -18,4 +19,5 @@ export const useToast = create<ToastState>((set, get) => ({
       if (get().toast?.id === id) set({ toast: null });
     }, 2600);
   },
+  dismiss: () => set({ toast: null }),
 }));

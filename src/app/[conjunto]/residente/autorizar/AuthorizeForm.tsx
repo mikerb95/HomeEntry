@@ -138,13 +138,13 @@ export function AuthorizeForm({ slug }: { slug: string }) {
               <div className="mt-3 inline-block rounded-full bg-[#E9F8EE] px-[13px] py-[5px] text-[12.5px] font-bold text-[#15803D]">
                 ✓ Vigente · código {result.code}
               </div>
-              <div className="mt-4 text-[12.5px] text-[#8A94A3]">
+              <div className="mt-4 text-[12.5px] text-[#6B7585]">
                 Muestra este QR en portería. El vigilante verá tus datos y la
                 vigencia.
               </div>
             </div>
           ) : (
-            <div className="rounded-[22px] border-[1.5px] border-dashed border-[#D2DAE4] bg-[#F6F8FB] px-[26px] py-10 text-center text-[#8A94A3]">
+            <div className="rounded-[22px] border-[1.5px] border-dashed border-[#D2DAE4] bg-[#F6F8FB] px-[26px] py-10 text-center text-[#6B7585]">
               <div className="mb-1.5 font-display text-[16px] font-bold text-[#5B6675]">
                 Tu QR aparecerá aquí
               </div>

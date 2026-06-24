@@ -4,6 +4,7 @@ import { useToast } from "@/lib/toast";
 
 export function Toaster() {
   const toast = useToast((s) => s.toast);
+  const dismiss = useToast((s) => s.dismiss);
   if (!toast) return null;
   return (
     <div
@@ -14,6 +15,14 @@ export function Toaster() {
     >
       <span aria-hidden="true" className="h-[9px] w-[9px] rounded-full bg-white" />
       {toast.text}
+      <button
+        type="button"
+        onClick={dismiss}
+        aria-label="Cerrar notificación"
+        className="ml-1 flex h-5 w-5 flex-none items-center justify-center rounded-full text-white/80 hover:bg-white/20 hover:text-white"
+      >
+        ✕
+      </button>
     </div>
   );
 }

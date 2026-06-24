@@ -64,7 +64,7 @@ type Props = {
 };
 
 const chev = (
-  <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[13px] text-[#8A94A3]">
+  <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[13px] text-[#6B7585]">
     ▾
   </span>
 );
@@ -364,7 +364,7 @@ export function GuardPanel(props: Props) {
                       <div className="text-[13.5px] font-bold text-ink">
                         {m.label} · {r.tower} · {r.apto}
                       </div>
-                      <div className="text-[12px] font-semibold text-[#8A94A3]">
+                      <div className="text-[12px] font-semibold text-[#6B7585]">
                         {fmtTime(r.tsIso)}
                       </div>
                     </div>
@@ -416,7 +416,7 @@ export function GuardPanel(props: Props) {
                 className="flex-1 rounded-[10px] p-[11px] text-[14px] font-bold"
                 style={{
                   background: pkTab === k ? "#fff" : "transparent",
-                  color: pkTab === k ? "#16A34A" : "#8A94A3",
+                  color: pkTab === k ? "#16A34A" : "#6B7585",
                 }}
               >
                 {k === "car" ? "Carros" : "Motos"}
@@ -484,13 +484,13 @@ export function GuardPanel(props: Props) {
               <div className="font-display text-[15.5px] font-bold">
                 Simular escaneo
               </div>
-              <div className="mt-1 text-[13px] text-[#8A94A3]">
+              <div className="mt-1 text-[13px] text-[#6B7585]">
                 Toca para escanear el QR más reciente
               </div>
             </button>
 
             <div className="mt-[18px]">
-              <div className="mb-2.5 text-[12.5px] font-bold uppercase tracking-[.5px] text-[#8A94A3]">
+              <div className="mb-2.5 text-[12.5px] font-bold uppercase tracking-[.5px] text-[#6B7585]">
                 Autorizaciones entrantes
               </div>
               <div className="flex flex-col gap-2.5">
@@ -524,7 +524,7 @@ export function GuardPanel(props: Props) {
                   </div>
                 ))}
                 {props.incoming.length === 0 && (
-                  <div className="p-5 text-center text-[13.5px] text-[#8A94A3]">
+                  <div className="p-5 text-center text-[13.5px] text-[#6B7585]">
                     No hay autorizaciones pendientes.
                   </div>
                 )}
@@ -564,7 +564,7 @@ export function GuardPanel(props: Props) {
                           : "pb-[18px]"
                       }`}
                     >
-                      <span className="text-[14px] text-[#8A94A3]">{k}</span>
+                      <span className="text-[14px] text-[#6B7585]">{k}</span>
                       <span className="text-[15px] font-bold">{v}</span>
                     </div>
                   ))}
@@ -577,7 +577,7 @@ export function GuardPanel(props: Props) {
                 </div>
               </div>
             ) : (
-              <div className="rounded-[22px] border-[1.5px] border-dashed border-[#D2DAE4] bg-[#F6F8FB] px-[26px] py-10 text-center text-[#8A94A3]">
+              <div className="rounded-[22px] border-[1.5px] border-dashed border-[#D2DAE4] bg-[#F6F8FB] px-[26px] py-10 text-center text-[#6B7585]">
                 <div className="mb-1.5 font-display text-[16px] font-bold text-[#5B6675]">
                   Resultado de verificación
                 </div>

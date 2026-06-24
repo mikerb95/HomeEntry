@@ -24,7 +24,7 @@ export default async function SuperadminPage() {
               <div className="font-display text-[22px] font-bold tracking-[-.4px]">
                 Conjuntos
               </div>
-              <div className="text-[13px] font-semibold text-[#8A94A3]">
+              <div className="text-[13px] font-semibold text-[#6B7585]">
                 {conjuntos.length} activo{conjuntos.length === 1 ? "" : "s"}
               </div>
             </div>
@@ -42,7 +42,7 @@ export default async function SuperadminPage() {
 
         <div className="mb-6 overflow-hidden rounded-[20px] border border-[#E6EBF2] bg-white">
           {conjuntos.length === 0 && (
-            <div className="px-5 py-8 text-center text-[14px] text-[#8A94A3]">
+            <div className="px-5 py-8 text-center text-[14px] text-[#6B7585]">
               Aún no has creado conjuntos.
             </div>
           )}
@@ -56,7 +56,7 @@ export default async function SuperadminPage() {
                 <div className="truncate font-display text-[16px] font-bold text-ink">
                   {c.name}
                 </div>
-                <div className="font-mono text-[12.5px] font-semibold text-[#8A94A3]">
+                <div className="font-mono text-[12.5px] font-semibold text-[#6B7585]">
                   /{c.slug} · {c.towers} torres · {c.aptsPerTower} aptos/torre
                 </div>
               </div>

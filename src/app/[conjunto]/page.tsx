@@ -64,7 +64,7 @@ export default async function ConjuntoEntryPage({
             <div className="font-display text-[24px] font-bold tracking-[-.5px]">
               PortAl
             </div>
-            <div className="text-[13.5px] font-semibold text-[#8A94A3]">
+            <div className="text-[13.5px] font-semibold text-[#6B7585]">
               {conjunto.name}
             </div>
           </div>

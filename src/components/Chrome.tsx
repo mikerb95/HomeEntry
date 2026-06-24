@@ -20,7 +20,7 @@ export function Chrome({ title, sub, role, badgeBg, badgeFg }: ChromeProps) {
           <div className="truncate font-display text-[15px] font-bold tracking-[-.2px]">
             {title}
           </div>
-          <div className="text-[11.5px] font-semibold text-[#8A94A3]">{sub}</div>
+          <div className="text-[11.5px] font-semibold text-[#6B7585]">{sub}</div>
         </div>
       </div>
       <span
