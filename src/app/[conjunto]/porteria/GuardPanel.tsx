@@ -96,8 +96,7 @@ export function GuardPanel(props: Props) {
 
   const gKey = gTower && gApto ? `${gTower}-${gApto}` : "";
   const guardSelected = !!gKey;
-  const guardNumber = gKey ? props.registry[gKey] : "";
-  const guardHasNumber = !!guardNumber;
+  const guardHasNumber = gKey ? !!props.hasWhatsApp[gKey] : false;
   const sendDisabled = !guardHasNumber;
 
   const tabSpots = props.parking.filter((p) => p.kind === pkTab);
@@ -288,7 +287,7 @@ export function GuardPanel(props: Props) {
                       WhatsApp configurado
                     </div>
                     <div className="text-[13px] text-[#1F7A43]">
-                      +57 {fmtPhone(guardNumber)}
+                      Recibirá la alerta en su WhatsApp.
                     </div>
                   </div>
                 </div>
