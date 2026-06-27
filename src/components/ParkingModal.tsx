@@ -30,6 +30,7 @@ export function ParkingModal({
   const [plate, setPlate] = useState("");
   const [apto, setApto] = useState("");
   const [kind, setKind] = useState<"resident" | "visitor">("resident");
+  const [foreign, setForeign] = useState(false);
   const [pending, start] = useTransition();
   const router = useRouter();
   const show = useToast((s) => s.show);
@@ -38,13 +39,34 @@ export function ParkingModal({
   const aptoLabel =
     allApts.find((a) => a.id === spot.aptoKey)?.label || spot.aptoKey || "—";
 
+  // Colombian format depends on the spot type: cars ABC123, motos ABC12D.
+  const platePlaceholder = foreign
+    ? "Placa extranjera"
+    : spot.kind === "moto"
+      ? "ABC12D"
+      : "ABC123";
+  const plateOk = isValidPlate(plate, spot.kind, foreign);
+  const showPlateError = plate.length > 0 && !plateOk;
+
   function save() {
+    if (!plateOk) {
+      show(
+        foreign
+          ? "Placa extranjera no válida"
+          : spot.kind === "moto"
+            ? "Placa de moto inválida (formato ABC12D)"
+            : "Placa de carro inválida (formato ABC123)",
+        "warn",
+      );
+      return;
+    }
     start(async () => {
       const res = await assignParking(slug, {
         spotId: spot.id,
         plate,
         aptoKey: apto,
         kind,
+        foreign,
       });
       if (!res.ok) {
         show(res.error || "Error", "warn");
