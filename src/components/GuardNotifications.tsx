@@ -27,6 +27,46 @@ export function GuardNotifications({
   const sinceRef = useRef(serverNowIso);
   const seenRef = useRef<Set<string>>(new Set());
   const bannerTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const audioRef = useRef<AudioContext | null>(null);
+
+  // Lazily create one AudioContext. Browsers start it "suspended" until a user
+  // gesture, so we also resume it on the guard's first interaction below.
+  const getAudio = useCallback(() => {
+    if (typeof window === "undefined") return null;
+    if (!audioRef.current) {
+      const Ctx =
+        window.AudioContext ||
+        (window as typeof window & { webkitAudioContext?: typeof AudioContext })
+          .webkitAudioContext;
+      if (Ctx) audioRef.current = new Ctx();
+    }
+    return audioRef.current;
+  }, []);
+
+  // Short two-tone chime + a vibration pulse. Both degrade to no-ops where
+  // unsupported (e.g. vibration on desktop, audio before the gesture unlock).
+  const alertSignal = useCallback(() => {
+    if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+      navigator.vibrate?.([120, 60, 120]);
+    }
+    const ctx = getAudio();
+    if (!ctx) return;
+    if (ctx.state === "suspended") void ctx.resume().catch(() => {});
+    const now = ctx.currentTime;
+    [880, 1175].forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = freq;
+      const t0 = now + i * 0.16;
+      gain.gain.setValueAtTime(0.0001, t0);
+      gain.gain.exponentialRampToValueAtTime(0.18, t0 + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.15);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(t0);
+      osc.stop(t0 + 0.16);
+    });
+  }, [getAudio]);
 
   const poll = useCallback(async () => {
     try {
