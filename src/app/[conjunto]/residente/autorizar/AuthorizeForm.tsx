@@ -17,15 +17,45 @@ export function AuthorizeForm({ slug }: { slug: string }) {
   const [visitor, setVisitor] = useState("");
   const [doc, setDoc] = useState("");
   const [plate, setPlate] = useState("");
+  const [vehicleKind, setVehicleKind] = useState<"car" | "moto">("car");
+  const [foreign, setForeign] = useState(false);
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [result, setResult] = useState<Result | null>(null);
   const [pending, start] = useTransition();
   const show = useToast((s) => s.show);
 
+  // Plate is optional; an empty value is valid. Cars ABC123, motos ABC12D.
+  const platePlaceholder = foreign
+    ? "Placa extranjera"
+    : vehicleKind === "moto"
+      ? "ABC12D"
+      : "ABC123";
+  const plateOk = plate.length === 0 || isValidPlate(plate, vehicleKind, foreign);
+  const showPlateError = plate.length > 0 && !plateOk;
+
   function generate() {
+    if (!plateOk) {
+      show(
+        foreign
+          ? "Placa extranjera no válida"
+          : vehicleKind === "moto"
+            ? "Placa de moto inválida (formato ABC12D)"
+            : "Placa de carro inválida (formato ABC123)",
+        "warn",
+      );
+      return;
+    }
     start(async () => {
-      const res = await generateAuth(slug, { visitor, doc, plate, date, time });
+      const res = await generateAuth(slug, {
+        visitor,
+        doc,
+        plate,
+        vehicleKind,
+        foreign,
+        date,
+        time,
+      });
       if (!res.ok) {
         show(res.error || "Error", "warn");
         return;
@@ -39,6 +69,8 @@ export function AuthorizeForm({ slug }: { slug: string }) {
       setVisitor("");
       setDoc("");
       setPlate("");
+      setVehicleKind("car");
+      setForeign(false);
       setDate("");
       setTime("");
       show("Autorización generada", "ok");
