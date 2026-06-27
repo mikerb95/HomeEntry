@@ -61,6 +61,7 @@ type Props = {
   mPackages: number;
   todayStr: string;
   whatsappMode: "preview-then-open" | "open-directly";
+  serverNowIso: string;
 };
 
 const chev = (
