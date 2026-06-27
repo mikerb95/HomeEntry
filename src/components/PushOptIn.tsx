@@ -1,7 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { subscribeResident, unsubscribeResident } from "@/app/actions/push";
+import {
+  sendTestPush,
+  subscribeResident,
+  unsubscribeResident,
+} from "@/app/actions/push";
 import { IconBell } from "@/components/icons";
 import { useToast } from "@/lib/toast";
 
@@ -84,6 +88,19 @@ export function PushOptIn({ slug }: { slug: string }) {
       show("Notificaciones activadas", "ok");
     } catch {
       show("No se pudo activar en este dispositivo", "warn");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function test() {
+    setBusy(true);
+    try {
+      const res = await sendTestPush(slug);
+      if (res.ok) show("Notificación de prueba enviada", "ok");
+      else show(res.error || "No se pudo enviar", "warn");
+    } catch {
+      show("No se pudo enviar la prueba", "warn");
     } finally {
       setBusy(false);
     }

@@ -43,6 +43,27 @@ export async function subscribeResident(
   return { ok: true };
 }
 
+// Send a test notification to the calling resident's own devices, so they can
+// confirm push works end-to-end right after enabling it.
+export async function sendTestPush(
+  slug: string,
+): Promise<{ ok: boolean; sent?: number; error?: string }> {
+  const session = await requireResident(slug);
+  const res = await sendPushToApt(session.conjuntoId, session.aptoKey, {
+    title: "Notificación de prueba",
+    body: "¡Listo! Las notificaciones de tu conjunto funcionan en este dispositivo.",
+    url: `/${slug}/residente`,
+    tag: `test-${session.aptoKey}`,
+  });
+  if (res.sent === 0) {
+    return {
+      ok: false,
+      error: "No hay dispositivos activos para este apartamento",
+    };
+  }
+  return { ok: true, sent: res.sent };
+}
+
 export async function unsubscribeResident(
   slug: string,
   endpoint: string,
