@@ -81,10 +81,11 @@ export function GuardNotifications({
       setItems((prev) => [...fresh, ...prev]);
 
       if (document.visibilityState === "visible") {
-        // View is active → flash the top badge with the most recent one.
+        // View is active → flash the top badge, chime and vibrate.
         setBanner(fresh[0]);
         if (bannerTimer.current) clearTimeout(bannerTimer.current);
         bannerTimer.current = setTimeout(() => setBanner(null), 6000);
+        alertSignal();
       } else {
         // View was inactive → park it in the notifications panel as unread.
         setUnread((u) => u + fresh.length);
@@ -92,9 +93,25 @@ export function GuardNotifications({
     } catch {
       // Transient errors (navigation, session refresh) — retry next tick.
     }
-  }, [slug]);
+  }, [slug, alertSignal]);
+
+  // Resume the AudioContext on the guard's first interaction so the chime can
+  // play later without being blocked by the browser autoplay policy.
+  useEffect(() => {
+    const unlock = () => {
+      const ctx = getAudio();
+      if (ctx && ctx.state === "suspended") void ctx.resume().catch(() => {});
+    };
+    window.addEventListener("pointerdown", unlock, { once: true });
+    window.addEventListener("keydown", unlock, { once: true });
+    return () => {
+      window.removeEventListener("pointerdown", unlock);
+      window.removeEventListener("keydown", unlock);
+    };
+  }, [getAudio]);
 
   useEffect(() => {
+    const audio = audioRef;
     const id = setInterval(poll, POLL_MS);
     // Catch up immediately when the guard returns to the tab.
     const onVisible = () => {
@@ -105,6 +122,8 @@ export function GuardNotifications({
       clearInterval(id);
       document.removeEventListener("visibilitychange", onVisible);
       if (bannerTimer.current) clearTimeout(bannerTimer.current);
+      void audio.current?.close().catch(() => {});
+      audio.current = null;
     };
   }, [poll]);
 
