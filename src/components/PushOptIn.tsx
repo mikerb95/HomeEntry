@@ -163,6 +163,13 @@ export function PushOptIn({ slug }: { slug: string }) {
           </div>
         </div>
         <button
+          onClick={test}
+          disabled={busy}
+          className="flex-none rounded-[11px] bg-green px-3.5 py-2 text-[13px] font-bold text-white hover:bg-green-dark disabled:opacity-60"
+        >
+          Probar
+        </button>
+        <button
           onClick={disable}
           disabled={busy}
           className="flex-none rounded-[11px] border border-[#B7E6C7] bg-white px-3.5 py-2 text-[13px] font-bold text-[#15803D] disabled:opacity-60"
