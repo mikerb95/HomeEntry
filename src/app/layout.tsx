@@ -17,11 +17,19 @@ const grotesk = Space_Grotesk({
 export const metadata: Metadata = {
   title: "PortAl · Gestión Residencial",
   description: "Gestión de portería conectada por WhatsApp.",
+  // Lets iOS launch the home-screen install in standalone (app) mode, which is
+  // a prerequisite for Web Push notifications on iPhone.
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "HomeEntry",
+  },
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  themeColor: "#2F6BFF",
 };
 
 export default function RootLayout({
