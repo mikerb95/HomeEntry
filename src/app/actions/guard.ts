@@ -80,12 +80,25 @@ export async function confirmAlert(
     encomienda: "Aviso de paquete",
     mensaje: "Mensaje de administración",
   };
+
+  // Web Push coexists with WhatsApp: fire it in parallel to every device the
+  // apartment registered. Best-effort — failures never block the alert.
+  const push = await sendPushToApt(cid, prep.apto, {
+    title: labels[input.type],
+    body: prep.text,
+    url: `/${slug}/residente`,
+    tag: `${input.type}-${prep.apto}`,
+  });
+
+  const channels = ["WhatsApp", push.sent > 0 ? "app" : ""]
+    .filter(Boolean)
+    .join(" + ");
   await db.insert(events).values({
     conjuntoId: cid,
     type: input.type,
     tower: input.tower,
     apto: input.apto,
-    detail: `${labels[input.type]} enviado por WhatsApp`,
+    detail: `${labels[input.type]} enviado por ${channels}`,
   });
   revalidatePath(`/${slug}/porteria`);
   revalidatePath(`/${slug}/admin`);
