@@ -113,15 +113,55 @@ export function ParkingModal({
 
         {isNew ? (
           <div className="px-[22px] py-5">
-            <label className="mb-[7px] block text-[12px] font-bold uppercase tracking-[.5px] text-[#5B6675]">
-              Placa del vehículo
-            </label>
+            <div className="mb-[7px] flex items-center justify-between">
+              <label className="block text-[12px] font-bold uppercase tracking-[.5px] text-[#5B6675]">
+                Placa del vehículo
+              </label>
+              <label className="flex cursor-pointer items-center gap-1.5 text-[12px] font-semibold text-[#6B7585]">
+                <input
+                  type="checkbox"
+                  checked={foreign}
+                  onChange={(e) => setForeign(e.target.checked)}
+                  className="h-[15px] w-[15px] accent-blue"
+                />
+                Vehículo de otro país
+              </label>
+            </div>
             <input
               value={plate}
-              onChange={(e) => setPlate(e.target.value)}
-              placeholder="ABC-123"
-              className="mb-4 w-full rounded-[13px] border-[1.5px] border-[#E3E8EF] bg-[#F6F8FB] px-4 py-3.5 text-[16px] font-bold uppercase tracking-[1px] outline-none focus:border-blue"
+              onChange={(e) =>
+                setPlate(
+                  foreign
+                    ? e.target.value.toUpperCase()
+                    : normalizePlate(e.target.value).slice(
+                        0,
+                        spot.kind === "moto" ? 6 : 6,
+                      ),
+                )
+              }
+              placeholder={platePlaceholder}
+              className="w-full rounded-[13px] border-[1.5px] bg-[#F6F8FB] px-4 py-3.5 text-[16px] font-bold uppercase tracking-[1px] outline-none focus:border-blue"
+              style={{ borderColor: showPlateError ? "#F43F5E" : "#E3E8EF" }}
             />
+            <div className="mb-4 mt-[6px] min-h-[15px] text-[12px] font-semibold">
+              {showPlateError ? (
+                <span className="text-[#E11D48]">
+                  {foreign
+                    ? "Placa extranjera no válida"
+                    : spot.kind === "moto"
+                      ? "Formato de moto: ABC12D"
+                      : "Formato de carro: ABC123"}
+                </span>
+              ) : (
+                !foreign && (
+                  <span className="text-[#9AA4B2]">
+                    {spot.kind === "moto"
+                      ? "3 letras, 2 números y 1 letra"
+                      : "3 letras y 3 números"}
+                  </span>
+                )
+              )}
+            </div>
             <label className="mb-[7px] block text-[12px] font-bold uppercase tracking-[.5px] text-[#5B6675]">
               Apartamento que lo usará
             </label>
