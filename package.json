@@ -15,6 +15,7 @@
     "db:reset": "npm run db:push -- --force && npm run db:seed"
   },
   "dependencies": {
+    "@types/web-push": "^3.6.4",
     "bcryptjs": "^3.0.3",
     "drizzle-orm": "^0.45.2",
     "jose": "^6.2.3",
@@ -23,6 +24,7 @@
     "qrcode": "^1.5.4",
     "react": "19.2.4",
     "react-dom": "19.2.4",
+    "web-push": "^3.6.7",
     "zustand": "^5.0.14"
   },
   "devDependencies": {
