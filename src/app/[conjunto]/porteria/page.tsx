@@ -95,6 +95,7 @@ export default async function GuardPanelPage({
         mPackages={mPackages}
         todayStr={todayStr()}
         whatsappMode={whatsappMode()}
+        serverNowIso={new Date().toISOString()}
       />
     </Shell>
   );
