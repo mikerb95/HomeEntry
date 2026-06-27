@@ -183,3 +183,4 @@ export type ParkingSpot = typeof parkingSpots.$inferSelect;
 export type EventRow = typeof events.$inferSelect;
 export type AuthGrant = typeof authGrants.$inferSelect;
 export type ParkingSession = typeof parkingSessions.$inferSelect;
+export type PushSubscriptionRow = typeof pushSubscriptions.$inferSelect;
