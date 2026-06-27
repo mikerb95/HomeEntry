@@ -133,10 +133,7 @@ export function ParkingModal({
                 setPlate(
                   foreign
                     ? e.target.value.toUpperCase()
-                    : normalizePlate(e.target.value).slice(
-                        0,
-                        spot.kind === "moto" ? 6 : 6,
-                      ),
+                    : normalizePlate(e.target.value).slice(0, 6),
                 )
               }
               placeholder={platePlaceholder}
