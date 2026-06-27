@@ -11,6 +11,31 @@ export function clampText(
   return (s || "").trim().slice(0, max);
 }
 
+// Colombian plate patterns. Cars: 3 letters + 3 digits (ABC123).
+// Motos: 3 letters + 2 digits + 1 letter (ABC12D).
+const PLATE_CAR = /^[A-Z]{3}\d{3}$/;
+const PLATE_MOTO = /^[A-Z]{3}\d{2}[A-Z]$/;
+
+export type VehicleKind = "car" | "moto";
+
+// Uppercase + strip anything that isn't a letter or digit, so "abc-123" and
+// "abc 123" both normalize to the canonical "ABC123" used for storage/checks.
+export function normalizePlate(s: string | null | undefined): string {
+  return (s || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+}
+
+// Validate a plate. Colombian plates must match the car/moto pattern; foreign
+// plates skip the pattern and only require some plausible alphanumeric content.
+export function isValidPlate(
+  plate: string | null | undefined,
+  kind: VehicleKind,
+  foreign = false,
+): boolean {
+  const p = normalizePlate(plate);
+  if (foreign) return p.length >= 4 && p.length <= 10;
+  return (kind === "moto" ? PLATE_MOTO : PLATE_CAR).test(p);
+}
+
 export function fmtPhone(p: string | null | undefined): string {
   const d = digits(p);
   return d.length === 10

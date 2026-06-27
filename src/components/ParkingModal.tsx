@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { assignParking, freeParking } from "@/app/actions/parking";
 import { statusMeta, ParkingStatus } from "@/lib/meta";
+import { isValidPlate, normalizePlate } from "@/lib/format";
 import { useToast } from "@/lib/toast";
 
 export type ModalSpot = {

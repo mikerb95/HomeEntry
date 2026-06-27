@@ -5,7 +5,7 @@ import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { events, parkingSpots } from "@/db/schema";
 import { getSession } from "@/lib/auth";
-import { clampText } from "@/lib/format";
+import { clampText, isValidPlate } from "@/lib/format";
 
 type Result = { ok: boolean; error?: string };
 
@@ -29,6 +29,7 @@ export async function assignParking(
     plate: string;
     aptoKey: string;
     kind: "resident" | "visitor";
+    foreign?: boolean;
   },
 ): Promise<Result> {
   const session = await requireStaff(slug);
@@ -36,6 +37,28 @@ export async function assignParking(
   const plate = clampText(input.plate, 12).toUpperCase();
   if (!plate) return { ok: false, error: "Ingresa la placa del vehículo" };
   if (!input.aptoKey) return { ok: false, error: "Selecciona el apartamento" };
+
+  // The spot itself determines whether the plate must match the car or moto
+  // pattern; foreign plates skip that check.
+  const [spot] = await db
+    .select({ kind: parkingSpots.kind })
+    .from(parkingSpots)
+    .where(
+      and(eq(parkingSpots.conjuntoId, cid), eq(parkingSpots.id, input.spotId)),
+    );
+  if (!spot) return { ok: false, error: "Parqueadero no encontrado" };
+
+  const vehicleKind = spot.kind === "moto" ? "moto" : "car";
+  if (!isValidPlate(plate, vehicleKind, input.foreign)) {
+    return {
+      ok: false,
+      error: input.foreign
+        ? "Placa extranjera no válida"
+        : vehicleKind === "moto"
+          ? "Placa de moto inválida (formato ABC12D)"
+          : "Placa de carro inválida (formato ABC123)",
+    };
+  }
 
   const status = input.kind === "visitor" ? "visitor" : "resident";
   await db
