@@ -9,6 +9,7 @@ import { requireGuard } from "@/lib/auth";
 import { clampText } from "@/lib/format";
 import { isGrantExpired } from "@/lib/code";
 import { AlertType, buildMessage, sendWhatsApp } from "@/lib/whatsapp";
+import { sendPushToApt } from "@/lib/push";
 
 type AlertInput = {
   type: AlertType;

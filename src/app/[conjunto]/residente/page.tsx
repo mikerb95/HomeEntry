@@ -10,6 +10,7 @@ import {
   listParking,
 } from "@/db/queries";
 import { Shell } from "@/components/Shell";
+import { PushOptIn } from "@/components/PushOptIn";
 import { IconAuthorize } from "@/components/icons";
 import {
   authStMeta,
@@ -90,6 +91,8 @@ export default async function ResidentDashboard({
             </Link>
           </div>
         </div>
+
+        <PushOptIn slug={slug} />
 
         <div className="mb-[22px] grid grid-cols-1 gap-3.5 min-[680px]:grid-cols-2 min-[1040px]:grid-cols-4">
           {metrics.map((m) => (
