@@ -4,6 +4,7 @@ import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { pushSubscriptions } from "@/db/schema";
 import { requireResident } from "@/lib/auth";
+import { sendPushToApt } from "@/lib/push";
 
 type WebPushSub = {
   endpoint: string;
