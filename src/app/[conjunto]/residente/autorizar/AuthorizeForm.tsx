@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState, useTransition } from "react";
 import { generateAuth } from "@/app/actions/resident";
 import { Label } from "@/components/ui";
+import { isValidPlate, normalizePlate } from "@/lib/format";
 import { useToast } from "@/lib/toast";
 
 const inputCls =
