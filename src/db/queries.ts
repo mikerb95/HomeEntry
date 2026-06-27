@@ -221,6 +221,18 @@ export async function listAuths(conjuntoId: string) {
     .orderBy(desc(authGrants.createdAt));
 }
 
+// Authorizations created strictly after `since`, used by the guard screen to
+// poll for new visitor authorizations without reloading the whole panel.
+export async function listAuthsSince(conjuntoId: string, since: Date) {
+  return db
+    .select()
+    .from(authGrants)
+    .where(
+      and(eq(authGrants.conjuntoId, conjuntoId), gt(authGrants.createdAt, since)),
+    )
+    .orderBy(desc(authGrants.createdAt));
+}
+
 export async function listAuthsForApt(conjuntoId: string, aptoKey: string) {
   await expireStaleGrants(conjuntoId);
   return db
