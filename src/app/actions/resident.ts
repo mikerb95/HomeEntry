@@ -36,6 +36,8 @@ export async function generateAuth(
     visitor: string;
     doc: string;
     plate: string;
+    vehicleKind: "car" | "moto";
+    foreign?: boolean;
     date: string;
     time: string;
   },
@@ -44,6 +46,19 @@ export async function generateAuth(
   const visitor = clampText(input.visitor, 80);
   if (!visitor)
     return { ok: false, error: "Ingresa el nombre del visitante" };
+
+  // Plate is optional here, but when provided it must match the chosen format.
+  const plate = clampText(input.plate, 12).toUpperCase();
+  if (plate && !isValidPlate(plate, input.vehicleKind, input.foreign)) {
+    return {
+      ok: false,
+      error: input.foreign
+        ? "Placa extranjera no válida"
+        : input.vehicleKind === "moto"
+          ? "Placa de moto inválida (formato ABC12D)"
+          : "Placa de carro inválida (formato ABC123)",
+    };
+  }
 
   let when = Date.now() + 2 * 3600000;
   if (input.date) {
