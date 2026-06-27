@@ -76,7 +76,7 @@ export async function generateAuth(
     apt: session.apt,
     visitor,
     doc: clampText(input.doc, 40) || "—",
-    plate: clampText(input.plate, 12).toUpperCase(),
+    plate,
     whenTs: new Date(when),
     status: "vigente",
   });
