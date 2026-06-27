@@ -198,6 +198,8 @@ export function GuardPanel(props: Props) {
 
   return (
     <div className="animate-pa-in">
+      <GuardNotifications slug={props.slug} serverNowIso={props.serverNowIso} />
+
       <div className="mb-5 flex w-max max-w-full gap-1.5 overflow-x-auto rounded-[14px] border border-[#E3E8EF] bg-white p-[5px]">
         {gTabs.map((t) => (
           <button
