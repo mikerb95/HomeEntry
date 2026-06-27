@@ -1,5 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { clampText, digits, fmtPhone, isToday } from "./format";
+import {
+  clampText,
+  digits,
+  fmtPhone,
+  isToday,
+  isValidPlate,
+  normalizePlate,
+} from "./format";
 
 describe("digits", () => {
   it("strips every non-digit and tolerates null/undefined", () => {
