@@ -132,13 +132,78 @@ export function AuthorizeForm({ slug }: { slug: string }) {
             </div>
           </div>
 
-          <Label>Placa del vehículo (opcional)</Label>
+          <div className="mb-2 flex items-center justify-between">
+            <Label>Placa del vehículo (opcional)</Label>
+            <label className="flex cursor-pointer items-center gap-1.5 text-[13px] font-semibold text-[#6B7585]">
+              <input
+                type="checkbox"
+                checked={foreign}
+                onChange={(e) => setForeign(e.target.checked)}
+                className="h-[15px] w-[15px] accent-blue"
+              />
+              Vehículo de otro país
+            </label>
+          </div>
+          {!foreign && (
+            <div className="mb-2.5 flex gap-2.5">
+              <button
+                type="button"
+                onClick={() => setVehicleKind("car")}
+                className="flex-1 rounded-[12px] border-2 p-2.5 text-[13.5px] font-bold"
+                style={{
+                  borderColor: vehicleKind === "car" ? "#2F6BFF" : "#E3E8EF",
+                  background: vehicleKind === "car" ? "#EAF1FF" : "#fff",
+                  color: vehicleKind === "car" ? "#2F6BFF" : "#6B7585",
+                }}
+              >
+                Carro
+              </button>
+              <button
+                type="button"
+                onClick={() => setVehicleKind("moto")}
+                className="flex-1 rounded-[12px] border-2 p-2.5 text-[13.5px] font-bold"
+                style={{
+                  borderColor: vehicleKind === "moto" ? "#2F6BFF" : "#E3E8EF",
+                  background: vehicleKind === "moto" ? "#EAF1FF" : "#fff",
+                  color: vehicleKind === "moto" ? "#2F6BFF" : "#6B7585",
+                }}
+              >
+                Moto
+              </button>
+            </div>
+          )}
           <input
             value={plate}
-            onChange={(e) => setPlate(e.target.value)}
-            placeholder="ABC-123"
-            className={`mb-5 uppercase tracking-[1px] ${inputCls} font-bold`}
+            onChange={(e) =>
+              setPlate(
+                foreign
+                  ? e.target.value.toUpperCase()
+                  : normalizePlate(e.target.value).slice(0, 6),
+              )
+            }
+            placeholder={platePlaceholder}
+            className={`uppercase tracking-[1px] ${inputCls} font-bold`}
+            style={{ borderColor: showPlateError ? "#F43F5E" : undefined }}
           />
+          <div className="mb-5 mt-[6px] min-h-[16px] text-[12.5px] font-semibold">
+            {showPlateError ? (
+              <span className="text-[#E11D48]">
+                {foreign
+                  ? "Placa extranjera no válida"
+                  : vehicleKind === "moto"
+                    ? "Formato de moto: ABC12D"
+                    : "Formato de carro: ABC123"}
+              </span>
+            ) : (
+              !foreign && (
+                <span className="text-[#9AA4B2]">
+                  {vehicleKind === "moto"
+                    ? "3 letras, 2 números y 1 letra"
+                    : "3 letras y 3 números"}
+                </span>
+              )
+            )}
+          </div>
 
           <button
             onClick={generate}
