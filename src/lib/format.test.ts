@@ -24,6 +24,35 @@ describe("fmtPhone", () => {
   });
 });
 
+describe("normalizePlate", () => {
+  it("uppercases and strips separators/spaces", () => {
+    expect(normalizePlate("abc-123")).toBe("ABC123");
+    expect(normalizePlate(" abc 12d ")).toBe("ABC12D");
+    expect(normalizePlate(null)).toBe("");
+  });
+});
+
+describe("isValidPlate", () => {
+  it("accepts Colombian car plates (XXX000)", () => {
+    expect(isValidPlate("ABC123", "car")).toBe(true);
+    expect(isValidPlate("abc-123", "car")).toBe(true);
+    expect(isValidPlate("ABC12D", "car")).toBe(false);
+    expect(isValidPlate("AB1234", "car")).toBe(false);
+  });
+
+  it("accepts Colombian moto plates (XXX00X)", () => {
+    expect(isValidPlate("ABC12D", "moto")).toBe(true);
+    expect(isValidPlate("ABC123", "moto")).toBe(false);
+  });
+
+  it("skips the pattern for foreign plates but requires content", () => {
+    expect(isValidPlate("XYZ-9", "car", true)).toBe(true);
+    expect(isValidPlate("1234ABCD", "moto", true)).toBe(true);
+    expect(isValidPlate("AB", "car", true)).toBe(false);
+    expect(isValidPlate("", "car", true)).toBe(false);
+  });
+});
+
 describe("clampText", () => {
   it("trims and caps at the max length", () => {
     expect(clampText("  hola  ", 80)).toBe("hola");
