@@ -153,6 +153,30 @@ export const accessLog = pgTable(
   (t) => [index("access_log_conjunto_idx").on(t.conjuntoId, t.ts)],
 );
 
+// Web Push subscriptions for resident devices. One row per browser/device that
+// opted in, keyed by its unique push endpoint. Scoped by (conjuntoId, aptoKey)
+// so an alert for an apartment reaches every device that apartment registered.
+export const pushSubscriptions = pgTable(
+  "push_subscriptions",
+  {
+    conjuntoId: uuid("conjunto_id")
+      .notNull()
+      .references(() => conjuntos.id),
+    aptoKey: text("apto_key").notNull(),
+    endpoint: text("endpoint").notNull(),
+    // Keys the push service needs to encrypt the payload (from PushSubscription).
+    p256dh: text("p256dh").notNull(),
+    auth: text("auth").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.conjuntoId, t.endpoint] }),
+    index("push_subscriptions_apt_idx").on(t.conjuntoId, t.aptoKey),
+  ],
+);
+
 export type Conjunto = typeof conjuntos.$inferSelect;
 export type Resident = typeof residents.$inferSelect;
 export type ParkingSpot = typeof parkingSpots.$inferSelect;
