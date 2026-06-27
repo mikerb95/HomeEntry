@@ -182,3 +182,16 @@ export const IconRegistered = ({ size = 18, className }: IconProps) =>
       <path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
     </>,
   );
+
+export const IconBell = ({ size = 18, className }: IconProps) =>
+  svg(
+    size,
+    className,
+    <path
+      d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />,
+  );
