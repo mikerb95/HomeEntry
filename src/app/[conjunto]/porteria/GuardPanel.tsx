@@ -9,6 +9,7 @@ import {
   confirmScan,
 } from "@/app/actions/guard";
 import { ParkingModal, ModalSpot } from "@/components/ParkingModal";
+import { GuardNotifications } from "@/components/GuardNotifications";
 import {
   IconUser,
   IconPackage,
