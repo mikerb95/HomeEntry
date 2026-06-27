@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, desc, eq, lt } from "drizzle-orm";
+import { and, asc, desc, eq, gt, lt } from "drizzle-orm";
 import { GRANT_GRACE_MS } from "@/lib/code";
 import { db } from "./index";
 import {
