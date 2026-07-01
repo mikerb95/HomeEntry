@@ -31,7 +31,7 @@ export function Chrome({ title, sub, role, badgeBg, badgeFg }: ChromeProps) {
         style={{ background: badgeBg, color: badgeFg }}
       >
         <span className="h-1.5 w-1.5 rounded-full bg-current" />
-        <span className="hidden xs:inline">{role}</span>
+        {role}
       </span>
       <Link
         href="/ayuda"
