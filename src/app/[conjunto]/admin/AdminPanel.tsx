@@ -1502,6 +1502,7 @@ function ConfigModal({
   slug: string;
   initial: {
     name: string;
+    logoUrl: string | null;
     towers: number;
     aptsPerTower: number;
     carSpots: number;
@@ -1512,15 +1513,53 @@ function ConfigModal({
   const router = useRouter();
   const show = useToast((s) => s.show);
   const [pending, start] = useTransition();
+  const [logoPending, startLogo] = useTransition();
   const [name, setName] = useState(initial.name);
+  const [logoUrl, setLogoUrl] = useState(initial.logoUrl);
   const [towers, setTowers] = useState(String(initial.towers));
   const [apts, setApts] = useState(String(initial.aptsPerTower));
   const [carSpots, setCarSpots] = useState(String(initial.carSpots));
   const [motoSpots, setMotoSpots] = useState(String(initial.motoSpots));
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const numCls =
     "w-full rounded-[12px] border-[1.5px] border-[#E3E8EF] bg-[#F6F8FB] px-[15px] py-[13px] text-[15px] font-bold outline-none focus:border-blue";
   const lab = "mb-[7px] block text-[12px] font-bold uppercase tracking-[.5px] text-[#5B6675]";
+
+  function onPickLogo(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow re-selecting the same file later
+    if (!file) return;
+    if (file.size > 1024 * 1024) {
+      show("La imagen no puede superar 1 MB", "warn");
+      return;
+    }
+    const form = new FormData();
+    form.append("logo", file);
+    startLogo(async () => {
+      const res = await updateLogo(slug, form);
+      if (!res.ok) {
+        show(res.error || "Error", "warn");
+        return;
+      }
+      setLogoUrl(res.url ?? null);
+      show("Logo actualizado", "ok");
+      router.refresh();
+    });
+  }
+
+  function clearLogo() {
+    startLogo(async () => {
+      const res = await removeLogo(slug);
+      if (!res.ok) {
+        show(res.error || "Error", "warn");
+        return;
+      }
+      setLogoUrl(null);
+      show("Logo eliminado", "ok");
+      router.refresh();
+    });
+  }
 
   function apply() {
     start(async () => {
