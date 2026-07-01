@@ -1344,6 +1344,16 @@ export function AdminPanel(props: Props) {
         </div>
       )}
 
+      {tab === "propietarios" && (
+        <OwnersPanel
+          slug={props.slug}
+          allApts={allApts}
+          ownerLinks={props.ownerLinks}
+          notices={props.notices}
+          serviceRequests={props.serviceRequests}
+        />
+      )}
+
       {cfgOpen && (
         <ConfigModal
           slug={props.slug}
