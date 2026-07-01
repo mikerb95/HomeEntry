@@ -82,7 +82,7 @@ const selectCls =
 export function GuardPanel(props: Props) {
   const router = useRouter();
   const show = useToast((s) => s.show);
-  const [, start] = useTransition();
+  const [pending, start] = useTransition();
 
   const [gTab, setGTab] = useState<
     "porteria" | "parqueadero" | "escanear" | "solicitudes"
@@ -107,7 +107,7 @@ export function GuardPanel(props: Props) {
   const gKey = gTower && gApto ? `${gTower}-${gApto}` : "";
   const guardSelected = !!gKey;
   const guardHasNumber = gKey ? !!props.hasWhatsApp[gKey] : false;
-  const sendDisabled = !guardHasNumber;
+  const sendDisabled = !guardHasNumber || pending;
 
   const tabSpots = props.parking.filter((p) => p.kind === pkTab);
   const freeCount = tabSpots.filter((p) => p.status === "free").length;
@@ -348,7 +348,7 @@ export function GuardPanel(props: Props) {
               }}
             >
               <IconSend size={20} />
-              ENVIAR ALERTA POR WHATSAPP
+              {pending ? "ENVIANDO…" : "ENVIAR ALERTA POR WHATSAPP"}
             </button>
           </div>
 
