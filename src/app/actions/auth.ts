@@ -3,9 +3,10 @@
 import { redirect } from "next/navigation";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { residents } from "@/db/schema";
+import { owners, residents } from "@/db/schema";
 import {
   getConjuntoBySlug,
+  getOwnerByPhone,
   getResident,
   getResidentByPhone,
   getStaff,
