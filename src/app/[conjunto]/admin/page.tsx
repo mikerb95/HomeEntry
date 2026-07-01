@@ -140,6 +140,7 @@ export default async function AdminPanelPage({
           action: l.action,
           target: l.target,
         }))}
+        guards={guards.map((g) => ({ username: g.username }))}
       />
     </Shell>
   );
