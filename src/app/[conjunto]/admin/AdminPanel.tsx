@@ -269,6 +269,107 @@ export function AdminPanel(props: Props) {
     });
   }
 
+  // --- finanzas ---
+  function saveMoraConfig() {
+    start(async () => {
+      const res = await updateMoraConfig(props.slug, {
+        moraRatePct: moraRate,
+        moraGraceDays: moraGrace,
+      });
+      if (!res.ok) {
+        show(res.error || "Error", "warn");
+        return;
+      }
+      show("Configuración de mora guardada", "ok");
+      router.refresh();
+    });
+  }
+
+  function submitGenCharges() {
+    start(async () => {
+      const res = await generateMonthlyCharges(props.slug, {
+        period: genPeriod,
+        amount: genAmount,
+        dueDate: genDue,
+      });
+      if (!res.ok) {
+        show(res.error || "Error", "warn");
+        return;
+      }
+      show("Cuotas generadas", "ok");
+      setGenOpen(false);
+      setGenPeriod("");
+      setGenAmount("");
+      setGenDue("");
+      router.refresh();
+    });
+  }
+
+  const balanceByApt = new Map(props.aptBalances.map((b) => [b.aptoKey, b]));
+  const aptRows = allApts.map((a) => ({
+    ...a,
+    balance: balanceByApt.get(a.id) ?? {
+      aptoKey: a.id,
+      totalCargado: 0,
+      totalPagado: 0,
+      saldo: 0,
+      mora: 0,
+      total: 0,
+      enMora: false,
+    },
+  }));
+
+  // --- gastos ---
+  function submitVendor() {
+    if (!vName.trim()) {
+      show("Ingresa el nombre del proveedor", "warn");
+      return;
+    }
+    start(async () => {
+      const res = await createVendor(props.slug, {
+        name: vName,
+        category: vCategory,
+        taxId: vTaxId,
+        contact: vContact,
+      });
+      if (!res.ok) {
+        show(res.error || "Error", "warn");
+        return;
+      }
+      show("Proveedor creado", "ok");
+      setVName("");
+      setVTaxId("");
+      setVContact("");
+      router.refresh();
+    });
+  }
+
+  function removeVendor(id: string) {
+    start(async () => {
+      const res = await deleteVendor(props.slug, id);
+      if (!res.ok) {
+        show(res.error || "Error", "warn");
+        return;
+      }
+      show("Proveedor eliminado", "ok");
+      router.refresh();
+    });
+  }
+
+  const [gFromTs, gToTs, gPeriodLabel] = resolvePeriod(gPreset, gFrom, gTo);
+  const filteredExpenses = props.expenses.filter((e) => {
+    const t = new Date(e.expenseDateIso).getTime();
+    if (t < gFromTs || t > gToTs) return false;
+    if (gCategory !== "all" && e.category !== gCategory) return false;
+    if (gVendor !== "all" && e.vendorId !== gVendor) return false;
+    return true;
+  });
+  const gTotal = filteredExpenses.reduce((a, b) => a + b.amount, 0);
+  const gByCategory: Record<string, number> = {};
+  filteredExpenses.forEach((e) => {
+    gByCategory[e.category] = (gByCategory[e.category] || 0) + e.amount;
+  });
+
   const periodTabs = [
     { key: "today", label: "Hoy" },
     { key: "week", label: "Semana" },
