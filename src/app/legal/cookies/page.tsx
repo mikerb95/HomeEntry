@@ -87,9 +87,9 @@ export default function CookiesPage() {
           </a>
           . El tratamiento de los datos recolectados mediante estas tecnologías
           se rige por nuestra{" "}
-          <a href="/legal/privacidad" className="font-semibold text-blue-dark">
+          <Link href="/legal/privacidad" className="font-semibold text-blue-dark">
             Política de tratamiento de datos personales
-          </a>
+          </Link>
           .
         </Note>
       </Section>

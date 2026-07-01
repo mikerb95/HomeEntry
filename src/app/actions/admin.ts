@@ -120,6 +120,66 @@ export async function updateConfig(
   return { ok: true };
 }
 
+// Upload (or replace) the conjunto logo. The file is validated, pushed to
+// Vercel Blob under a per-conjunto path with a random suffix (so each URL is
+// unique and CDN-cache-safe), then the old blob is best-effort deleted.
+export async function updateLogo(
+  slug: string,
+  form: FormData,
+): Promise<Result> {
+  const session = await requireAdmin(slug);
+  const cid = session.conjuntoId;
+
+  const file = form.get("logo");
+  if (!(file instanceof File) || file.size === 0)
+    return { ok: false, error: "Selecciona una imagen" };
+  const ext = LOGO_TYPES[file.type];
+  if (!ext)
+    return { ok: false, error: "Formato no válido (usa PNG, JPG, WEBP o SVG)" };
+  if (file.size > LOGO_MAX_BYTES)
+    return { ok: false, error: "La imagen no puede superar 1 MB" };
+
+  const current = await getConjuntoById(cid);
+  if (!current) return { ok: false, error: "Conjunto no encontrado" };
+
+  const { url } = await put(`logos/${cid}.${ext}`, file, {
+    access: "public",
+    addRandomSuffix: true,
+    contentType: file.type,
+  });
+
+  await db.update(conjuntos).set({ logoUrl: url }).where(eq(conjuntos.id, cid));
+
+  if (current.logoUrl) {
+    // Old blob is now orphaned; drop it, but never fail the request over it.
+    try {
+      await del(current.logoUrl);
+    } catch {}
+  }
+
+  revalidatePath(`/${slug}`);
+  revalidatePath(`/${slug}/admin`);
+  return { ok: true };
+}
+
+export async function removeLogo(slug: string): Promise<Result> {
+  const session = await requireAdmin(slug);
+  const cid = session.conjuntoId;
+  const current = await getConjuntoById(cid);
+  if (!current) return { ok: false, error: "Conjunto no encontrado" };
+
+  if (current.logoUrl) {
+    await db.update(conjuntos).set({ logoUrl: null }).where(eq(conjuntos.id, cid));
+    try {
+      await del(current.logoUrl);
+    } catch {}
+  }
+
+  revalidatePath(`/${slug}`);
+  revalidatePath(`/${slug}/admin`);
+  return { ok: true };
+}
+
 export async function updateRate(slug: string, rate: string): Promise<Result> {
   const session = await requireAdmin(slug);
   const value = Math.max(
