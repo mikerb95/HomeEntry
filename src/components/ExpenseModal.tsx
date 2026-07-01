@@ -69,18 +69,12 @@ export function ExpenseModal({
   }
 
   return (
-    <div
-      onClick={onClose}
-      className="fixed inset-0 z-[60] flex animate-pa-in items-center justify-center bg-[rgba(15,20,26,.5)] p-5 backdrop-blur-[3px]"
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        className="w-[420px] max-w-full animate-pa-pop overflow-hidden rounded-[22px] bg-white shadow-[0_30px_70px_-20px_rgba(15,20,26,.5)]"
-      >
+    <Modal onClose={onClose} label="Registrar gasto" className="w-[420px]">
         <div className="flex items-center justify-between border-b border-[#EEF1F6] px-[22px] py-[18px]">
           <span className="font-display text-[20px] font-bold">Registrar gasto</span>
           <button
             onClick={onClose}
+            aria-label="Cerrar"
             className="h-[30px] w-[30px] rounded-[9px] bg-[#F0F3F8] text-[17px] text-[#5B6675]"
           >
             ✕
@@ -178,7 +172,6 @@ export function ExpenseModal({
             Registrar gasto
           </button>
         </div>
-      </div>
-    </div>
+    </Modal>
   );
 }
