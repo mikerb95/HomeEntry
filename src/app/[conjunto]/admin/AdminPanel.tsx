@@ -23,6 +23,12 @@ import {
   type PendingResident,
 } from "@/components/PendingResidents";
 import {
+  OwnersPanel,
+  type NoticeRow,
+  type OwnerLink,
+  type RequestRow,
+} from "./OwnersPanel";
+import {
   IconUserSmall,
   IconPackage,
   IconCar,
