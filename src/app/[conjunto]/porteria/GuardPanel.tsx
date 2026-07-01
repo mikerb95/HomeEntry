@@ -745,8 +745,7 @@ export function GuardPanel(props: Props) {
                 Abrir WhatsApp
               </button>
             </div>
-          </div>
-        </div>
+        </Modal>
       )}
 
       {pkSpot && (
