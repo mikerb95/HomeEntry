@@ -8,11 +8,30 @@ import {
   index,
 } from "drizzle-orm/pg-core";
 
+// Curated list of Colombian cities. `code` is a hand-picked 3-letter tag
+// (IATA/DANE-based: BOG, MDE, CLO, CTG, BAQ…) kept unique on purpose so
+// ambiguous names (Cali/Caldas, Santa Marta/San Andrés) never clash. It is
+// the prefix of every conjunto `code`, so it must never be derived blindly
+// from a name — an admin curates this table.
+export const cities = pgTable("cities", {
+  code: text("code").primaryKey(), // "BOG"
+  name: text("name").notNull(), // "Bogotá"
+  department: text("department").notNull(), // "Cundinamarca"
+});
+
 // One residential complex (tenant). Everything else is scoped by conjuntoId.
 // `slug` is what appears in the URL: ejemploapp.vercel.app/<slug>
+// `code` is the short public selector any role types to pick this conjunto:
+// a city tag + 4 random digits, e.g. "BOG4821" (see src/lib/code.ts). It is
+// unique and immutable; the digits are random (not sequential) so codes are
+// neither guessable nor enumerable.
 export const conjuntos = pgTable("conjuntos", {
   id: uuid("id").primaryKey().defaultRandom(),
   slug: text("slug").notNull().unique(),
+  cityCode: text("city_code")
+    .notNull()
+    .references(() => cities.code),
+  code: text("code").notNull().unique(),
   name: text("name").notNull(),
   towers: integer("towers").notNull(),
   aptsPerTower: integer("apts_per_tower").notNull(),
