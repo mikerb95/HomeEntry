@@ -701,6 +701,462 @@ export function AdminPanel(props: Props) {
         </>
       )}
 
+      {/* FINANZAS */}
+      {tab === "finanzas" && (
+        <>
+          <div className="mb-5 rounded-[20px] border border-[#E8ECF2] bg-white p-[22px]">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <h2 className="mb-1.5 font-display text-[19px] font-bold">
+                  Configuración de mora
+                </h2>
+                <div className="text-[13px] text-[#6B7585]">
+                  Se aplica a cuotas vencidas más allá del período de gracia.
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
+                <div>
+                  <label className="mb-1.5 block text-[11.5px] font-bold uppercase tracking-[.5px] text-[#6B7585]">
+                    Tasa mensual (%)
+                  </label>
+                  <div className="flex items-center rounded-[11px] border-[1.5px] border-[#E3E8EF] bg-[#F6F8FB] px-3">
+                    <input
+                      value={
+                        moraRate === ""
+                          ? ""
+                          : (parseInt(moraRate, 10) / 100).toString()
+                      }
+                      onChange={(e) => {
+                        const pct = parseFloat(e.target.value.replace(",", "."));
+                        setMoraRate(isNaN(pct) ? "0" : String(Math.round(pct * 100)));
+                      }}
+                      inputMode="decimal"
+                      className="w-[80px] bg-transparent px-1.5 py-2.5 text-[15px] font-bold outline-none"
+                    />
+                    <span className="font-bold text-[#5B6675]">%</span>
+                  </div>
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-[11.5px] font-bold uppercase tracking-[.5px] text-[#6B7585]">
+                    Días de gracia
+                  </label>
+                  <input
+                    value={moraGrace}
+                    onChange={(e) =>
+                      setMoraGrace(e.target.value.replace(/\D/g, ""))
+                    }
+                    inputMode="numeric"
+                    className="w-[90px] rounded-[11px] border-[1.5px] border-[#E3E8EF] bg-[#F6F8FB] px-3 py-2.5 text-[15px] font-bold outline-none"
+                  />
+                </div>
+                <button
+                  onClick={saveMoraConfig}
+                  className="rounded-[11px] bg-blue px-4 py-[13px] text-[13.5px] font-extrabold text-white hover:bg-blue-dark"
+                >
+                  Guardar
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="mb-5 grid grid-cols-1 gap-3.5 min-[680px]:grid-cols-2 min-[1040px]:grid-cols-4">
+            <AuditCard label="Cartera total" value={fmtCOP(props.carteraTotal)} />
+            <AuditCard label="Recaudado" value={fmtCOP(props.recaudoTotal)} />
+            <AuditCard label="En mora" value={fmtCOP(props.moraTotal)} />
+            <div className="rounded-[18px] bg-gradient-to-br from-violet to-violet-dark p-[22px] text-white">
+              <div className="mb-2.5 text-[13px] font-semibold opacity-85">
+                Balance neto del conjunto
+              </div>
+              <div className="font-display text-[30px] font-bold tracking-[-1px]">
+                {fmtCOP(props.balanceNeto)}
+              </div>
+              <div className="mt-1.5 text-[12.5px] opacity-80">
+                Recaudado − gastos
+              </div>
+            </div>
+          </div>
+
+          <div className="overflow-hidden rounded-[20px] border border-[#E8ECF2] bg-white">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#EEF1F6] px-[22px] py-5">
+              <div>
+                <h2 className="font-display text-[19px] font-bold">
+                  Estado financiero por apartamento
+                </h2>
+                <div className="mt-0.5 text-[13px] text-[#6B7585]">
+                  Balance calculado en tiempo real
+                </div>
+              </div>
+              <button
+                onClick={() => setGenOpen((v) => !v)}
+                className="rounded-[11px] border-[1.5px] border-[#E3E8EF] bg-white px-4 py-[11px] text-[13.5px] font-bold text-ink hover:bg-[#F6F8FB]"
+              >
+                Generar cuotas del mes
+              </button>
+            </div>
+            {genOpen && (
+              <div className="flex flex-wrap items-end gap-3 border-b border-[#EEF1F6] bg-[#FAFBFD] px-[22px] py-4">
+                <div>
+                  <label className="mb-1.5 block text-[11.5px] font-bold uppercase tracking-[.5px] text-[#6B7585]">
+                    Período (YYYY-MM)
+                  </label>
+                  <input
+                    value={genPeriod}
+                    onChange={(e) => setGenPeriod(e.target.value)}
+                    placeholder="2026-07"
+                    className="rounded-[11px] border-[1.5px] border-[#E3E8EF] bg-white px-[13px] py-[11px] text-[14px] font-semibold outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-[11.5px] font-bold uppercase tracking-[.5px] text-[#6B7585]">
+                    Monto por apto (COP)
+                  </label>
+                  <input
+                    value={genAmount}
+                    onChange={(e) => setGenAmount(e.target.value.replace(/\D/g, ""))}
+                    inputMode="numeric"
+                    className="rounded-[11px] border-[1.5px] border-[#E3E8EF] bg-white px-[13px] py-[11px] text-[14px] font-semibold outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-[11.5px] font-bold uppercase tracking-[.5px] text-[#6B7585]">
+                    Fecha límite
+                  </label>
+                  <input
+                    type="date"
+                    value={genDue}
+                    onChange={(e) => setGenDue(e.target.value)}
+                    className="rounded-[11px] border-[1.5px] border-[#E3E8EF] bg-white px-[13px] py-[11px] text-[14px] font-semibold outline-none"
+                  />
+                </div>
+                <button
+                  onClick={submitGenCharges}
+                  className="rounded-[11px] bg-blue px-4 py-[11px] text-[13.5px] font-extrabold text-white hover:bg-blue-dark"
+                >
+                  Generar
+                </button>
+              </div>
+            )}
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[760px] border-collapse">
+                <thead>
+                  <tr className="bg-[#FAFBFD]">
+                    <th className={`${th} pl-[22px]`}>Apartamento</th>
+                    <th className={`${th} text-right`}>Cargado</th>
+                    <th className={`${th} text-right`}>Pagado</th>
+                    <th className={`${th} text-right`}>Saldo</th>
+                    <th className={`${th} text-right`}>Mora</th>
+                    <th className={th}>Estado</th>
+                    <th className={`${th} pr-[22px] text-right`}>Acción</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {aptRows.map((a) => (
+                    <tr key={a.id} className="border-t border-[#F0F3F7]">
+                      <td className="px-[22px] py-3.5 text-[14px] font-bold text-ink">
+                        {a.label}
+                      </td>
+                      <td className="px-3.5 py-3.5 text-right text-[14px] font-semibold text-[#3C4654]">
+                        {fmtCOP(a.balance.totalCargado)}
+                      </td>
+                      <td className="px-3.5 py-3.5 text-right text-[14px] font-semibold text-[#3C4654]">
+                        {fmtCOP(a.balance.totalPagado)}
+                      </td>
+                      <td className="px-3.5 py-3.5 text-right text-[14px] font-bold text-ink">
+                        {fmtCOP(a.balance.saldo)}
+                      </td>
+                      <td className="px-3.5 py-3.5 text-right text-[14px] font-semibold text-[#E11D48]">
+                        {a.balance.mora > 0 ? fmtCOP(a.balance.mora) : "—"}
+                      </td>
+                      <td className="px-3.5 py-3.5">
+                        <span
+                          className="inline-block rounded-full px-[11px] py-1 text-[12.5px] font-bold"
+                          style={
+                            a.balance.enMora
+                              ? { background: "#FDECEF", color: "#E11D48" }
+                              : { background: "#E9F8EE", color: "#16A34A" }
+                          }
+                        >
+                          {a.balance.enMora ? "En mora" : "Al día"}
+                        </span>
+                      </td>
+                      <td className="px-[22px] py-3.5 text-right">
+                        <button
+                          onClick={() => setPayApt({ key: a.id, label: a.label })}
+                          className="rounded-[9px] bg-blue px-4 py-[7px] text-[13px] font-bold text-white hover:bg-blue-dark"
+                        >
+                          Registrar pago
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {props.financeAccessLog.length > 0 && (
+            <div className="mt-5 overflow-hidden rounded-[20px] border border-[#E8ECF2] bg-white">
+              <div className="border-b border-[#EEF1F6] px-5 py-[18px]">
+                <h3 className="font-display text-[17px] font-bold">
+                  Bitácora de accesos financieros
+                </h3>
+                <div className="mt-0.5 text-[12.5px] text-[#6B7585]">
+                  Quién consultó o modificó información financiera, y cuándo.
+                </div>
+              </div>
+              <div className="max-h-[260px] overflow-y-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="bg-[#FAFBFD]">
+                      <th className={`${th} pl-5`}>Fecha</th>
+                      <th className={th}>Actor</th>
+                      <th className={th}>Acción</th>
+                      <th className={`${th} pr-5`}>Sobre</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {props.financeAccessLog.map((l) => (
+                      <tr key={l.id} className="border-t border-[#F0F3F7]">
+                        <td className="whitespace-nowrap px-5 py-2.5 text-[13px] font-semibold text-[#5B6675]">
+                          {fmtTime(l.tsIso)}
+                        </td>
+                        <td className="px-3.5 py-2.5 text-[13px] font-bold text-ink">
+                          {l.actor}
+                        </td>
+                        <td className="px-3.5 py-2.5 text-[13px] text-[#3C4654]">
+                          {l.action}
+                        </td>
+                        <td className="px-5 py-2.5 text-[13px] text-[#3C4654]">
+                          {l.target}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* GASTOS */}
+      {tab === "gastos" && (
+        <>
+          <div className="mb-5 rounded-[20px] border border-[#E8ECF2] bg-white p-[22px]">
+            <h2 className="mb-3.5 font-display text-[19px] font-bold">
+              Nuevo proveedor
+            </h2>
+            <div className="flex flex-wrap items-end gap-3">
+              <div className="min-w-[180px] flex-1">
+                <label className="mb-1.5 block text-[11.5px] font-bold uppercase tracking-[.5px] text-[#6B7585]">
+                  Nombre
+                </label>
+                <input
+                  value={vName}
+                  onChange={(e) => setVName(e.target.value)}
+                  className="w-full rounded-[11px] border-[1.5px] border-[#E3E8EF] bg-[#F6F8FB] px-[13px] py-[11px] text-[14px] font-semibold outline-none focus:border-blue"
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-[11.5px] font-bold uppercase tracking-[.5px] text-[#6B7585]">
+                  Categoría
+                </label>
+                <div className="relative">
+                  <select
+                    value={vCategory}
+                    onChange={(e) => setVCategory(e.target.value)}
+                    className="cursor-pointer appearance-none rounded-[11px] border-[1.5px] border-[#E3E8EF] bg-[#F6F8FB] py-[11px] pl-3.5 pr-9 text-[14px] font-semibold outline-none"
+                  >
+                    {EXPENSE_CATEGORIES.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.label}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[12px] text-[#6B7585]">
+                    ▾
+                  </span>
+                </div>
+              </div>
+              <div>
+                <label className="mb-1.5 block text-[11.5px] font-bold uppercase tracking-[.5px] text-[#6B7585]">
+                  NIT (opcional)
+                </label>
+                <input
+                  value={vTaxId}
+                  onChange={(e) => setVTaxId(e.target.value)}
+                  className="w-[140px] rounded-[11px] border-[1.5px] border-[#E3E8EF] bg-[#F6F8FB] px-[13px] py-[11px] text-[14px] font-semibold outline-none"
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-[11.5px] font-bold uppercase tracking-[.5px] text-[#6B7585]">
+                  Contacto (opcional)
+                </label>
+                <input
+                  value={vContact}
+                  onChange={(e) => setVContact(e.target.value)}
+                  className="w-[160px] rounded-[11px] border-[1.5px] border-[#E3E8EF] bg-[#F6F8FB] px-[13px] py-[11px] text-[14px] font-semibold outline-none"
+                />
+              </div>
+              <button
+                onClick={submitVendor}
+                className="rounded-[11px] bg-blue px-4 py-[11px] text-[13.5px] font-extrabold text-white hover:bg-blue-dark"
+              >
+                Crear proveedor
+              </button>
+            </div>
+
+            {props.vendors.length > 0 && (
+              <div className="mt-4 flex flex-wrap gap-2">
+                {props.vendors.map((v) => (
+                  <span
+                    key={v.id}
+                    className="flex items-center gap-2 rounded-full bg-[#F0F3F8] py-1.5 pl-3.5 pr-2 text-[12.5px] font-bold text-[#3C4654]"
+                  >
+                    {v.name}
+                    <button
+                      onClick={() => removeVendor(v.id)}
+                      className="flex h-[18px] w-[18px] items-center justify-center rounded-full bg-white text-[11px] text-[#6B7585] hover:text-rose"
+                    >
+                      ✕
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="mb-5 grid grid-cols-1 gap-3.5 min-[680px]:grid-cols-2 min-[1040px]:grid-cols-4">
+            <div className="rounded-[18px] bg-gradient-to-br from-violet to-violet-dark p-[22px] text-white">
+              <div className="mb-2.5 text-[13px] font-semibold opacity-85">
+                Gasto total
+              </div>
+              <div className="font-display text-[30px] font-bold tracking-[-1px]">
+                {fmtCOP(gTotal)}
+              </div>
+              <div className="mt-1.5 text-[12.5px] opacity-80">{gPeriodLabel}</div>
+            </div>
+            {EXPENSE_CATEGORIES.slice(0, 3).map((c) => (
+              <AuditCard
+                key={c.id}
+                label={c.label}
+                value={fmtCOP(gByCategory[c.id] || 0)}
+              />
+            ))}
+          </div>
+
+          <div className="overflow-hidden rounded-[20px] border border-[#E8ECF2] bg-white">
+            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#EEF1F6] px-[22px] py-5">
+              <div>
+                <h2 className="font-display text-[19px] font-bold">
+                  Gastos por proveedor
+                </h2>
+              </div>
+              <button
+                onClick={() => setExpOpen(true)}
+                disabled={props.vendors.length === 0}
+                className="rounded-[11px] bg-blue px-4 py-[11px] text-[13.5px] font-extrabold text-white hover:bg-blue-dark disabled:opacity-50"
+              >
+                Registrar gasto
+              </button>
+            </div>
+            <div className="flex flex-wrap items-center gap-3 border-b border-[#EEF1F6] bg-[#FAFBFD] px-[22px] py-4">
+              <div className="flex w-max flex-wrap gap-1.5 rounded-[11px] bg-[#F0F3F8] p-1">
+                {periodTabs.map((p) => (
+                  <button
+                    key={p.key}
+                    onClick={() => setGPreset(p.key)}
+                    className="rounded-[8px] px-3.5 py-2 text-[13px] font-bold"
+                    style={{
+                      background: gPreset === p.key ? "#6D28D9" : "transparent",
+                      color: gPreset === p.key ? "#fff" : "#5B6675",
+                    }}
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+              {gPreset === "custom" && (
+                <>
+                  <input
+                    type="date"
+                    value={gFrom}
+                    onChange={(e) => setGFrom(e.target.value)}
+                    className="rounded-[11px] border-[1.5px] border-[#E3E8EF] bg-white px-[13px] py-[11px] text-[14px] font-semibold outline-none"
+                  />
+                  <input
+                    type="date"
+                    value={gTo}
+                    onChange={(e) => setGTo(e.target.value)}
+                    className="rounded-[11px] border-[1.5px] border-[#E3E8EF] bg-white px-[13px] py-[11px] text-[14px] font-semibold outline-none"
+                  />
+                </>
+              )}
+              <FilterSelect
+                value={gCategory}
+                onChange={setGCategory}
+                options={[
+                  { id: "all", label: "Todas las categorías" },
+                  ...EXPENSE_CATEGORIES,
+                ]}
+              />
+              <FilterSelect
+                value={gVendor}
+                onChange={setGVendor}
+                options={[
+                  { id: "all", label: "Todos los proveedores" },
+                  ...props.vendors.map((v) => ({ id: v.id, label: v.name })),
+                ]}
+              />
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[720px] border-collapse">
+                <thead>
+                  <tr className="bg-[#FAFBFD]">
+                    <th className={`${th} pl-[22px]`}>Fecha</th>
+                    <th className={th}>Proveedor</th>
+                    <th className={th}>Categoría</th>
+                    <th className={`${th} text-right`}>Monto</th>
+                    <th className={th}>Descripción</th>
+                    <th className={`${th} pr-[22px]`}>Registrado por</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredExpenses.map((e) => (
+                    <tr key={e.id} className="border-t border-[#F0F3F7]">
+                      <td className="whitespace-nowrap px-[22px] py-3.5 text-[13.5px] font-semibold text-[#5B6675]">
+                        {fmtTime(e.expenseDateIso)}
+                      </td>
+                      <td className="px-3.5 py-3.5 text-[14px] font-bold text-ink">
+                        {e.vendorName}
+                      </td>
+                      <td className="px-3.5 py-3.5 text-[13.5px] text-[#3C4654]">
+                        {EXPENSE_CATEGORIES.find((c) => c.id === e.category)?.label ||
+                          e.category}
+                      </td>
+                      <td className="px-3.5 py-3.5 text-right text-[14px] font-bold text-ink">
+                        {fmtCOP(e.amount)}
+                      </td>
+                      <td className="px-3.5 py-3.5 text-[14px] text-[#3C4654]">
+                        {e.description}
+                      </td>
+                      <td className="px-[22px] py-3.5 text-[13.5px] text-[#6B7585]">
+                        {e.registeredBy}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {filteredExpenses.length === 0 && (
+                <div className="px-[22px] py-12 text-center text-[14px] text-[#6B7585]">
+                  No hay gastos que coincidan con los filtros.
+                </div>
+              )}
+            </div>
+          </div>
+        </>
+      )}
+
       {cfgOpen && (
         <ConfigModal
           slug={props.slug}
