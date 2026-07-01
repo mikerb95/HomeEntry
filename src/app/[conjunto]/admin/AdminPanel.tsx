@@ -1533,3 +1533,72 @@ function ConfigModal({
     </div>
   );
 }
+
+function ResetGuardPasswordModal({
+  slug,
+  username,
+  onClose,
+}: {
+  slug: string;
+  username: string;
+  onClose: () => void;
+}) {
+  const router = useRouter();
+  const show = useToast((s) => s.show);
+  const [pending, start] = useTransition();
+  const [password, setPassword] = useState("");
+
+  function apply() {
+    start(async () => {
+      const res = await resetGuardPassword(slug, { username, password });
+      if (!res.ok) {
+        show(res.error || "Error", "warn");
+        return;
+      }
+      show("Contraseña restablecida", "ok");
+      onClose();
+      router.refresh();
+    });
+  }
+
+  return (
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-[60] flex animate-pa-in items-center justify-center bg-[rgba(15,20,26,.5)] p-5 backdrop-blur-[3px]"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="w-[420px] max-w-full animate-pa-pop overflow-hidden rounded-[22px] bg-white shadow-[0_30px_70px_-20px_rgba(15,20,26,.5)]"
+      >
+        <div className="border-b border-[#EEF1F6] px-[22px] py-5">
+          <h2 className="font-display text-[18px] font-bold">
+            Restablecer contraseña
+          </h2>
+          <div className="mt-0.5 text-[13px] text-[#6B7585]">
+            Vigilante: <strong>{username}</strong>. Se cerrará su sesión activa.
+          </div>
+        </div>
+        <div className="px-[22px] py-5">
+          <label className="mb-[7px] block text-[12px] font-bold uppercase tracking-[.5px] text-[#5B6675]">
+            Nueva contraseña
+          </label>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Mínimo 6 caracteres"
+            className="w-full rounded-[12px] border-[1.5px] border-[#E3E8EF] bg-[#F6F8FB] px-[15px] py-[13px] text-[15px] font-semibold outline-none focus:border-blue"
+          />
+        </div>
+        <div className="flex gap-2.5 border-t border-[#EEF1F6] px-[22px] py-4">
+          <button onClick={onClose} className="flex-none rounded-[13px] border-[1.5px] border-[#E3E8EF] bg-white px-[18px] py-3.5 text-[14px] font-bold text-[#5B6675]">
+            Cancelar
+          </button>
+          <button onClick={apply} disabled={pending} className="flex-1 rounded-[13px] bg-blue p-3.5 text-[14.5px] font-extrabold text-white hover:bg-blue-dark disabled:opacity-70">
+            Restablecer
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
