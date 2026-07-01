@@ -3,10 +3,14 @@ import { requireAdmin } from "@/lib/auth";
 export const dynamic = "force-dynamic";
 import {
   getConjuntoById,
+  getFinancialSummary,
   listEvents,
+  listExpenses,
   listParking,
+  listRecentAccessLog,
   listResidents,
   listSessions,
+  listVendors,
 } from "@/db/queries";
 import { isToday, todayStr } from "@/lib/format";
 import { Shell } from "@/components/Shell";

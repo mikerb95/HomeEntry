@@ -157,6 +157,16 @@ export async function getStaffVersion(
   return rows[0]?.v ?? null;
 }
 
+export async function listGuards(conjuntoId: string) {
+  return db
+    .select({ username: staffUsers.username })
+    .from(staffUsers)
+    .where(
+      and(eq(staffUsers.conjuntoId, conjuntoId), eq(staffUsers.role, "guard")),
+    )
+    .orderBy(staffUsers.username);
+}
+
 // --- Events --------------------------------------------------------------
 
 export async function listEvents(conjuntoId: string) {
