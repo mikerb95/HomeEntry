@@ -136,6 +136,9 @@ type Props = {
   financeAccessLog: AccessLogEntry[];
   guards: Guard[];
   pending: PendingResident[];
+  ownerLinks: OwnerLink[];
+  notices: NoticeRow[];
+  serviceRequests: RequestRow[];
 };
 
 const EXPENSE_CATEGORIES = [
