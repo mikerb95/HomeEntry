@@ -207,7 +207,25 @@ export function RegisterForm({
             </>
           )}
 
-          {done && (
+          {done && needsApproval && (
+            <div className="mt-[18px] flex animate-pa-in items-start gap-3 rounded-[15px] border border-[#F4CE7A] bg-[#FEF3DC] p-4">
+              <span className="flex h-[26px] w-[26px] flex-none items-center justify-center rounded-full bg-[#D97706] text-white">
+                <IconCheck size={15} />
+              </span>
+              <div className="flex-1">
+                <div className="text-[15px] font-extrabold text-[#B45309]">
+                  Registro enviado
+                </div>
+                <div className="text-[13.5px] leading-[1.45] text-[#92610B]">
+                  La portería o la administración debe aprobar tu registro antes
+                  de que puedas iniciar sesión. Te avisarán en la entrada cuando
+                  esté listo.
+                </div>
+              </div>
+            </div>
+          )}
+
+          {done && !needsApproval && (
             <div className="mt-[18px] flex animate-pa-in items-start gap-3 rounded-[15px] border border-[#B7E6C7] bg-[#E9F8EE] p-4">
               <span className="flex h-[26px] w-[26px] flex-none items-center justify-center rounded-full bg-green text-white">
                 <IconCheck size={15} />
