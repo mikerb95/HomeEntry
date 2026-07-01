@@ -82,9 +82,18 @@ export default async function ConjuntoEntryPage({
     <Shell>
       <div className="mx-auto max-w-[900px] pt-3.5 animate-pa-in">
         <div className="mb-[26px] flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-[14px] bg-ink font-display text-[24px] font-bold text-white">
-            P
-          </div>
+          {conjunto.logoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={conjunto.logoUrl}
+              alt={`Logo de ${conjunto.name}`}
+              className="h-12 w-12 flex-none rounded-[14px] border border-[#E6EBF2] bg-white object-contain"
+            />
+          ) : (
+            <div className="flex h-12 w-12 items-center justify-center rounded-[14px] bg-ink font-display text-[24px] font-bold text-white">
+              P
+            </div>
+          )}
           <div>
             <div className="font-display text-[24px] font-bold tracking-[-.5px]">
               PortAl
