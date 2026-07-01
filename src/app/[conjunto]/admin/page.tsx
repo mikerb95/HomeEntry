@@ -36,6 +36,7 @@ export default async function AdminPanelPage({
     vendors,
     expenses,
     financeAccessLog,
+    guards,
   ] = await Promise.all([
     getConjuntoById(cid),
     listEvents(cid),
@@ -46,6 +47,7 @@ export default async function AdminPanelPage({
     listVendors(cid),
     listExpenses(cid),
     listRecentFinanceAccessLog(cid, 30),
+    listGuards(cid),
   ]);
   if (!config) return null;
 
