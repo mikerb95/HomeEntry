@@ -94,6 +94,12 @@ export default async function GuardPanelPage({
           tsIso: e.ts.toISOString(),
         }))}
         incoming={incoming}
+        pending={pending.map((r) => ({
+          aptoKey: r.aptoKey,
+          tower: r.tower,
+          apt: r.apt,
+          phoneMasked: maskPhone(r.phone),
+        }))}
         mVisits={mVisits}
         mPackages={mPackages}
         todayStr={todayStr()}
