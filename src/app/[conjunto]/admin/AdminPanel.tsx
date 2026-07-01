@@ -93,6 +93,9 @@ type AccessLogEntry = {
   action: string;
   target: string;
 };
+type Guard = {
+  username: string;
+};
 
 type Props = {
   slug: string;
