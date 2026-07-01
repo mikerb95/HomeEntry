@@ -105,7 +105,7 @@ const comparisonGroups: { group: string; rows: [string, Cell, Cell, Cell][] }[] 
   },
 ];
 
-function Dot({ v }: { v: boolean | string }) {
+function Dot({ v }: { v: Cell }) {
   if (typeof v === "string") {
     return <span className="text-[12.5px] font-semibold text-ink">{v}</span>;
   }
