@@ -71,8 +71,40 @@ export async function getConjuntoById(id: string) {
   return rows[0] ?? null;
 }
 
+// Lookup by the public code any role types to pick a conjunto (e.g. "BOG4821").
+// Case-insensitive: codes are stored uppercase, so we normalize the input.
+export async function getConjuntoByCode(code: string) {
+  const rows = await db
+    .select()
+    .from(conjuntos)
+    .where(eq(conjuntos.code, code.trim().toUpperCase()))
+    .limit(1);
+  return rows[0] ?? null;
+}
+
 export async function listConjuntos() {
   return db.select().from(conjuntos).orderBy(asc(conjuntos.name));
+}
+
+// Generate a unique "CIU+4dígitos" code for a city, retrying on the rare
+// collision against the `code` UNIQUE constraint. With 10_000 slots per city
+// the odds are tiny until a city is very full, so a handful of tries suffices.
+export async function reserveConjuntoCode(
+  cityCode: string,
+  maxTries = 10,
+): Promise<string> {
+  for (let i = 0; i < maxTries; i++) {
+    const code = makeConjuntoCode(cityCode);
+    const existing = await db
+      .select({ code: conjuntos.code })
+      .from(conjuntos)
+      .where(eq(conjuntos.code, code))
+      .limit(1);
+    if (existing.length === 0) return code;
+  }
+  throw new Error(
+    `No free conjunto code for city "${cityCode}" after ${maxTries} tries (city may be full)`,
+  );
 }
 
 // --- Residents -----------------------------------------------------------

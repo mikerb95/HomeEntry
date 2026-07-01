@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { makeAuthCode, isGrantExpired, GRANT_GRACE_MS } from "./code";
+import {
+  makeAuthCode,
+  makeConjuntoCode,
+  isGrantExpired,
+  GRANT_GRACE_MS,
+} from "./code";
 
 describe("makeAuthCode", () => {
   it("has the requested length and uses only the safe alphabet", () => {
