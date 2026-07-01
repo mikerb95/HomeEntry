@@ -458,8 +458,38 @@ export function GuardPanel(props: Props) {
             </span>
           </div>
 
+          <div className="mb-4 flex flex-wrap items-center gap-2.5">
+            <div className="relative min-w-[180px] flex-1">
+              <input
+                value={pkQuery}
+                onChange={(e) => setPkQuery(e.target.value)}
+                placeholder="Buscar por cupo o placa…"
+                className="w-full rounded-[13px] border-[1.5px] border-[#E3E8EF] bg-[#F6F8FB] py-2.5 pl-4 pr-9 text-[14px] font-semibold uppercase outline-none placeholder:normal-case placeholder:font-medium placeholder:text-[#9AA4B2] focus:border-green"
+              />
+              {pkQuery && (
+                <button
+                  onClick={() => setPkQuery("")}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[15px] text-[#9AA4B2] hover:text-[#5B6675]"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+            <button
+              onClick={() => setPkOnlyFree((v) => !v)}
+              className="flex-none rounded-[13px] border-[1.5px] px-4 py-2.5 text-[13.5px] font-bold transition-colors"
+              style={{
+                borderColor: pkOnlyFree ? "#22C55E" : "#E3E8EF",
+                background: pkOnlyFree ? "#E9F8EE" : "#fff",
+                color: pkOnlyFree ? "#15803D" : "#6B7585",
+              }}
+            >
+              Solo libres
+            </button>
+          </div>
+
           <div className="grid grid-cols-3 gap-2.5 min-[780px]:grid-cols-4 min-[1040px]:grid-cols-6">
-            {tabSpots.map((p) => {
+            {visibleSpots.map((p) => {
               const m = statusMeta[p.status];
               return (
                 <button
