@@ -78,13 +78,18 @@ export type ConjuntoSummary = {
   recaudoTotal: number;
   moraTotal: number;
   gastoTotal: number;
+  parqueaderoTotal: number;
   balanceNeto: number;
 };
 
+// `allParkingIncomes` are the COP amounts charged on visitor-parking exits
+// (parking_sessions.amount) — the guard's caja. They count as income in the
+// net balance alongside the recaudo of cuotas.
 export function computeConjuntoSummary(
   allCharges: ChargeInput[],
   allPayments: PaymentInput[],
   allExpenses: number[],
+  allParkingIncomes: number[],
   moraRatePct: number,
   moraGraceDays: number,
   asOf: Date = new Date(),
