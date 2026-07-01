@@ -20,7 +20,8 @@ async function main() {
     );
   }
 
-  const sql = postgres(url, { max: 1 });
+  // Silence the "drop cascades to table …" NOTICE spam from the CASCADE drop.
+  const sql = postgres(url, { max: 1, onnotice: () => {} });
   console.log(`Dropping schema "public" on ${host}…`);
   await sql.unsafe("DROP SCHEMA public CASCADE; CREATE SCHEMA public;");
   await sql.end();
