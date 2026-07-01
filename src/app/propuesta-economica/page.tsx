@@ -21,7 +21,7 @@ const tiers: Tier[] = [
   {
     name: "Básico",
     tagline: "Portería digital para un conjunto",
-    price: "$249.000",
+    price: "$124.500",
     priceNote: "COP / mes · por conjunto, hasta 80 apartamentos",
     cta: "Empezar con Básico",
     features: [
@@ -39,7 +39,7 @@ const tiers: Tier[] = [
   {
     name: "Profesional",
     tagline: "Comunicación automática y trazabilidad",
-    price: "$449.000",
+    price: "$224.500",
     priceNote: "COP / mes · por conjunto, apartamentos ilimitados",
     highlight: true,
     cta: "Elegir Profesional",
