@@ -1337,6 +1337,14 @@ export function AdminPanel(props: Props) {
           onClose={() => setExpOpen(false)}
         />
       )}
+
+      {resetGuardUser && (
+        <ResetGuardPasswordModal
+          slug={props.slug}
+          username={resetGuardUser}
+          onClose={() => setResetGuardUser(null)}
+        />
+      )}
     </div>
   );
 }
