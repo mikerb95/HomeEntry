@@ -206,6 +206,56 @@ export async function registerResident(
   return { ok: true, pending: true };
 }
 
+export async function ownerLogin(
+  phoneRaw: string,
+  pin: string,
+): Promise<Result> {
+  const phone = digits(phoneRaw);
+  const owner = await getOwnerByPhone(phone);
+  if (!owner) {
+    return { ok: false, error: "No encontramos ese número." };
+  }
+
+  if (owner.lockedUntil && owner.lockedUntil > new Date()) {
+    return {
+      ok: false,
+      error: "Demasiados intentos. Intenta de nuevo en unos minutos.",
+    };
+  }
+
+  if (!verifySecret(pin, owner.pinHash)) {
+    const failed = owner.failedPins + 1;
+    const lockedUntil =
+      failed >= MAX_FAILED
+        ? new Date(Date.now() + LOCK_MINUTES * 60000)
+        : null;
+    await db
+      .update(owners)
+      .set({ failedPins: failed, lockedUntil })
+      .where(eq(owners.id, owner.id));
+    return {
+      ok: false,
+      error: lockedUntil
+        ? "PIN incorrecto. Cuenta bloqueada temporalmente."
+        : "PIN incorrecto.",
+    };
+  }
+
+  if (owner.failedPins !== 0 || owner.lockedUntil) {
+    await db
+      .update(owners)
+      .set({ failedPins: 0, lockedUntil: null })
+      .where(eq(owners.id, owner.id));
+  }
+
+  await setSessionCookie({
+    role: "owner",
+    ownerId: owner.id,
+    v: owner.sessionVersion,
+  });
+  redirect("/propietario");
+}
+
 export async function guardLogin(
   slug: string,
   user: string,
