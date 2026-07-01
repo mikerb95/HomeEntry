@@ -124,6 +124,7 @@ type Props = {
   vendors: Vendor[];
   expenses: Expense[];
   financeAccessLog: AccessLogEntry[];
+  guards: Guard[];
 };
 
 const EXPENSE_CATEGORIES = [
