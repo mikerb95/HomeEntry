@@ -29,6 +29,16 @@ export async function proxy(request: NextRequest) {
   }
 
   // Tenant areas: /[slug]/[area]/...
+  // Owner console (not scoped to a conjunto slug — an owner can hold units
+  // across several conjuntos, so membership is checked per-page instead).
+  if (seg[0] === "propietario") {
+    if (seg[1] === "login") return NextResponse.next();
+    if (!session || session.role !== "owner") {
+      return NextResponse.redirect(new URL("/propietario/login", request.url));
+    }
+    return NextResponse.next();
+  }
+
   const [slug, area, sub] = seg;
   const role = area ? ROLE_BY_AREA[area] : undefined;
   if (!role) return NextResponse.next(); // entry page, root, etc.
@@ -50,6 +60,7 @@ export async function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     "/superadmin/:path*",
+    "/propietario/:path*",
     "/:slug/residente/:path*",
     "/:slug/porteria/:path*",
     "/:slug/admin/:path*",
