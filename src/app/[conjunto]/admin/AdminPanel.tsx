@@ -1360,6 +1360,7 @@ export function AdminPanel(props: Props) {
           slug={props.slug}
           initial={{
             name: props.name,
+            logoUrl: props.logoUrl,
             towers: props.towers,
             aptsPerTower: props.aptsPerTower,
             carSpots: props.carSpots,
