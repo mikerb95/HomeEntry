@@ -8,7 +8,6 @@ import { Shell } from "@/components/Shell";
 import { BackLink, Label, LoginCard } from "@/components/ui";
 import { IconUser } from "@/components/icons";
 import { digits, fmtPhone } from "@/lib/format";
-import { useToast } from "@/lib/toast";
 
 // Demo-only affordances (auto-fill, "tu PIN es 1234") never render in production.
 const DEMO = process.env.NODE_ENV !== "production";
