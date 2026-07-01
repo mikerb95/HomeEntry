@@ -10,6 +10,11 @@ import {
   createVendor,
   deleteVendor,
 } from "@/app/actions/finance";
+import {
+  createGuard,
+  resetGuardPassword,
+  deleteGuard,
+} from "@/app/actions/guards";
 import { ParkingModal, ModalSpot } from "@/components/ParkingModal";
 import { PaymentModal } from "@/components/PaymentModal";
 import { ExpenseModal } from "@/components/ExpenseModal";
