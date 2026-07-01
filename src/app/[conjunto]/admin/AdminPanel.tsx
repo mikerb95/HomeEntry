@@ -376,6 +376,37 @@ export function AdminPanel(props: Props) {
     });
   }
 
+  // --- vigilantes ---
+  function submitGuard() {
+    start(async () => {
+      const res = await createGuard(props.slug, {
+        username: gdUsername,
+        password: gdPassword,
+      });
+      if (!res.ok) {
+        show(res.error || "Error", "warn");
+        return;
+      }
+      show("Vigilante creado", "ok");
+      setGdUsername("");
+      setGdPassword("");
+      router.refresh();
+    });
+  }
+
+  function removeGuard(username: string) {
+    if (!confirm(`¿Eliminar al vigilante "${username}"?`)) return;
+    start(async () => {
+      const res = await deleteGuard(props.slug, username);
+      if (!res.ok) {
+        show(res.error || "Error", "warn");
+        return;
+      }
+      show("Vigilante eliminado", "ok");
+      router.refresh();
+    });
+  }
+
   const [gFromTs, gToTs, gPeriodLabel] = resolvePeriod(gPreset, gFrom, gTo);
   const filteredExpenses = props.expenses.filter((e) => {
     const t = new Date(e.expenseDateIso).getTime();
