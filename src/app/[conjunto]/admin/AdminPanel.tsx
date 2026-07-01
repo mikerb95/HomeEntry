@@ -183,6 +183,7 @@ export function AdminPanel(props: Props) {
     | "gastos"
     | "vigilantes"
     | "solicitudes"
+    | "propietarios"
   >("dashboard");
   const [fType, setFType] = useState("all");
   const [fTower, setFTower] = useState("all");
