@@ -64,6 +64,17 @@ export async function requireAdmin(slug: string) {
   return s;
 }
 
+// Either staff role (guard or admin) for this conjunto. Used by actions both
+// panels share — e.g. approving resident registrations.
+export async function requireStaff(slug: string) {
+  const s = await getSession();
+  if (!s || (s.role !== "guard" && s.role !== "admin")) redirect(`/${slug}`);
+  if (s.conjuntoSlug !== slug) redirect(`/${slug}`);
+  const v = await getStaffVersion(s.conjuntoId, s.username);
+  if (v === null || v !== s.v) redirect(`/${slug}`);
+  return s;
+}
+
 export async function requireSuperadmin() {
   const s = await getSession();
   if (!s || s.role !== "superadmin") redirect("/superadmin/login");

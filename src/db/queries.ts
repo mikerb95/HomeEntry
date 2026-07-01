@@ -33,6 +33,7 @@ export type ResidentView = {
   apt: string;
   phone: string;
   pinHash: string;
+  status: string;
   sessionVersion: number;
   failedPins: number;
   lockedUntil: Date | null;
@@ -46,6 +47,7 @@ function toView(r: typeof residents.$inferSelect): ResidentView {
     apt: r.apt,
     phone: decryptPII(r.phoneEnc),
     pinHash: r.pinHash,
+    status: r.status,
     sessionVersion: r.sessionVersion,
     failedPins: r.failedPins,
     lockedUntil: r.lockedUntil,
@@ -141,6 +143,20 @@ export async function listResidents(conjuntoId: string) {
     .select()
     .from(residents)
     .where(eq(residents.conjuntoId, conjuntoId));
+  return rows.map(toView);
+}
+
+// Self-service registrations awaiting approval by portería/administración.
+export async function listPendingResidents(conjuntoId: string) {
+  const rows = await db
+    .select()
+    .from(residents)
+    .where(
+      and(
+        eq(residents.conjuntoId, conjuntoId),
+        eq(residents.status, "pending"),
+      ),
+    );
   return rows.map(toView);
 }
 

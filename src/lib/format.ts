@@ -43,6 +43,16 @@ export function fmtPhone(p: string | null | undefined): string {
     : d;
 }
 
+// Masks all but the last two digits, e.g. "3001234567" -> "•••• ••• ••67".
+// Used when staff need to cross-check a phone during approval without the full
+// number being exposed to them (keeps the PII discipline of the guard screen).
+export function maskPhone(p: string | null | undefined): string {
+  const d = digits(p);
+  if (d.length < 2) return "••••";
+  const shown = d.slice(-2);
+  return `•••• ••• ••${shown}`;
+}
+
 export function fmtCOP(n: number): string {
   return "$" + Math.round(n).toLocaleString("es-CO");
 }
