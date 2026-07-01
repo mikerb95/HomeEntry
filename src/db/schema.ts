@@ -181,6 +181,107 @@ export const pushSubscriptions = pgTable(
   ],
 );
 
+// Vendors ("proveedores") that the conjunto pays for services (maintenance,
+// cleaning, gardening, security, ...). Name/tax id/contact are encrypted at
+// rest with the same PII scheme used for resident phones (see src/lib/crypto.ts).
+export const vendors = pgTable(
+  "vendors",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    conjuntoId: uuid("conjunto_id")
+      .notNull()
+      .references(() => conjuntos.id),
+    nameEnc: text("name_enc").notNull(),
+    category: text("category").notNull().default("otro"), // mantenimiento | aseo | jardineria | seguridad | otro
+    taxIdEnc: text("tax_id_enc"),
+    contactEnc: text("contact_enc"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [index("vendors_conjunto_idx").on(t.conjuntoId)],
+);
+
+// Monthly (or ad-hoc) charges billed to an apartment. `amountEnc` is the
+// encrypted COP amount (see src/lib/crypto.ts) — same protection as phones.
+export const charges = pgTable(
+  "charges",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    conjuntoId: uuid("conjunto_id")
+      .notNull()
+      .references(() => conjuntos.id),
+    aptoKey: text("apto_key").notNull(),
+    tower: text("tower").notNull(),
+    apt: text("apt").notNull(),
+    period: text("period").notNull(), // "YYYY-MM"
+    concept: text("concept").notNull().default("Cuota de administración"),
+    amountEnc: text("amount_enc").notNull(),
+    dueDate: timestamp("due_date", { withTimezone: true }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("charges_conjunto_apt_idx").on(t.conjuntoId, t.aptoKey),
+    index("charges_conjunto_period_idx").on(t.conjuntoId, t.period),
+  ],
+);
+
+// Payments recorded against an apartment. `method` is manual today
+// (transferencia | efectivo | otro); `gatewayRef` is left nullable so a
+// future payment-gateway integration (PSE/Wompi) can populate it without a
+// schema migration.
+export const payments = pgTable(
+  "payments",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    conjuntoId: uuid("conjunto_id")
+      .notNull()
+      .references(() => conjuntos.id),
+    aptoKey: text("apto_key").notNull(),
+    tower: text("tower").notNull(),
+    apt: text("apt").notNull(),
+    amountEnc: text("amount_enc").notNull(),
+    method: text("method").notNull().default("transferencia"),
+    gatewayRef: text("gateway_ref"),
+    paidAt: timestamp("paid_at", { withTimezone: true }).notNull(),
+    registeredBy: text("registered_by").notNull(),
+    noteEnc: text("note_enc"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [index("payments_conjunto_apt_idx").on(t.conjuntoId, t.aptoKey)],
+);
+
+// Expenses paid to a vendor, powering the "gastos por proveedor" ledger.
+export const expenses = pgTable(
+  "expenses",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    conjuntoId: uuid("conjunto_id")
+      .notNull()
+      .references(() => conjuntos.id),
+    vendorId: uuid("vendor_id")
+      .notNull()
+      .references(() => vendors.id),
+    amountEnc: text("amount_enc").notNull(),
+    category: text("category").notNull().default("otro"),
+    descriptionEnc: text("description_enc").notNull(),
+    invoiceRefEnc: text("invoice_ref_enc"),
+    expenseDate: timestamp("expense_date", { withTimezone: true }).notNull(),
+    registeredBy: text("registered_by").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("expenses_conjunto_date_idx").on(t.conjuntoId, t.expenseDate),
+    index("expenses_conjunto_vendor_idx").on(t.conjuntoId, t.vendorId),
+  ],
+);
+
 export type Conjunto = typeof conjuntos.$inferSelect;
 export type Resident = typeof residents.$inferSelect;
 export type ParkingSpot = typeof parkingSpots.$inferSelect;
