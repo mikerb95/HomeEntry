@@ -67,12 +67,14 @@ type Spot = {
   status: ParkingStatus;
   plate: string;
   aptoKey: string;
+  enteredAtIso: string | null;
 };
 type Sess = {
   type: "resident" | "visitor";
   aptoKey: string;
   kind: string;
   hours: number;
+  amount: number;
   startIso: string;
 };
 type AptBalance = {
@@ -122,6 +124,7 @@ type Props = {
   carSpots: number;
   motoSpots: number;
   visitorRate: number;
+  visitorRateMoto: number;
   moraRatePct: number;
   moraGraceDays: number;
   todayStr: string;
@@ -137,6 +140,7 @@ type Props = {
   recaudoTotal: number;
   moraTotal: number;
   gastoTotal: number;
+  parqueaderoTotal: number;
   balanceNeto: number;
   vendors: Vendor[];
   expenses: Expense[];
@@ -201,6 +205,7 @@ export function AdminPanel(props: Props) {
   const [auFrom, setAuFrom] = useState("");
   const [auTo, setAuTo] = useState("");
   const [rate, setRate] = useState(props.visitorRate);
+  const [rateMoto, setRateMoto] = useState(props.visitorRateMoto);
   const [cfgOpen, setCfgOpen] = useState(false);
   const [pkSpot, setPkSpot] = useState<ModalSpot | null>(null);
 

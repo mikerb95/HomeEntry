@@ -8,6 +8,7 @@ import {
   listParking,
   listPendingResidents,
   listResidents,
+  listSessions,
 } from "@/db/queries";
 import { qrDataUrl } from "@/lib/qr";
 import { isGrantExpired } from "@/lib/code";
@@ -24,7 +25,7 @@ export default async function GuardPanelPage({
   const { conjunto: slug } = await params;
   const session = await requireGuard(slug);
   const cid = session.conjuntoId;
-  const [config, parking, events, auths, residents, pending] =
+  const [config, parking, events, auths, residents, pending, sessions] =
     await Promise.all([
       getConjuntoById(cid),
       listParking(cid),
@@ -32,7 +33,14 @@ export default async function GuardPanelPage({
       listAuths(cid),
       listResidents(cid),
       listPendingResidents(cid),
+      listSessions(cid),
     ]);
+
+  // Caja del día: what the vigilante has collected at the gate this jornada
+  // (visitor-parking exits recorded today).
+  const cajaHoy = sessions
+    .filter((s) => isToday(s.start))
+    .reduce((a, s) => a + s.amount, 0);
 
   // Only expose whether an apartment has a WhatsApp on file — never the numbers
   // themselves. The actual phone is resolved on demand by prepareAlert, which
@@ -85,7 +93,13 @@ export default async function GuardPanelPage({
           status: p.status as "free" | "resident" | "visitor",
           plate: p.plate,
           aptoKey: p.aptoKey,
+          enteredAtIso: p.enteredAt?.toISOString() ?? null,
         }))}
+        rates={{
+          car: config?.visitorRate ?? 0,
+          moto: config?.visitorRateMoto ?? 0,
+        }}
+        cajaHoy={cajaHoy}
         recent={events.slice(0, 4).map((e) => ({
           id: e.id,
           type: e.type,
