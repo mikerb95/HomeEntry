@@ -180,7 +180,7 @@ function resolvePeriod(
 export function AdminPanel(props: Props) {
   const router = useRouter();
   const show = useToast((s) => s.show);
-  const [, start] = useTransition();
+  const [pending, start] = useTransition();
 
   const [tab, setTab] = useState<
     | "dashboard"
@@ -832,9 +832,10 @@ export function AdminPanel(props: Props) {
                 </div>
                 <button
                   onClick={saveMoraConfig}
-                  className="rounded-[11px] bg-blue px-4 py-[13px] text-[13.5px] font-extrabold text-white hover:bg-blue-dark"
+                  disabled={pending}
+                  className="rounded-[11px] bg-blue px-4 py-[13px] text-[13.5px] font-extrabold text-white hover:bg-blue-dark disabled:opacity-70"
                 >
-                  Guardar
+                  {pending ? "Guardando…" : "Guardar"}
                 </button>
               </div>
             </div>
@@ -911,9 +912,10 @@ export function AdminPanel(props: Props) {
                 </div>
                 <button
                   onClick={submitGenCharges}
-                  className="rounded-[11px] bg-blue px-4 py-[11px] text-[13.5px] font-extrabold text-white hover:bg-blue-dark"
+                  disabled={pending}
+                  className="rounded-[11px] bg-blue px-4 py-[11px] text-[13.5px] font-extrabold text-white hover:bg-blue-dark disabled:opacity-70"
                 >
-                  Generar
+                  {pending ? "Generando…" : "Generar"}
                 </button>
               </div>
             )}
@@ -1081,9 +1083,10 @@ export function AdminPanel(props: Props) {
               </div>
               <button
                 onClick={submitVendor}
-                className="rounded-[11px] bg-blue px-4 py-[11px] text-[13.5px] font-extrabold text-white hover:bg-blue-dark"
+                disabled={pending}
+                className="rounded-[11px] bg-blue px-4 py-[11px] text-[13.5px] font-extrabold text-white hover:bg-blue-dark disabled:opacity-70"
               >
-                Crear proveedor
+                {pending ? "Creando…" : "Crear proveedor"}
               </button>
             </div>
 
@@ -1097,7 +1100,9 @@ export function AdminPanel(props: Props) {
                     {v.name}
                     <button
                       onClick={() => removeVendor(v.id)}
-                      className="flex h-[18px] w-[18px] items-center justify-center rounded-full bg-white text-[11px] text-[#6B7585] hover:text-rose"
+                      disabled={pending}
+                      aria-label={`Eliminar proveedor ${v.name}`}
+                      className="flex h-[18px] w-[18px] items-center justify-center rounded-full bg-white text-[11px] text-[#6B7585] hover:text-rose disabled:opacity-50"
                     >
                       ✕
                     </button>
