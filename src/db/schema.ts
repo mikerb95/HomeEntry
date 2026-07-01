@@ -33,6 +33,9 @@ export const conjuntos = pgTable("conjuntos", {
     .references(() => cities.code),
   code: text("code").notNull().unique(),
   name: text("name").notNull(),
+  // Public URL of the conjunto's logo, uploaded by the admin to Vercel Blob.
+  // Null until they upload one; the UI falls back to a monogram of the name.
+  logoUrl: text("logo_url"),
   towers: integer("towers").notNull(),
   aptsPerTower: integer("apts_per_tower").notNull(),
   carSpots: integer("car_spots").notNull(),

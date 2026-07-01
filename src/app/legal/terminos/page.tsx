@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { LegalDoc, Section, P, B, Ul, Li, Note } from "@/components/LegalDoc";
 import { LEGAL } from "../config";
 
@@ -140,9 +141,9 @@ export default function TerminosPage() {
           materia de datos personales de residentes, personal y visitantes, la
           copropiedad actúa como <B>Responsable del Tratamiento</B> y {LEGAL.brand}{" "}
           como <B>Encargado</B>, según se detalla en la{" "}
-          <a href="/legal/privacidad" className="font-semibold text-blue">
+          <Link href="/legal/privacidad" className="font-semibold text-blue">
             Política de Tratamiento de Datos Personales
-          </a>
+          </Link>
           .
         </P>
       </Section>
