@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { logout } from "@/app/actions/auth";
-import { IconLogout } from "./icons";
+import { IconHelp, IconLogout } from "./icons";
 
 export type ChromeProps = {
   title: string;
