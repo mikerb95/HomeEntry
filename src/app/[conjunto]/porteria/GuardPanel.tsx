@@ -8,6 +8,7 @@ import {
   confirmAlert,
   confirmScan,
 } from "@/app/actions/guard";
+import { Modal } from "@/components/Modal";
 import { ParkingModal, ModalSpot } from "@/components/ParkingModal";
 import { GuardNotifications } from "@/components/GuardNotifications";
 import {
@@ -707,14 +708,11 @@ export function GuardPanel(props: Props) {
 
       {/* WhatsApp preview modal */}
       {wa && (
-        <div
-          onClick={() => setWa(null)}
-          className="fixed inset-0 z-[60] flex animate-pa-in items-center justify-center bg-[rgba(15,20,26,.5)] p-5 backdrop-blur-[3px]"
+        <Modal
+          onClose={() => setWa(null)}
+          label="Vista previa del mensaje de WhatsApp"
+          className="w-[420px]"
         >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="w-[420px] max-w-full animate-pa-pop overflow-hidden rounded-[22px] bg-white shadow-[0_30px_70px_-20px_rgba(15,20,26,.5)]"
-          >
             <div className="flex items-center gap-3 bg-green px-5 py-[18px] text-white">
               <span className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-white/20">
                 <IconSend size={22} />
