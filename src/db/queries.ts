@@ -288,18 +288,26 @@ export async function logAccess(
   await db.insert(accessLog).values({ conjuntoId, actor, action, target });
 }
 
-export async function listRecentAccessLog(
-  conjuntoId: string,
-  actionPrefix: string,
-  limit = 20,
-) {
+const FINANCE_ACTIONS = new Set([
+  "view_finance_summary",
+  "update_mora_config",
+  "create_vendor",
+  "update_vendor",
+  "delete_vendor",
+  "generate_monthly_charges",
+  "record_payment",
+  "record_expense",
+  "delete_expense",
+]);
+
+export async function listRecentFinanceAccessLog(conjuntoId: string, limit = 20) {
   const rows = await db
     .select()
     .from(accessLog)
     .where(eq(accessLog.conjuntoId, conjuntoId))
     .orderBy(desc(accessLog.ts))
-    .limit(200);
-  return rows.filter((r) => r.action.startsWith(actionPrefix)).slice(0, limit);
+    .limit(300);
+  return rows.filter((r) => FINANCE_ACTIONS.has(r.action)).slice(0, limit);
 }
 
 // --- Vendors ("proveedores") ----------------------------------------------
