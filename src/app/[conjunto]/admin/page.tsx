@@ -6,6 +6,7 @@ import {
   getFinancialSummary,
   listEvents,
   listExpenses,
+  listGuards,
   listParking,
   listRecentFinanceAccessLog,
   listResidents,
