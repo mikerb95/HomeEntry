@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { recordExpense } from "@/app/actions/finance";
+import { Modal } from "@/components/Modal";
 import { useToast } from "@/lib/toast";
 
 const CATEGORIES = [

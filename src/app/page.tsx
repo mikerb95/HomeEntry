@@ -13,6 +13,7 @@ export default async function RootPage() {
       <RoleLanding
         conjuntos={conjuntos.map((c) => ({ slug: c.slug, name: c.name }))}
       />
+      <PwaInstallModal />
     </Shell>
   );
 }
