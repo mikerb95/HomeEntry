@@ -159,6 +159,23 @@ export default async function AdminPanelPage({
           apt: r.apt,
           phoneMasked: maskPhone(r.phone),
         }))}
+        ownerLinks={ownerLinks}
+        notices={notices.map((n) => ({
+          id: n.id,
+          aptoKey: n.aptoKey,
+          category: n.category,
+          detail: n.detail,
+          status: n.status,
+          createdAtIso: n.createdAt.toISOString(),
+        }))}
+        serviceRequests={serviceRequests.map((r) => ({
+          id: r.id,
+          aptoKey: r.aptoKey,
+          subject: r.subject,
+          detail: r.detail,
+          status: r.status,
+          createdAtIso: r.createdAt.toISOString(),
+        }))}
       />
     </Shell>
   );
