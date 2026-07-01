@@ -6,12 +6,13 @@ import {
   listAuths,
   listEvents,
   listParking,
+  listPendingResidents,
   listResidents,
 } from "@/db/queries";
 import { qrDataUrl } from "@/lib/qr";
 import { isGrantExpired } from "@/lib/code";
 import { whatsappMode } from "@/lib/whatsapp";
-import { isToday, todayStr } from "@/lib/format";
+import { isToday, maskPhone, todayStr } from "@/lib/format";
 import { Shell } from "@/components/Shell";
 import { GuardPanel } from "./GuardPanel";
 
@@ -23,13 +24,15 @@ export default async function GuardPanelPage({
   const { conjunto: slug } = await params;
   const session = await requireGuard(slug);
   const cid = session.conjuntoId;
-  const [config, parking, events, auths, residents] = await Promise.all([
-    getConjuntoById(cid),
-    listParking(cid),
-    listEvents(cid),
-    listAuths(cid),
-    listResidents(cid),
-  ]);
+  const [config, parking, events, auths, residents, pending] =
+    await Promise.all([
+      getConjuntoById(cid),
+      listParking(cid),
+      listEvents(cid),
+      listAuths(cid),
+      listResidents(cid),
+      listPendingResidents(cid),
+    ]);
 
   // Only expose whether an apartment has a WhatsApp on file — never the numbers
   // themselves. The actual phone is resolved on demand by prepareAlert, which
