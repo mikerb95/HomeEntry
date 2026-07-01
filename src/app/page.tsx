@@ -1,6 +1,7 @@
 import { listConjuntos } from "@/db/queries";
 import { Shell } from "@/components/Shell";
 import { RoleLanding } from "@/components/RoleLanding";
+import { PwaInstallModal } from "@/components/PwaInstallModal";
 
 export const dynamic = "force-dynamic";
 
