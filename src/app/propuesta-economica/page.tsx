@@ -65,7 +65,7 @@ const tiers: Tier[] = [
       "Aislamiento de datos por conjunto con roles y accesos diferenciados por sede",
       "Marca personalizada (logo y colores de la administradora o de cada conjunto)",
       "Onboarding y capacitación del equipo de portería para cada conjunto nuevo",
-      "Soporte dedicado con acuerdo de nivel de servicio (SLA)",
+      "Soporte dedicado con tiempos de respuesta acordados",
       "Integraciones a medida (contabilidad, control de acceso físico, etc.)",
     ],
   },
@@ -100,7 +100,7 @@ const comparisonGroups: { group: string; rows: [string, Cell, Cell, Cell][] }[] 
       ["Reportes exportables de actividad", false, true, true],
       ["Múltiples conjuntos en un solo panel", false, false, true],
       ["Marca personalizada", false, false, true],
-      ["Soporte", "Correo", "Prioritario", "Dedicado + SLA"],
+      ["Soporte", "Correo", "Prioritario", "Dedicado"],
     ],
   },
 ];
