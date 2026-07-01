@@ -69,6 +69,18 @@ export default function SuperadminLoginPage() {
           >
             {pending ? "Ingresando…" : "Ingresar"}
           </button>
+          {DEMO && (
+            <button
+              onClick={() => {
+                setUser("superadmin");
+                setPass("cambia-esto-123");
+                setErr("");
+              }}
+              className="mt-3.5 w-full rounded-[12px] border border-dashed border-[#C9D2DE] bg-[#F0F3F8] p-[11px] text-[13px] font-bold text-[#5B6675]"
+            >
+              Usar datos de prueba (superadmin · cambia-esto-123)
+            </button>
+          )}
         </LoginCard>
       </div>
     </Shell>
