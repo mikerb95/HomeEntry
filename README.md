@@ -13,3 +13,9 @@
 El gating de auth por rol vive en `src/proxy.ts` (convención `proxy` de Next 16,
 antes `middleware`).
 
+## Licencia
+
+Software propietario — **todos los derechos reservados**. Este repositorio es
+público solo para visualización; no se concede ningún derecho de uso, copia,
+modificación ni distribución. Ver [`LICENSE`](./LICENSE).
+
