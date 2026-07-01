@@ -251,9 +251,9 @@ export default function PrivacidadPage() {
         <P>
           La plataforma utiliza cookies técnicas de sesión y almacenamiento local
           necesarios para su funcionamiento. Consulta el detalle en la{" "}
-          <a href="/legal/cookies" className="font-semibold text-blue">
+          <Link href="/legal/cookies" className="font-semibold text-blue">
             Política de cookies
-          </a>
+          </Link>
           .
         </P>
       </Section>

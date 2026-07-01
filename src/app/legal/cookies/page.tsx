@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { LegalDoc, Section, P, B, Ul, Li, Note } from "@/components/LegalDoc";
 import { LEGAL } from "../config";
 
