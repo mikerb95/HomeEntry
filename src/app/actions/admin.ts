@@ -180,7 +180,14 @@ export async function removeLogo(slug: string): Promise<Result> {
   return { ok: true };
 }
 
-export async function updateRate(slug: string, rate: string): Promise<Result> {
+// Visitor-parking rate per hour, configured per vehicle kind. This is the
+// value the guard's exit flow multiplies by the billed hours (see
+// freeParking in src/app/actions/parking.ts).
+export async function updateRate(
+  slug: string,
+  rate: string,
+  kind: "car" | "moto" = "car",
+): Promise<Result> {
   const session = await requireAdmin(slug);
   const value = Math.max(
     0,
@@ -188,7 +195,7 @@ export async function updateRate(slug: string, rate: string): Promise<Result> {
   );
   await db
     .update(conjuntos)
-    .set({ visitorRate: value })
+    .set(kind === "moto" ? { visitorRateMoto: value } : { visitorRate: value })
     .where(eq(conjuntos.id, session.conjuntoId));
   revalidatePath(`/${slug}/admin`);
   return { ok: true };

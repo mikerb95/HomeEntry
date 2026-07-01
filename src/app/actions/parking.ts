@@ -91,17 +91,74 @@ export async function assignParking(
   return { ok: true };
 }
 
+// Registers the vehicle's exit: frees the spot, closes the parking session
+// with the billed hours/amount (visitors pay hora o fracción at the per-kind
+// rate the admin configured; residents park free) and logs the event. The
+// session row is what the daily caja and the financial summary aggregate.
 export async function freeParking(
   slug: string,
   spotId: string,
-): Promise<Result> {
+): Promise<FreeResult> {
   const session = await requireStaff(slug);
   const cid = session.conjuntoId;
+
+  const [spot] = await db
+    .select()
+    .from(parkingSpots)
+    .where(and(eq(parkingSpots.conjuntoId, cid), eq(parkingSpots.id, spotId)));
+  if (!spot) return { ok: false, error: "Parqueadero no encontrado" };
+  if (spot.status === "free") {
+    revalidatePath(`/${slug}/porteria`);
+    revalidatePath(`/${slug}/admin`);
+    return { ok: true };
+  }
+
+  const [config] = await db
+    .select({
+      visitorRate: conjuntos.visitorRate,
+      visitorRateMoto: conjuntos.visitorRateMoto,
+    })
+    .from(conjuntos)
+    .where(eq(conjuntos.id, cid));
+  const rate =
+    spot.kind === "moto" ? config.visitorRateMoto : config.visitorRate;
+  const isVisitor = spot.status === "visitor";
+  const now = new Date();
+  const { hours, amount } = computeParkingCharge(
+    spot.enteredAt,
+    now,
+    rate,
+    isVisitor,
+  );
+
+  await db.insert(parkingSessions).values({
+    conjuntoId: cid,
+    type: isVisitor ? "visitor" : "resident",
+    aptoKey: spot.aptoKey,
+    kind: spot.kind,
+    plate: spot.plate,
+    hours,
+    amount,
+    start: spot.enteredAt ?? now,
+  });
+
   await db
     .update(parkingSpots)
-    .set({ status: "free", plate: "", aptoKey: "" })
+    .set({ status: "free", plate: "", aptoKey: "", enteredAt: null })
     .where(and(eq(parkingSpots.conjuntoId, cid), eq(parkingSpots.id, spotId)));
+
+  const [tower, apt] = spot.aptoKey.split("-");
+  await db.insert(events).values({
+    conjuntoId: cid,
+    type: "parqueadero",
+    tower: tower ?? "",
+    apto: apt ?? "",
+    detail:
+      `Salida placa ${spot.plate} de ${spotId} · ${hours} h` +
+      (isVisitor ? ` · Cobro ${fmtCOP(amount)}` : " (Residente)"),
+  });
+
   revalidatePath(`/${slug}/porteria`);
   revalidatePath(`/${slug}/admin`);
-  return { ok: true };
+  return { ok: true, charge: { hours, amount, plate: spot.plate } };
 }
