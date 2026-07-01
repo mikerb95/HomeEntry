@@ -125,6 +125,7 @@ type Props = {
   expenses: Expense[];
   financeAccessLog: AccessLogEntry[];
   guards: Guard[];
+  pending: PendingResident[];
 };
 
 const EXPENSE_CATEGORIES = [
@@ -168,6 +169,7 @@ export function AdminPanel(props: Props) {
     | "finanzas"
     | "gastos"
     | "vigilantes"
+    | "solicitudes"
   >("dashboard");
   const [fType, setFType] = useState("all");
   const [fTower, setFTower] = useState("all");
@@ -221,6 +223,12 @@ export function AdminPanel(props: Props) {
     { key: "finanzas", label: "Finanzas" },
     { key: "gastos", label: "Gastos" },
     { key: "vigilantes", label: "Vigilantes" },
+    {
+      key: "solicitudes",
+      label: props.pending.length
+        ? `Solicitudes (${props.pending.length})`
+        : "Solicitudes",
+    },
   ];
 
   // --- history table ---
