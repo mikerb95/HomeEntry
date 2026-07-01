@@ -22,6 +22,7 @@ import {
   vendors,
 } from "./schema";
 import { decryptPII, piiHash } from "@/lib/crypto";
+import { hashSecret } from "@/lib/password";
 import {
   computeConjuntoSummary,
   type ChargeInput,
@@ -343,6 +344,344 @@ export async function getAuthByCode(conjuntoId: string, code: string) {
     )
     .limit(1);
   return rows[0] ?? null;
+}
+
+// --- Owners (propietarios que arriendan) ----------------------------------
+
+export type OwnerView = {
+  id: string;
+  phone: string;
+  pinHash: string;
+  sessionVersion: number;
+  failedPins: number;
+  lockedUntil: Date | null;
+};
+
+function toOwnerView(o: typeof owners.$inferSelect): OwnerView {
+  return {
+    id: o.id,
+    phone: decryptPII(o.phoneEnc),
+    pinHash: o.pinHash,
+    sessionVersion: o.sessionVersion,
+    failedPins: o.failedPins,
+    lockedUntil: o.lockedUntil,
+  };
+}
+
+export async function getOwner(ownerId: string) {
+  const rows = await db
+    .select()
+    .from(owners)
+    .where(eq(owners.id, ownerId))
+    .limit(1);
+  return rows[0] ? toOwnerView(rows[0]) : null;
+}
+
+export async function getOwnerByPhone(phone: string) {
+  const rows = await db
+    .select()
+    .from(owners)
+    .where(eq(owners.phoneHash, piiHash(phone)))
+    .limit(1);
+  return rows[0] ? toOwnerView(rows[0]) : null;
+}
+
+export async function getOwnerVersion(ownerId: string): Promise<number | null> {
+  const rows = await db
+    .select({ v: owners.sessionVersion })
+    .from(owners)
+    .where(eq(owners.id, ownerId))
+    .limit(1);
+  return rows[0]?.v ?? null;
+}
+
+// Finds (or creates) the owner identified by `phone`, then links it to a
+// unit. Reusing the same phone across links is how one owner ends up with
+// several units. Called only from the admin panel — owners never self-serve.
+export async function upsertOwnerLink(params: {
+  phone: string;
+  pin: string;
+  conjuntoId: string;
+  aptoKey: string;
+  tower: string;
+  apt: string;
+}): Promise<{ ownerId: string }> {
+  const existing = await getOwnerByPhone(params.phone);
+  const ownerId = existing
+    ? existing.id
+    : (
+        await db
+          .insert(owners)
+          .values({
+            phoneEnc: encryptPII(params.phone),
+            phoneHash: piiHash(params.phone),
+            pinHash: hashSecretForOwner(params.pin),
+          })
+          .returning({ id: owners.id })
+      )[0].id;
+
+  await db
+    .insert(ownerUnits)
+    .values({
+      ownerId,
+      conjuntoId: params.conjuntoId,
+      aptoKey: params.aptoKey,
+      tower: params.tower,
+      apt: params.apt,
+    })
+    .onConflictDoNothing();
+
+  return { ownerId };
+}
+
+export async function removeOwnerLink(
+  ownerId: string,
+  conjuntoId: string,
+  aptoKey: string,
+) {
+  await db
+    .delete(ownerUnits)
+    .where(
+      and(
+        eq(ownerUnits.ownerId, ownerId),
+        eq(ownerUnits.conjuntoId, conjuntoId),
+        eq(ownerUnits.aptoKey, aptoKey),
+      ),
+    );
+}
+
+export type OwnerUnitView = {
+  conjuntoId: string;
+  conjuntoSlug: string;
+  conjuntoName: string;
+  aptoKey: string;
+  tower: string;
+  apt: string;
+};
+
+export async function listUnitsForOwner(
+  ownerId: string,
+): Promise<OwnerUnitView[]> {
+  const rows = await db
+    .select({ unit: ownerUnits, conjunto: conjuntos })
+    .from(ownerUnits)
+    .innerJoin(conjuntos, eq(ownerUnits.conjuntoId, conjuntos.id))
+    .where(eq(ownerUnits.ownerId, ownerId));
+  return rows.map(({ unit, conjunto }) => ({
+    conjuntoId: unit.conjuntoId,
+    conjuntoSlug: conjunto.slug,
+    conjuntoName: conjunto.name,
+    aptoKey: unit.aptoKey,
+    tower: unit.tower,
+    apt: unit.apt,
+  }));
+}
+
+// Every owner linked to units in a given conjunto — used by the admin panel
+// to show/manage links without needing every owner's phone by hand.
+export async function listOwnerUnitsForConjunto(conjuntoId: string) {
+  const rows = await db
+    .select({ unit: ownerUnits, owner: owners })
+    .from(ownerUnits)
+    .innerJoin(owners, eq(ownerUnits.ownerId, owners.id))
+    .where(eq(ownerUnits.conjuntoId, conjuntoId));
+  return rows.map(({ unit, owner }) => ({
+    ownerId: owner.id,
+    phone: decryptPII(owner.phoneEnc),
+    aptoKey: unit.aptoKey,
+    tower: unit.tower,
+    apt: unit.apt,
+  }));
+}
+
+// Authoritative check that an owner actually holds a unit — pages must call
+// this before showing anything scoped to (conjuntoId, aptoKey).
+export async function ownerHoldsUnit(
+  ownerId: string,
+  conjuntoId: string,
+  aptoKey: string,
+): Promise<boolean> {
+  const rows = await db
+    .select({ ownerId: ownerUnits.ownerId })
+    .from(ownerUnits)
+    .where(
+      and(
+        eq(ownerUnits.ownerId, ownerId),
+        eq(ownerUnits.conjuntoId, conjuntoId),
+        eq(ownerUnits.aptoKey, aptoKey),
+      ),
+    )
+    .limit(1);
+  return rows.length > 0;
+}
+
+// --- Notices (llamados de atención) ---------------------------------------
+
+export type NoticeView = {
+  id: string;
+  aptoKey: string;
+  tower: string;
+  apt: string;
+  category: string;
+  detail: string;
+  status: string;
+  registeredBy: string;
+  createdAt: Date;
+  resolvedAt: Date | null;
+};
+
+function toNoticeView(n: typeof notices.$inferSelect): NoticeView {
+  return {
+    id: n.id,
+    aptoKey: n.aptoKey,
+    tower: n.tower,
+    apt: n.apt,
+    category: n.category,
+    detail: decryptPII(n.detailEnc),
+    status: n.status,
+    registeredBy: n.registeredBy,
+    createdAt: n.createdAt,
+    resolvedAt: n.resolvedAt,
+  };
+}
+
+export async function listNotices(conjuntoId: string): Promise<NoticeView[]> {
+  const rows = await db
+    .select()
+    .from(notices)
+    .where(eq(notices.conjuntoId, conjuntoId))
+    .orderBy(desc(notices.createdAt));
+  return rows.map(toNoticeView);
+}
+
+export async function listNoticesForApt(
+  conjuntoId: string,
+  aptoKey: string,
+): Promise<NoticeView[]> {
+  const rows = await db
+    .select()
+    .from(notices)
+    .where(and(eq(notices.conjuntoId, conjuntoId), eq(notices.aptoKey, aptoKey)))
+    .orderBy(desc(notices.createdAt));
+  return rows.map(toNoticeView);
+}
+
+export async function createNotice(params: {
+  conjuntoId: string;
+  aptoKey: string;
+  tower: string;
+  apt: string;
+  category: string;
+  detail: string;
+  registeredBy: string;
+}) {
+  await db.insert(notices).values({
+    conjuntoId: params.conjuntoId,
+    aptoKey: params.aptoKey,
+    tower: params.tower,
+    apt: params.apt,
+    category: params.category,
+    detailEnc: encryptPII(params.detail),
+    registeredBy: params.registeredBy,
+  });
+}
+
+export async function resolveNotice(conjuntoId: string, id: string) {
+  await db
+    .update(notices)
+    .set({ status: "cerrado", resolvedAt: new Date() })
+    .where(and(eq(notices.conjuntoId, conjuntoId), eq(notices.id, id)));
+}
+
+// --- Service requests (solicitudes de mantenimiento/servicio) -------------
+
+export type ServiceRequestView = {
+  id: string;
+  aptoKey: string;
+  tower: string;
+  apt: string;
+  subject: string;
+  detail: string;
+  status: string;
+  registeredBy: string;
+  createdAt: Date;
+  resolvedAt: Date | null;
+};
+
+function toServiceRequestView(
+  r: typeof serviceRequests.$inferSelect,
+): ServiceRequestView {
+  return {
+    id: r.id,
+    aptoKey: r.aptoKey,
+    tower: r.tower,
+    apt: r.apt,
+    subject: decryptPII(r.subjectEnc),
+    detail: decryptPII(r.detailEnc),
+    status: r.status,
+    registeredBy: r.registeredBy,
+    createdAt: r.createdAt,
+    resolvedAt: r.resolvedAt,
+  };
+}
+
+export async function listServiceRequests(
+  conjuntoId: string,
+): Promise<ServiceRequestView[]> {
+  const rows = await db
+    .select()
+    .from(serviceRequests)
+    .where(eq(serviceRequests.conjuntoId, conjuntoId))
+    .orderBy(desc(serviceRequests.createdAt));
+  return rows.map(toServiceRequestView);
+}
+
+export async function listServiceRequestsForApt(
+  conjuntoId: string,
+  aptoKey: string,
+): Promise<ServiceRequestView[]> {
+  const rows = await db
+    .select()
+    .from(serviceRequests)
+    .where(
+      and(
+        eq(serviceRequests.conjuntoId, conjuntoId),
+        eq(serviceRequests.aptoKey, aptoKey),
+      ),
+    )
+    .orderBy(desc(serviceRequests.createdAt));
+  return rows.map(toServiceRequestView);
+}
+
+export async function createServiceRequest(params: {
+  conjuntoId: string;
+  aptoKey: string;
+  tower: string;
+  apt: string;
+  subject: string;
+  detail: string;
+  registeredBy: string;
+}) {
+  await db.insert(serviceRequests).values({
+    conjuntoId: params.conjuntoId,
+    aptoKey: params.aptoKey,
+    tower: params.tower,
+    apt: params.apt,
+    subjectEnc: encryptPII(params.subject),
+    detailEnc: encryptPII(params.detail),
+    registeredBy: params.registeredBy,
+  });
+}
+
+export async function updateServiceRequestStatus(
+  conjuntoId: string,
+  id: string,
+  status: "abierto" | "en_proceso" | "resuelto",
+) {
+  await db
+    .update(serviceRequests)
+    .set({ status, resolvedAt: status === "resuelto" ? new Date() : null })
+    .where(and(eq(serviceRequests.conjuntoId, conjuntoId), eq(serviceRequests.id, id)));
 }
 
 // --- Audit trail ---------------------------------------------------------
