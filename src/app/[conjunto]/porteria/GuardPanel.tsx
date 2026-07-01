@@ -671,9 +671,10 @@ export function GuardPanel(props: Props) {
                   ))}
                   <button
                     onClick={doScanConfirm}
-                    className="w-full rounded-[14px] bg-green p-[15px] text-[15px] font-extrabold text-white hover:bg-green-dark"
+                    disabled={pending}
+                    className="w-full rounded-[14px] bg-green p-[15px] text-[15px] font-extrabold text-white hover:bg-green-dark disabled:opacity-70"
                   >
-                    Confirmar ingreso
+                    {pending ? "Confirmando…" : "Confirmar ingreso"}
                   </button>
                 </div>
               </div>
@@ -740,9 +741,10 @@ export function GuardPanel(props: Props) {
               </button>
               <button
                 onClick={doConfirm}
-                className="flex-1 rounded-[13px] bg-green p-3.5 text-[14.5px] font-extrabold text-white hover:bg-green-dark"
+                disabled={pending}
+                className="flex-1 rounded-[13px] bg-green p-3.5 text-[14.5px] font-extrabold text-white hover:bg-green-dark disabled:opacity-70"
               >
-                Abrir WhatsApp
+                {pending ? "Enviando…" : "Abrir WhatsApp"}
               </button>
             </div>
         </Modal>
