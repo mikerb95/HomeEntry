@@ -4,7 +4,15 @@ import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { updateConfig, updateRate } from "@/app/actions/admin";
 import { freeParking } from "@/app/actions/parking";
+import {
+  updateMoraConfig,
+  generateMonthlyCharges,
+  createVendor,
+  deleteVendor,
+} from "@/app/actions/finance";
 import { ParkingModal, ModalSpot } from "@/components/ParkingModal";
+import { PaymentModal } from "@/components/PaymentModal";
+import { ExpenseModal } from "@/components/ExpenseModal";
 import {
   IconUserSmall,
   IconPackage,
@@ -46,6 +54,40 @@ type Sess = {
   hours: number;
   startIso: string;
 };
+type AptBalance = {
+  aptoKey: string;
+  totalCargado: number;
+  totalPagado: number;
+  saldo: number;
+  mora: number;
+  total: number;
+  enMora: boolean;
+};
+type Vendor = {
+  id: string;
+  name: string;
+  category: string;
+  taxId: string;
+  contact: string;
+};
+type Expense = {
+  id: string;
+  vendorId: string;
+  vendorName: string;
+  category: string;
+  amount: number;
+  description: string;
+  invoiceRef: string;
+  expenseDateIso: string;
+  registeredBy: string;
+};
+type AccessLogEntry = {
+  id: string;
+  tsIso: string;
+  actor: string;
+  action: string;
+  target: string;
+};
 
 type Props = {
   slug: string;
@@ -55,6 +97,8 @@ type Props = {
   carSpots: number;
   motoSpots: number;
   visitorRate: number;
+  moraRatePct: number;
+  moraGraceDays: number;
   todayStr: string;
   mVisits: number;
   mPackages: number;
@@ -63,7 +107,24 @@ type Props = {
   events: Ev[];
   parking: Spot[];
   sessions: Sess[];
+  aptBalances: AptBalance[];
+  carteraTotal: number;
+  recaudoTotal: number;
+  moraTotal: number;
+  gastoTotal: number;
+  balanceNeto: number;
+  vendors: Vendor[];
+  expenses: Expense[];
+  financeAccessLog: AccessLogEntry[];
 };
+
+const EXPENSE_CATEGORIES = [
+  { id: "mantenimiento", label: "Mantenimiento" },
+  { id: "aseo", label: "Aseo" },
+  { id: "jardineria", label: "Jardinería" },
+  { id: "seguridad", label: "Seguridad" },
+  { id: "otro", label: "Otro" },
+];
 
 const ROWS = 8;
 
@@ -91,9 +152,9 @@ export function AdminPanel(props: Props) {
   const show = useToast((s) => s.show);
   const [, start] = useTransition();
 
-  const [tab, setTab] = useState<"dashboard" | "parqueadero" | "auditoria">(
-    "dashboard",
-  );
+  const [tab, setTab] = useState<
+    "dashboard" | "parqueadero" | "auditoria" | "finanzas" | "gastos"
+  >("dashboard");
   const [fType, setFType] = useState("all");
   const [fTower, setFTower] = useState("all");
   const [fQuery, setFQuery] = useState("");
@@ -106,6 +167,29 @@ export function AdminPanel(props: Props) {
   const [cfgOpen, setCfgOpen] = useState(false);
   const [pkSpot, setPkSpot] = useState<ModalSpot | null>(null);
 
+  // --- finanzas ---
+  const [moraRate, setMoraRate] = useState(String(props.moraRatePct));
+  const [moraGrace, setMoraGrace] = useState(String(props.moraGraceDays));
+  const [payApt, setPayApt] = useState<{ key: string; label: string } | null>(
+    null,
+  );
+  const [genOpen, setGenOpen] = useState(false);
+  const [genPeriod, setGenPeriod] = useState("");
+  const [genAmount, setGenAmount] = useState("");
+  const [genDue, setGenDue] = useState("");
+
+  // --- gastos ---
+  const [expOpen, setExpOpen] = useState(false);
+  const [vName, setVName] = useState("");
+  const [vCategory, setVCategory] = useState("mantenimiento");
+  const [vTaxId, setVTaxId] = useState("");
+  const [vContact, setVContact] = useState("");
+  const [gPreset, setGPreset] = useState("month");
+  const [gFrom, setGFrom] = useState("");
+  const [gTo, setGTo] = useState("");
+  const [gCategory, setGCategory] = useState("all");
+  const [gVendor, setGVendor] = useState("all");
+
   const towerList = towersArr(props.towers);
   const allApts = allAptsArr(props.towers, props.aptsPerTower);
   const aptLabel = (key: string) =>
@@ -115,6 +199,8 @@ export function AdminPanel(props: Props) {
     { key: "dashboard", label: "Dashboard" },
     { key: "parqueadero", label: "Parqueadero" },
     { key: "auditoria", label: "Auditoría" },
+    { key: "finanzas", label: "Finanzas" },
+    { key: "gastos", label: "Gastos" },
   ];
 
   // --- history table ---
