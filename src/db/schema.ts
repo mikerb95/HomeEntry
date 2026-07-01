@@ -62,6 +62,12 @@ export const residents = pgTable(
     phoneEnc: text("phone_enc").notNull(),
     phoneHash: text("phone_hash").notNull(),
     pinHash: text("pin_hash").notNull(),
+    // Approval state. A self-service registration lands as "pending" and cannot
+    // log in until the portería or administración approves it — this is how we
+    // verify the person really belongs to the apartment without a WhatsApp/SMS
+    // OTP (the doorman already knows or can confirm the residents). Existing
+    // rows and seeds default to "active" (they predate the approval flow).
+    status: text("status").notNull().default("active"), // 'active' | 'pending'
     // Bumping this invalidates every issued session for the resident.
     sessionVersion: integer("session_version").notNull().default(0),
     // PIN brute-force protection.
