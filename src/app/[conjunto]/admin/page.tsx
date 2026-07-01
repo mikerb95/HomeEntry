@@ -99,6 +99,7 @@ export default async function AdminPanelPage({
         carSpots={config.carSpots}
         motoSpots={config.motoSpots}
         visitorRate={config.visitorRate}
+        visitorRateMoto={config.visitorRateMoto}
         moraRatePct={config.moraRatePct}
         moraGraceDays={config.moraGraceDays}
         todayStr={todayStr()}
@@ -120,12 +121,14 @@ export default async function AdminPanelPage({
           status: p.status as "free" | "resident" | "visitor",
           plate: p.plate,
           aptoKey: p.aptoKey,
+          enteredAtIso: p.enteredAt?.toISOString() ?? null,
         }))}
         sessions={sessions.map((s) => ({
           type: s.type as "resident" | "visitor",
           aptoKey: s.aptoKey,
           kind: s.kind,
           hours: s.hours,
+          amount: s.amount,
           startIso: s.start.toISOString(),
         }))}
         aptBalances={financeSummary.aptBalances}
@@ -133,6 +136,7 @@ export default async function AdminPanelPage({
         recaudoTotal={financeSummary.recaudoTotal}
         moraTotal={financeSummary.moraTotal}
         gastoTotal={financeSummary.gastoTotal}
+        parqueaderoTotal={financeSummary.parqueaderoTotal}
         balanceNeto={financeSummary.balanceNeto}
         vendors={vendors}
         expenses={expenses.map((e) => ({

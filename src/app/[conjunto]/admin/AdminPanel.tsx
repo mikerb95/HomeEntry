@@ -295,7 +295,9 @@ export function AdminPanel(props: Props) {
   const visitSess = props.sessions.filter((s) => s.type === "visitor" && inRange(s.startIso));
   const resSess = props.sessions.filter((s) => s.type === "resident" && inRange(s.startIso));
   const visitHours = visitSess.reduce((a, b) => a + b.hours, 0);
-  const auValue = fmtCOP(visitHours * rate);
+  // Sum what each exit actually charged (stored per session), so the audit
+  // stays truthful across rate changes and mixed car/moto tariffs.
+  const auValue = fmtCOP(visitSess.reduce((a, b) => a + b.amount, 0));
   const usageMap: Record<string, { uses: number; hours: number }> = {};
   resSess.forEach((s) => {
     if (!usageMap[s.aptoKey]) usageMap[s.aptoKey] = { uses: 0, hours: 0 };
@@ -308,18 +310,27 @@ export function AdminPanel(props: Props) {
   const maxHours = usageArr.length ? usageArr[0].hours : 1;
   const rankRows = usageArr.slice(0, 6);
 
-  function onRate(v: string) {
+  function onRate(v: string, kind: "car" | "moto") {
     const value = Math.max(0, parseInt(v.replace(/\D/g, "") || "0", 10));
-    setRate(value);
+    (kind === "moto" ? setRateMoto : setRate)(value);
     start(async () => {
-      await updateRate(props.slug, String(value));
+      await updateRate(props.slug, String(value), kind);
     });
   }
 
   function doFree(id: string) {
     start(async () => {
-      await freeParking(props.slug, id);
-      show("Parqueadero liberado", "ok");
+      const res = await freeParking(props.slug, id);
+      if (!res.ok) {
+        show(res.error || "Error", "warn");
+        return;
+      }
+      show(
+        res.charge && res.charge.amount > 0
+          ? `Salida registrada · Cobrar ${fmtCOP(res.charge.amount)} (${res.charge.hours} h)`
+          : "Parqueadero liberado",
+        "ok",
+      );
       router.refresh();
     });
   }
@@ -685,13 +696,23 @@ export function AdminPanel(props: Props) {
                   ))}
                 </div>
               </div>
-              <div className="flex items-center gap-2.5">
-                <span className="text-[13px] font-bold text-[#5B6675]">Tarifa visitante / hora</span>
+              <div className="flex flex-wrap items-center gap-2.5">
+                <span className="text-[13px] font-bold text-[#5B6675]">Tarifa carro / hora</span>
                 <div className="flex items-center rounded-[11px] border-[1.5px] border-[#E3E8EF] bg-[#F6F8FB] px-3">
                   <span className="font-bold text-[#5B6675]">$</span>
                   <input
                     value={String(rate)}
-                    onChange={(e) => onRate(e.target.value)}
+                    onChange={(e) => onRate(e.target.value, "car")}
+                    inputMode="numeric"
+                    className="w-[90px] bg-transparent px-1.5 py-2.5 text-[15px] font-bold outline-none"
+                  />
+                </div>
+                <span className="text-[13px] font-bold text-[#5B6675]">Tarifa moto / hora</span>
+                <div className="flex items-center rounded-[11px] border-[1.5px] border-[#E3E8EF] bg-[#F6F8FB] px-3">
+                  <span className="font-bold text-[#5B6675]">$</span>
+                  <input
+                    value={String(rateMoto)}
+                    onChange={(e) => onRate(e.target.value, "moto")}
                     inputMode="numeric"
                     className="w-[90px] bg-transparent px-1.5 py-2.5 text-[15px] font-bold outline-none"
                   />
@@ -847,10 +868,14 @@ export function AdminPanel(props: Props) {
             </div>
           </div>
 
-          <div className="mb-5 grid grid-cols-1 gap-3.5 min-[680px]:grid-cols-2 min-[1040px]:grid-cols-4">
+          <div className="mb-5 grid grid-cols-1 gap-3.5 min-[680px]:grid-cols-2 min-[1040px]:grid-cols-5">
             <AuditCard label="Cartera total" value={fmtCOP(props.carteraTotal)} />
             <AuditCard label="Recaudado" value={fmtCOP(props.recaudoTotal)} />
             <AuditCard label="En mora" value={fmtCOP(props.moraTotal)} />
+            <AuditCard
+              label="Caja parqueadero"
+              value={fmtCOP(props.parqueaderoTotal)}
+            />
             <div className="rounded-[18px] bg-gradient-to-br from-violet to-violet-dark p-[22px] text-white">
               <div className="mb-2.5 text-[13px] font-semibold opacity-85">
                 Balance neto del conjunto
@@ -859,7 +884,7 @@ export function AdminPanel(props: Props) {
                 {fmtCOP(props.balanceNeto)}
               </div>
               <div className="mt-1.5 text-[12.5px] opacity-80">
-                Recaudado − gastos
+                Recaudado + parqueadero − gastos
               </div>
             </div>
           </div>
@@ -1389,7 +1414,13 @@ export function AdminPanel(props: Props) {
       )}
 
       {pkSpot && (
-        <ParkingModal slug={props.slug} spot={pkSpot} allApts={allApts} onClose={() => setPkSpot(null)} />
+        <ParkingModal
+          slug={props.slug}
+          spot={pkSpot}
+          allApts={allApts}
+          rates={{ car: rate, moto: rateMoto }}
+          onClose={() => setPkSpot(null)}
+        />
       )}
 
       {payApt && (
