@@ -76,6 +76,17 @@ export async function requireStaff(slug: string) {
   return s;
 }
 
+// Not slug-scoped: an owner's units can span conjuntos, so there is no single
+// tenant to compare against here — pages that show one unit must separately
+// verify the owner holds that (conjuntoId, aptoKey) via `listUnitsForOwner`.
+export async function requireOwner() {
+  const s = await getSession();
+  if (!s || s.role !== "owner") redirect("/propietario/login");
+  const v = await getOwnerVersion(s.ownerId);
+  if (v === null || v !== s.v) redirect("/propietario/login");
+  return s;
+}
+
 export async function requireSuperadmin() {
   const s = await getSession();
   if (!s || s.role !== "superadmin") redirect("/superadmin/login");
