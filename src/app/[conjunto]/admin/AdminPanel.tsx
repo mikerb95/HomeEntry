@@ -162,7 +162,12 @@ export function AdminPanel(props: Props) {
   const [, start] = useTransition();
 
   const [tab, setTab] = useState<
-    "dashboard" | "parqueadero" | "auditoria" | "finanzas" | "gastos"
+    | "dashboard"
+    | "parqueadero"
+    | "auditoria"
+    | "finanzas"
+    | "gastos"
+    | "vigilantes"
   >("dashboard");
   const [fType, setFType] = useState("all");
   const [fTower, setFTower] = useState("all");
