@@ -86,6 +86,8 @@ export function GuardPanel(props: Props) {
   const [gApto, setGApto] = useState("");
   const [gNote, setGNote] = useState("");
   const [pkTab, setPkTab] = useState<"car" | "moto">("car");
+  const [pkOnlyFree, setPkOnlyFree] = useState(true);
+  const [pkQuery, setPkQuery] = useState("");
   const [wa, setWa] = useState<{ phone: string; text: string; apto: string } | null>(
     null,
   );
@@ -105,6 +107,17 @@ export function GuardPanel(props: Props) {
   const freeCount = tabSpots.filter((p) => p.status === "free").length;
   const resCount = tabSpots.filter((p) => p.status === "resident").length;
   const visCount = tabSpots.filter((p) => p.status === "visitor").length;
+
+  // A searching guard usually wants to locate a specific occupied spot to free
+  // it, so any query overrides the "solo libres" filter and looks across all.
+  const pkQ = pkQuery.trim().toUpperCase();
+  const pkOnlyFreeActive = pkOnlyFree && !pkQ;
+  const visibleSpots = tabSpots.filter((p) => {
+    if (pkOnlyFreeActive && p.status !== "free") return false;
+    if (pkQ && !`${p.id} ${p.plate}`.toUpperCase().includes(pkQ)) return false;
+    return true;
+  });
+  const hiddenCount = tabSpots.length - visibleSpots.length;
 
   const scan = props.incoming.find((i) => i.id === scanId) || null;
 

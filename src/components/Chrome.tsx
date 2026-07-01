@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { logout } from "@/app/actions/auth";
 import { IconLogout } from "./icons";
 
@@ -30,6 +31,12 @@ export function Chrome({ title, sub, role, badgeBg, badgeFg }: ChromeProps) {
         <span className="h-1.5 w-1.5 rounded-full bg-current" />
         {role}
       </span>
+      <Link
+        href="/ayuda"
+        className="flex items-center gap-[7px] rounded-[11px] border-[1.5px] border-[#E3E8EF] bg-white px-[13px] py-2 text-[13px] font-bold text-[#5B6675] hover:bg-[#F6F8FB] hover:text-ink"
+      >
+        Ayuda
+      </Link>
       <form action={logout}>
         <button
           type="submit"
