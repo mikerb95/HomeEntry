@@ -1687,14 +1687,11 @@ function ResetGuardPasswordModal({
   }
 
   return (
-    <div
-      onClick={onClose}
-      className="fixed inset-0 z-[60] flex animate-pa-in items-center justify-center bg-[rgba(15,20,26,.5)] p-5 backdrop-blur-[3px]"
+    <Modal
+      onClose={onClose}
+      label={`Restablecer contraseña de ${username}`}
+      className="w-[420px]"
     >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        className="w-[420px] max-w-full animate-pa-pop overflow-hidden rounded-[22px] bg-white shadow-[0_30px_70px_-20px_rgba(15,20,26,.5)]"
-      >
         <div className="border-b border-[#EEF1F6] px-[22px] py-5">
           <h2 className="font-display text-[18px] font-bold">
             Restablecer contraseña
@@ -1723,7 +1720,6 @@ function ResetGuardPasswordModal({
             Restablecer
           </button>
         </div>
-      </div>
-    </div>
+    </Modal>
   );
 }
