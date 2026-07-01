@@ -45,7 +45,7 @@ async function main() {
     slug: "laspalmas",
     cityCode: "BOG",
     code: makeConjuntoCode("BOG"),
-    name: "Conjunto Las Acacias",
+    name: "La Oportunidad",
     towers: 3,
     aptsPerTower: 8,
     carSpots: 12,
