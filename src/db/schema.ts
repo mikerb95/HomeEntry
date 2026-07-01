@@ -289,3 +289,7 @@ export type EventRow = typeof events.$inferSelect;
 export type AuthGrant = typeof authGrants.$inferSelect;
 export type ParkingSession = typeof parkingSessions.$inferSelect;
 export type PushSubscriptionRow = typeof pushSubscriptions.$inferSelect;
+export type Vendor = typeof vendors.$inferSelect;
+export type Charge = typeof charges.$inferSelect;
+export type Payment = typeof payments.$inferSelect;
+export type Expense = typeof expenses.$inferSelect;
