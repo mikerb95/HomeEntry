@@ -243,6 +243,7 @@ export function AdminPanel(props: Props) {
         ? `Solicitudes (${props.pending.length})`
         : "Solicitudes",
     },
+    { key: "propietarios", label: "Propietarios" },
   ];
 
   // --- history table ---
