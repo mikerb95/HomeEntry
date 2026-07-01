@@ -307,6 +307,100 @@ export const expenses = pgTable(
   ],
 );
 
+// Owners ("propietarios") who rent out one or more units. Not scoped to a
+// single conjunto — a phone/PIN identifies the person; `ownerUnits` links
+// them to whichever units they own, possibly across different conjuntos.
+export const owners = pgTable(
+  "owners",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    phoneEnc: text("phone_enc").notNull(),
+    phoneHash: text("phone_hash").notNull(),
+    pinHash: text("pin_hash").notNull(),
+    sessionVersion: integer("session_version").notNull().default(0),
+    failedPins: integer("failed_pins").notNull().default(0),
+    lockedUntil: timestamp("locked_until", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [index("owners_phone_hash_idx").on(t.phoneHash)],
+);
+
+// Bridge table: which units a given owner can see (read-only). An admin
+// creates these links — owners never self-register a unit.
+export const ownerUnits = pgTable(
+  "owner_units",
+  {
+    ownerId: uuid("owner_id")
+      .notNull()
+      .references(() => owners.id),
+    conjuntoId: uuid("conjunto_id")
+      .notNull()
+      .references(() => conjuntos.id),
+    aptoKey: text("apto_key").notNull(),
+    tower: text("tower").notNull(),
+    apt: text("apt").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.ownerId, t.conjuntoId, t.aptoKey] }),
+    index("owner_units_conjunto_apt_idx").on(t.conjuntoId, t.aptoKey),
+  ],
+);
+
+// Disciplinary/attention notices ("llamados de atención") raised by staff
+// against a unit. Detail is encrypted like other free-text PII fields.
+export const notices = pgTable(
+  "notices",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    conjuntoId: uuid("conjunto_id")
+      .notNull()
+      .references(() => conjuntos.id),
+    aptoKey: text("apto_key").notNull(),
+    tower: text("tower").notNull(),
+    apt: text("apt").notNull(),
+    category: text("category").notNull().default("otro"),
+    detailEnc: text("detail_enc").notNull(),
+    status: text("status").notNull().default("abierto"), // abierto | cerrado
+    registeredBy: text("registered_by").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+  },
+  (t) => [index("notices_conjunto_apt_idx").on(t.conjuntoId, t.aptoKey)],
+);
+
+// Service requests ("solicitudes") a unit files with administración —
+// distinct from the pending-registration "solicitudes" queue in `residents`.
+export const serviceRequests = pgTable(
+  "service_requests",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    conjuntoId: uuid("conjunto_id")
+      .notNull()
+      .references(() => conjuntos.id),
+    aptoKey: text("apto_key").notNull(),
+    tower: text("tower").notNull(),
+    apt: text("apt").notNull(),
+    subjectEnc: text("subject_enc").notNull(),
+    detailEnc: text("detail_enc").notNull(),
+    status: text("status").notNull().default("abierto"), // abierto | en_proceso | resuelto
+    registeredBy: text("registered_by").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+  },
+  (t) => [
+    index("service_requests_conjunto_apt_idx").on(t.conjuntoId, t.aptoKey),
+  ],
+);
+
 export type City = typeof cities.$inferSelect;
 export type Conjunto = typeof conjuntos.$inferSelect;
 export type Resident = typeof residents.$inferSelect;
