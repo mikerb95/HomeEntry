@@ -529,6 +529,24 @@ export function GuardPanel(props: Props) {
               );
             })}
           </div>
+
+          {visibleSpots.length === 0 && (
+            <div className="rounded-[16px] border-[1.5px] border-dashed border-[#D2DAE4] bg-[#F8FAFC] px-5 py-8 text-center text-[13.5px] font-semibold text-[#6B7585]">
+              {pkQ
+                ? "Ningún cupo coincide con la búsqueda."
+                : "No hay parqueaderos libres en este momento."}
+            </div>
+          )}
+
+          {pkOnlyFreeActive && hiddenCount > 0 && (
+            <button
+              onClick={() => setPkOnlyFree(false)}
+              className="mt-3.5 w-full rounded-[13px] border border-[#E6EBF2] bg-[#F8FAFC] py-3 text-[13px] font-bold text-[#6B7585] hover:bg-[#F0F3F8]"
+            >
+              {hiddenCount} ocupado{hiddenCount === 1 ? "" : "s"} oculto
+              {hiddenCount === 1 ? "" : "s"} · Ver todos
+            </button>
+          )}
         </div>
       )}
 
