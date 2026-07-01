@@ -349,6 +349,7 @@ export async function logout(): Promise<void> {
   const s = await getSession();
   await clearSessionCookie();
   if (s && s.role === "superadmin") redirect("/superadmin/login");
+  if (s && s.role === "owner") redirect("/propietario/login");
   if (s && "conjuntoSlug" in s) redirect(`/${s.conjuntoSlug}`);
   redirect("/");
 }
