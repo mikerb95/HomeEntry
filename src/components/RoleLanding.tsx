@@ -3,8 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { IconAdminGrid, IconShield, IconUser } from "@/components/icons";
-import { IconSearch } from "@/components/icons";
+import { IconAdminGrid, IconSearch, IconShield, IconUser } from "@/components/icons";
 
 type Role = {
   key: "residente" | "porteria" | "admin";
