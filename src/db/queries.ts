@@ -6,6 +6,7 @@ import {
   accessLog,
   authGrants,
   charges,
+  cities,
   conjuntos,
   events,
   expenses,
@@ -49,6 +50,21 @@ function toView(r: typeof residents.$inferSelect): ResidentView {
     failedPins: r.failedPins,
     lockedUntil: r.lockedUntil,
   };
+}
+
+// --- Cities (curated catalog) --------------------------------------------
+
+export async function listCities() {
+  return db.select().from(cities).orderBy(asc(cities.name));
+}
+
+export async function getCityByCode(code: string) {
+  const rows = await db
+    .select()
+    .from(cities)
+    .where(eq(cities.code, code.trim().toUpperCase()))
+    .limit(1);
+  return rows[0] ?? null;
 }
 
 // --- Conjuntos (tenants) -------------------------------------------------

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { requireSuperadmin } from "@/lib/auth";
-import { listConjuntos } from "@/db/queries";
+import { listConjuntos, listCities } from "@/db/queries";
 import { logout } from "@/app/actions/auth";
 import { Shell } from "@/components/Shell";
 import { IconLogout } from "@/components/icons";
@@ -10,7 +10,10 @@ export const dynamic = "force-dynamic";
 
 export default async function SuperadminPage() {
   await requireSuperadmin();
-  const conjuntos = await listConjuntos();
+  const [conjuntos, cities] = await Promise.all([
+    listConjuntos(),
+    listCities(),
+  ]);
 
   return (
     <Shell>
@@ -57,7 +60,8 @@ export default async function SuperadminPage() {
                   {c.name}
                 </div>
                 <div className="font-mono text-[12.5px] font-semibold text-[#6B7585]">
-                  /{c.slug} · {c.towers} torres · {c.aptsPerTower} aptos/torre
+                  <span className="text-ink">{c.code}</span> · /{c.slug} ·{" "}
+                  {c.towers} torres · {c.aptsPerTower} aptos/torre
                 </div>
               </div>
               <span className="whitespace-nowrap text-[12.5px] font-bold text-blue">
@@ -67,7 +71,7 @@ export default async function SuperadminPage() {
           ))}
         </div>
 
-        <CreateConjuntoForm />
+        <CreateConjuntoForm cities={cities} />
       </div>
     </Shell>
   );

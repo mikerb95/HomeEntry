@@ -3,7 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import { conjuntos, parkingSpots, staffUsers } from "@/db/schema";
-import { getConjuntoBySlug } from "@/db/queries";
+import {
+  getCityByCode,
+  getConjuntoBySlug,
+  reserveConjuntoCode,
+} from "@/db/queries";
 import { requireSuperadmin } from "@/lib/auth";
 import { hashSecret } from "@/lib/password";
 import { clampText } from "@/lib/format";
@@ -37,6 +41,7 @@ function clamp(v: unknown, min: number, max: number, fallback: number): number {
 
 export async function createConjunto(input: {
   slug: string;
+  cityCode: string;
   name: string;
   towers: string;
   aptsPerTower: string;
@@ -69,6 +74,10 @@ export async function createConjunto(input: {
   const name = clampText(input.name, 80);
   if (!name) return { ok: false, error: "Ingresa el nombre del conjunto" };
 
+  // City must come from the curated catalog — it's the prefix of the public code.
+  const city = await getCityByCode(input.cityCode || "");
+  if (!city) return { ok: false, error: "Selecciona una ciudad válida" };
+
   const adminUser = normalizeUser(input.adminUser);
   const guardUser = normalizeUser(input.guardUser);
   if (!adminUser || !input.adminPass)
@@ -87,9 +96,11 @@ export async function createConjunto(input: {
     ),
   };
 
+  const code = await reserveConjuntoCode(city.code);
+
   const inserted = await db
     .insert(conjuntos)
-    .values({ slug, name, ...cfg })
+    .values({ slug, cityCode: city.code, code, name, ...cfg })
     .returning({ id: conjuntos.id });
   const cid = inserted[0].id;
 

@@ -5,16 +5,18 @@ import { useRouter } from "next/navigation";
 import { createConjunto } from "@/app/actions/superadmin";
 import { Label } from "@/components/ui";
 import { useToast } from "@/lib/toast";
+import type { City } from "@/db/schema";
 
 const inputCls =
   "w-full rounded-[12px] border-[1.5px] border-[#E3E8EF] bg-[#F6F8FB] px-4 py-3 text-[15px] font-semibold outline-none focus:border-ink";
 
-export function CreateConjuntoForm() {
+export function CreateConjuntoForm({ cities }: { cities: City[] }) {
   const router = useRouter();
   const show = useToast((s) => s.show);
   const [pending, start] = useTransition();
 
   const [slug, setSlug] = useState("");
+  const [cityCode, setCityCode] = useState(cities[0]?.code ?? "");
   const [name, setName] = useState("");
   const [towers, setTowers] = useState("3");
   const [aptsPerTower, setAptsPerTower] = useState("8");
@@ -37,6 +39,7 @@ export function CreateConjuntoForm() {
     start(async () => {
       const res = await createConjunto({
         slug,
+        cityCode,
         name,
         towers,
         aptsPerTower,
@@ -64,9 +67,13 @@ export function CreateConjuntoForm() {
         Crear conjunto
       </h2>
       <p className="mb-5 text-[13.5px] text-[#6B7585]">
-        El conjunto quedará disponible en{" "}
+        Disponible en{" "}
         <span className="font-mono font-semibold text-ink">
           /{slug || "identificador"}
+        </span>
+        . Código público:{" "}
+        <span className="font-mono font-semibold text-ink">
+          {cityCode || "CIU"}0000
         </span>
         .
       </p>
@@ -80,6 +87,20 @@ export function CreateConjuntoForm() {
             placeholder="Conjunto Las Palmas"
             className={inputCls}
           />
+        </div>
+        <div>
+          <Label>Ciudad</Label>
+          <select
+            value={cityCode}
+            onChange={(e) => setCityCode(e.target.value)}
+            className={inputCls}
+          >
+            {cities.map((c) => (
+              <option key={c.code} value={c.code}>
+                {c.name} ({c.code})
+              </option>
+            ))}
+          </select>
         </div>
         <div>
           <Label>Identificador (slug)</Label>
