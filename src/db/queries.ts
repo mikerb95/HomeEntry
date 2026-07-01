@@ -21,7 +21,7 @@ import {
   staffUsers,
   vendors,
 } from "./schema";
-import { decryptPII, piiHash } from "@/lib/crypto";
+import { decryptPII, encryptPII, piiHash } from "@/lib/crypto";
 import { hashSecret } from "@/lib/password";
 import {
   computeConjuntoSummary,
@@ -415,7 +415,7 @@ export async function upsertOwnerLink(params: {
           .values({
             phoneEnc: encryptPII(params.phone),
             phoneHash: piiHash(params.phone),
-            pinHash: hashSecretForOwner(params.pin),
+            pinHash: hashSecret(params.pin),
           })
           .returning({ id: owners.id })
       )[0].id;
