@@ -8,13 +8,14 @@ import {
   listExpenses,
   listGuards,
   listParking,
+  listPendingResidents,
   listRecentFinanceAccessLog,
   listResidents,
   listSessions,
   listVendors,
   logAccess,
 } from "@/db/queries";
-import { isToday, todayStr } from "@/lib/format";
+import { isToday, maskPhone, todayStr } from "@/lib/format";
 import { Shell } from "@/components/Shell";
 import { AdminPanel } from "./AdminPanel";
 
@@ -37,6 +38,7 @@ export default async function AdminPanelPage({
     expenses,
     financeAccessLog,
     guards,
+    pending,
   ] = await Promise.all([
     getConjuntoById(cid),
     listEvents(cid),
@@ -48,6 +50,7 @@ export default async function AdminPanelPage({
     listExpenses(cid),
     listRecentFinanceAccessLog(cid, 30),
     listGuards(cid),
+    listPendingResidents(cid),
   ]);
   if (!config) return null;
 
@@ -141,6 +144,12 @@ export default async function AdminPanelPage({
           target: l.target,
         }))}
         guards={guards.map((g) => ({ username: g.username }))}
+        pending={pending.map((r) => ({
+          aptoKey: r.aptoKey,
+          tower: r.tower,
+          apt: r.apt,
+          phoneMasked: maskPhone(r.phone),
+        }))}
       />
     </Shell>
   );

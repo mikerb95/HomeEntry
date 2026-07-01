@@ -691,6 +691,20 @@ export function GuardPanel(props: Props) {
         </div>
       )}
 
+      {gTab === "solicitudes" && (
+        <div className="animate-pa-in">
+          <div className="mb-1 text-[18px] font-extrabold text-ink">
+            Solicitudes de registro
+          </div>
+          <p className="mb-4 max-w-[560px] text-[13.5px] leading-[1.5] text-[#6B7585]">
+            Aprueba a un residente solo si confirmas que vive en ese
+            apartamento. Al aprobar podrá iniciar sesión; al rechazar se libera
+            el apartamento para un nuevo registro.
+          </p>
+          <PendingResidents slug={props.slug} pending={props.pending} />
+        </div>
+      )}
+
       {/* WhatsApp preview modal */}
       {wa && (
         <div
