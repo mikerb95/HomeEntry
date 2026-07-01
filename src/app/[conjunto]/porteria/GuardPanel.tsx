@@ -491,15 +491,37 @@ export function GuardPanel(props: Props) {
           <div className="grid grid-cols-3 gap-2.5 min-[780px]:grid-cols-4 min-[1040px]:grid-cols-6">
             {visibleSpots.map((p) => {
               const m = statusMeta[p.status];
+              const isFree = p.status === "free";
+              // Only free spots carry (soft) color; occupied ones stay neutral
+              // with a small colored dot so the eye finds available cupos fast.
               return (
                 <button
                   key={p.id}
                   onClick={() => setPkSpot(p)}
                   className="flex flex-col items-start gap-1 rounded-[14px] border-[1.5px] px-[13px] pb-[11px] pt-[13px] text-left transition-transform hover:-translate-y-[2px]"
-                  style={{ borderColor: m.border, background: m.bg, color: m.fg }}
+                  style={
+                    isFree
+                      ? { borderColor: m.border, background: m.bg, color: m.fg }
+                      : { borderColor: "#E6EBF2", background: "#fff", color: "#5B6675" }
+                  }
                 >
-                  <span className="font-display text-[18px] font-bold">{p.id}</span>
-                  <span className="text-[11.5px] font-bold">{m.label}</span>
+                  <div className="flex w-full items-center justify-between">
+                    <span className="font-display text-[18px] font-bold">
+                      {p.id}
+                    </span>
+                    {!isFree && (
+                      <span
+                        className="h-[9px] w-[9px] flex-none rounded-full"
+                        style={{ background: m.dot }}
+                      />
+                    )}
+                  </div>
+                  <span
+                    className="text-[11.5px] font-bold"
+                    style={isFree ? undefined : { color: m.fg }}
+                  >
+                    {m.label}
+                  </span>
                   <span className="min-h-[14px] text-[11px] font-semibold opacity-80">
                     {p.plate || ""}
                   </span>
