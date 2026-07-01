@@ -11,6 +11,7 @@ import {
   staffUsers,
 } from "./schema";
 import { hashSecret } from "../lib/password";
+import { makeConjuntoCode } from "../lib/code";
 import { encryptPII, piiHash } from "../lib/crypto";
 
 async function main() {
@@ -25,9 +26,23 @@ async function main() {
   await db.delete(staffUsers);
   await db.delete(residents);
   await db.delete(conjuntos);
+  await db.delete(cities);
+
+  // Curated city catalog (IATA/DANE-based tags). Extend as we onboard cities.
+  await db.insert(cities).values([
+    { code: "BOG", name: "Bogotá", department: "Cundinamarca" },
+    { code: "MDE", name: "Medellín", department: "Antioquia" },
+    { code: "CLO", name: "Cali", department: "Valle del Cauca" },
+    { code: "BAQ", name: "Barranquilla", department: "Atlántico" },
+    { code: "CTG", name: "Cartagena", department: "Bolívar" },
+    { code: "BGA", name: "Bucaramanga", department: "Santander" },
+    { code: "PEI", name: "Pereira", department: "Risaralda" },
+  ]);
 
   const cfg = {
     slug: "laspalmas",
+    cityCode: "BOG",
+    code: makeConjuntoCode("BOG"),
     name: "Conjunto Las Acacias",
     towers: 3,
     aptsPerTower: 8,
