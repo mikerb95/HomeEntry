@@ -1599,6 +1599,41 @@ function ConfigModal({
         <div className="px-[22px] py-5">
           <label className={lab}>Nombre del conjunto</label>
           <input value={name} onChange={(e) => setName(e.target.value)} className="mb-[18px] w-full rounded-[12px] border-[1.5px] border-[#E3E8EF] bg-[#F6F8FB] px-[15px] py-[13px] text-[15px] font-semibold outline-none focus:border-blue" />
+
+          <label className={lab}>Logo del conjunto</label>
+          <div className="mb-[18px] flex items-center gap-3.5">
+            <div className="flex h-16 w-16 flex-none items-center justify-center overflow-hidden rounded-[14px] border-[1.5px] border-[#E3E8EF] bg-[#F6F8FB]">
+              {logoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={logoUrl} alt="Logo del conjunto" className="h-full w-full object-contain" />
+              ) : (
+                <span className="font-display text-[22px] font-bold text-[#B4BECC]">
+                  {(name.trim()[0] ?? "C").toUpperCase()}
+                </span>
+              )}
+            </div>
+            <div className="flex flex-col gap-2">
+              <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" onChange={onPickLogo} className="hidden" />
+              <button
+                onClick={() => fileRef.current?.click()}
+                disabled={logoPending}
+                className="rounded-[11px] border-[1.5px] border-[#E3E8EF] bg-white px-4 py-2.5 text-[13.5px] font-bold text-ink hover:bg-[#F6F8FB] disabled:opacity-60"
+              >
+                {logoPending ? "Subiendo…" : logoUrl ? "Cambiar logo" : "Subir logo"}
+              </button>
+              {logoUrl && (
+                <button
+                  onClick={clearLogo}
+                  disabled={logoPending}
+                  className="text-left text-[12.5px] font-bold text-[#C0392B] hover:underline disabled:opacity-60"
+                >
+                  Quitar logo
+                </button>
+              )}
+              <span className="text-[11.5px] text-[#8A94A3]">PNG, JPG, WEBP o SVG · máx 1 MB</span>
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 gap-3.5">
             <div>
               <label className={lab}>Torres</label>
