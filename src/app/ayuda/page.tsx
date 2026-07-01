@@ -289,6 +289,20 @@ export default function AyudaPage() {
             ← Volver al inicio
           </Link>
         </div>
+
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-[12.5px] font-semibold text-[#9AA4B2]">
+          <Link href="/legal/terminos" className="hover:text-ink">
+            Términos y condiciones
+          </Link>
+          <span className="text-[#D2D9E3]">·</span>
+          <Link href="/legal/privacidad" className="hover:text-ink">
+            Privacidad
+          </Link>
+          <span className="text-[#D2D9E3]">·</span>
+          <Link href="/legal/cookies" className="hover:text-ink">
+            Cookies
+          </Link>
+        </div>
       </div>
     </Shell>
   );
