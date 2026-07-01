@@ -24,14 +24,30 @@ export default async function AdminPanelPage({
   const { conjunto: slug } = await params;
   const session = await requireAdmin(slug);
   const cid = session.conjuntoId;
-  const [config, events, parking, sessions, residents] = await Promise.all([
+  const [
+    config,
+    events,
+    parking,
+    sessions,
+    residents,
+    financeSummary,
+    vendors,
+    expenses,
+    financeAccessLog,
+  ] = await Promise.all([
     getConjuntoById(cid),
     listEvents(cid),
     listParking(cid),
     listSessions(cid),
     listResidents(cid),
+    getFinancialSummary(cid),
+    listVendors(cid),
+    listExpenses(cid),
+    listRecentAccessLog(cid, "", 30),
   ]);
   if (!config) return null;
+
+  await logAccess(cid, `admin:${session.username}`, "view_finance_summary", cid);
 
   const totalApts = config.towers * config.aptsPerTower;
   const mVisits = events.filter((e) => e.type === "visita" && isToday(e.ts)).length;
