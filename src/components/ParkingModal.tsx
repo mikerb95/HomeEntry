@@ -246,7 +246,6 @@ export function ParkingModal({
             </button>
           </div>
         )}
-      </div>
-    </div>
+    </Modal>
   );
 }
