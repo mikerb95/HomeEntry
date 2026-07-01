@@ -7,10 +7,11 @@ import {
   listEvents,
   listExpenses,
   listParking,
-  listRecentAccessLog,
+  listRecentFinanceAccessLog,
   listResidents,
   listSessions,
   listVendors,
+  logAccess,
 } from "@/db/queries";
 import { isToday, todayStr } from "@/lib/format";
 import { Shell } from "@/components/Shell";
@@ -43,7 +44,7 @@ export default async function AdminPanelPage({
     getFinancialSummary(cid),
     listVendors(cid),
     listExpenses(cid),
-    listRecentAccessLog(cid, "", 30),
+    listRecentFinanceAccessLog(cid, 30),
   ]);
   if (!config) return null;
 
@@ -82,6 +83,8 @@ export default async function AdminPanelPage({
         carSpots={config.carSpots}
         motoSpots={config.motoSpots}
         visitorRate={config.visitorRate}
+        moraRatePct={config.moraRatePct}
+        moraGraceDays={config.moraGraceDays}
         todayStr={todayStr()}
         mVisits={mVisits}
         mPackages={mPackages}
@@ -108,6 +111,31 @@ export default async function AdminPanelPage({
           kind: s.kind,
           hours: s.hours,
           startIso: s.start.toISOString(),
+        }))}
+        aptBalances={financeSummary.aptBalances}
+        carteraTotal={financeSummary.carteraTotal}
+        recaudoTotal={financeSummary.recaudoTotal}
+        moraTotal={financeSummary.moraTotal}
+        gastoTotal={financeSummary.gastoTotal}
+        balanceNeto={financeSummary.balanceNeto}
+        vendors={vendors}
+        expenses={expenses.map((e) => ({
+          id: e.id,
+          vendorId: e.vendorId,
+          vendorName: e.vendorName,
+          category: e.category,
+          amount: e.amount,
+          description: e.description,
+          invoiceRef: e.invoiceRef,
+          expenseDateIso: e.expenseDate.toISOString(),
+          registeredBy: e.registeredBy,
+        }))}
+        financeAccessLog={financeAccessLog.map((l) => ({
+          id: l.id,
+          tsIso: l.ts.toISOString(),
+          actor: l.actor,
+          action: l.action,
+          target: l.target,
         }))}
       />
     </Shell>
