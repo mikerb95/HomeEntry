@@ -45,6 +45,9 @@ export function RegisterForm({
   const [phone, setPhone] = useState(prefill?.phone ?? "");
   const [pin, setPin] = useState("");
   const [done, setDone] = useState(false);
+  // A brand-new registration needs staff approval before login; an owner
+  // updating their own data is already active. Drives the success message.
+  const [needsApproval, setNeedsApproval] = useState(false);
   const [pending, start] = useTransition();
   const show = useToast((s) => s.show);
 
@@ -58,9 +61,12 @@ export function RegisterForm({
         show(res.error || "Error", "warn");
         return;
       }
+      setNeedsApproval(!!res.pending);
       setDone(true);
       show(
-        loggedIn ? "Datos actualizados correctamente" : "Registro completado",
+        res.pending
+          ? "Registro enviado, pendiente de aprobación"
+          : "Datos actualizados correctamente",
         "ok",
       );
     });
