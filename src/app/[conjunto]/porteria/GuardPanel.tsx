@@ -125,7 +125,7 @@ export function GuardPanel(props: Props) {
     return (
       <button
         onClick={() => setGType(type)}
-        className="flex flex-col items-center gap-[9px] rounded-[16px] border-2 px-2 py-4 text-[13px] font-bold"
+        className="flex w-full min-w-0 flex-col items-center gap-[9px] rounded-[16px] border-2 px-1 py-4 font-bold sm:px-2"
         style={{
           borderColor: active ? color : "#E3E8EF",
           background: active ? soft : "#fff",
@@ -133,7 +133,9 @@ export function GuardPanel(props: Props) {
         }}
       >
         {icon}
-        {label}
+        <span className="w-full text-center text-[11.5px] leading-tight break-words hyphens-auto sm:text-[13px]">
+          {label}
+        </span>
       </button>
     );
   };
