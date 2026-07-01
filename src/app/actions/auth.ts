@@ -92,6 +92,17 @@ export async function residentLogin(
     };
   }
 
+  // PIN is correct — but a registration still awaiting approval cannot enter.
+  // Checked only after the PIN so the account's existence/state isn't revealed
+  // to someone who doesn't already hold the credentials.
+  if (resident.status === "pending") {
+    return {
+      ok: false,
+      error:
+        "Tu registro está pendiente de aprobación por la portería o la administración.",
+    };
+  }
+
   // Success — clear any failed-attempt state.
   if (resident.failedPins !== 0 || resident.lockedUntil) {
     await db
