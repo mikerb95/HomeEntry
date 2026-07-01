@@ -5,6 +5,9 @@ import { superadminLogin } from "@/app/actions/auth";
 import { Shell } from "@/components/Shell";
 import { Label, LoginCard } from "@/components/ui";
 
+// Demo-only auto-fill never renders in production.
+const DEMO = process.env.NODE_ENV !== "production";
+
 export default function SuperadminLoginPage() {
   const [user, setUser] = useState("");
   const [pass, setPass] = useState("");
