@@ -3,11 +3,18 @@
 import { revalidatePath } from "next/cache";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { events, parkingSpots } from "@/db/schema";
+import { conjuntos, events, parkingSessions, parkingSpots } from "@/db/schema";
 import { getSession } from "@/lib/auth";
-import { clampText, isValidPlate } from "@/lib/format";
+import { fmtCOP, clampText, isValidPlate } from "@/lib/format";
+import { computeParkingCharge } from "@/lib/parking";
 
 type Result = { ok: boolean; error?: string };
+
+// What freeParking reports back so the guard UI can tell the vigilante how
+// much to collect at the gate before the vehicle leaves.
+export type FreeResult = Result & {
+  charge?: { hours: number; amount: number; plate: string };
+};
 
 // Parking can be managed by either guard or admin of the conjunto in the URL.
 async function requireStaff(slug: string) {
@@ -63,7 +70,7 @@ export async function assignParking(
   const status = input.kind === "visitor" ? "visitor" : "resident";
   await db
     .update(parkingSpots)
-    .set({ status, plate, aptoKey: input.aptoKey })
+    .set({ status, plate, aptoKey: input.aptoKey, enteredAt: new Date() })
     .where(
       and(eq(parkingSpots.conjuntoId, cid), eq(parkingSpots.id, input.spotId)),
     );
