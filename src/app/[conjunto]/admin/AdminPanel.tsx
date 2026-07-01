@@ -220,6 +220,7 @@ export function AdminPanel(props: Props) {
     { key: "auditoria", label: "Auditoría" },
     { key: "finanzas", label: "Finanzas" },
     { key: "gastos", label: "Gastos" },
+    { key: "vigilantes", label: "Vigilantes" },
   ];
 
   // --- history table ---
