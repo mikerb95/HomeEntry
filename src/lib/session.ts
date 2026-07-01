@@ -29,7 +29,11 @@ export type Session =
       username: string;
       v: number;
     }
-  | { role: "superadmin"; username: string };
+  | { role: "superadmin"; username: string }
+  // An owner can hold units across several conjuntos, so unlike resident/staff
+  // the session carries only an identity — unit membership is checked per
+  // request against `owner_units`, not embedded in the token.
+  | { role: "owner"; ownerId: string; v: number };
 
 function secret(): Uint8Array {
   const s = process.env.AUTH_SECRET;

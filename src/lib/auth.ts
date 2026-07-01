@@ -7,6 +7,7 @@ import {
   verifySession,
 } from "./session";
 import {
+  getOwnerVersion,
   getResidentVersion,
   getStaffVersion,
 } from "@/db/queries";
