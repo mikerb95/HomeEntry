@@ -118,19 +118,23 @@ export default function ResidentLoginPage() {
               ¿Primera vez? Regístrate
             </Link>
             <button
-              onClick={() =>
-                show(
-                  DEMO
-                    ? "Demo: tu PIN es 1234"
-                    : "Pídele a la administración que restablezca tu PIN.",
-                  "ok",
-                )
-              }
+              onClick={() => setPinHelp(true)}
               className="text-[13.5px] font-bold text-[#6B7585]"
             >
               Olvidé mi PIN
             </button>
           </div>
+
+          {pinHelp && (
+            <div
+              role="status"
+              className="mt-3 animate-pa-in rounded-[12px] bg-[#F0F3F8] px-3.5 py-3 text-[13px] font-semibold leading-[1.45] text-[#5B6675]"
+            >
+              {DEMO
+                ? "Demo: tu PIN es 1234"
+                : "Pídele a la administración que restablezca tu PIN."}
+            </div>
+          )}
 
           {DEMO && (
             <button
