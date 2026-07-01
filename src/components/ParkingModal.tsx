@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { assignParking, freeParking } from "@/app/actions/parking";
 import { Modal } from "@/components/Modal";
 import { statusMeta, ParkingStatus } from "@/lib/meta";
-import { isValidPlate, normalizePlate } from "@/lib/format";
+import { fmtCOP, fmtTime, isValidPlate, normalizePlate } from "@/lib/format";
+import { computeParkingCharge } from "@/lib/parking";
 import { useToast } from "@/lib/toast";
 
 export type ModalSpot = {
@@ -14,17 +15,21 @@ export type ModalSpot = {
   status: ParkingStatus;
   plate: string;
   aptoKey: string;
+  enteredAtIso: string | null;
 };
 
 export function ParkingModal({
   slug,
   spot,
   allApts,
+  rates,
   onClose,
 }: {
   slug: string;
   spot: ModalSpot;
   allApts: { id: string; label: string }[];
+  // Visitor rate per hour by vehicle kind, from the conjunto config.
+  rates: { car: number; moto: number };
   onClose: () => void;
 }) {
   const isNew = spot.status === "free";
@@ -39,6 +44,17 @@ export function ParkingModal({
   const m = statusMeta[spot.status];
   const aptoLabel =
     allApts.find((a) => a.id === spot.aptoKey)?.label || spot.aptoKey || "—";
+
+  // Preview of the exit charge (hora o fracción), so the vigilante knows what
+  // to collect before confirming. The server recomputes it on freeParking.
+  const isVisitorSpot = spot.status === "visitor";
+  const enteredAt = spot.enteredAtIso ? new Date(spot.enteredAtIso) : null;
+  const estimate = computeParkingCharge(
+    enteredAt,
+    new Date(),
+    spot.kind === "moto" ? rates.moto : rates.car,
+    isVisitorSpot,
+  );
 
   // Colombian format depends on the spot type: cars ABC123, motos ABC12D.
   const platePlaceholder = foreign
@@ -81,8 +97,17 @@ export function ParkingModal({
 
   function free() {
     start(async () => {
-      await freeParking(slug, spot.id);
-      show("Parqueadero liberado", "ok");
+      const res = await freeParking(slug, spot.id);
+      if (!res.ok) {
+        show(res.error || "Error", "warn");
+        return;
+      }
+      show(
+        res.charge && res.charge.amount > 0
+          ? `Salida registrada · Cobrar ${fmtCOP(res.charge.amount)} (${res.charge.hours} h)`
+          : "Parqueadero liberado",
+        "ok",
+      );
       onClose();
       router.refresh();
     });
@@ -233,16 +258,34 @@ export function ParkingModal({
                 {spot.plate || "—"}
               </span>
             </div>
-            <div className="mb-[18px] flex justify-between py-[11px]">
+            <div className="flex justify-between border-b border-[#F0F3F7] py-[11px]">
               <span className="text-[14px] text-[#6B7585]">Apartamento</span>
               <span className="text-[15px] font-bold">{aptoLabel}</span>
             </div>
+            <div className="mb-[18px] flex justify-between py-[11px]">
+              <span className="text-[14px] text-[#6B7585]">Entrada</span>
+              <span className="text-[15px] font-bold">
+                {enteredAt ? fmtTime(enteredAt.toISOString()) : "—"}
+              </span>
+            </div>
+            {isVisitorSpot && (
+              <div className="mb-[18px] flex items-center justify-between rounded-[14px] bg-[#FEF3DC] px-4 py-3.5">
+                <span className="text-[13.5px] font-bold text-[#B45309]">
+                  Cobro a la salida · {estimate.hours} h
+                </span>
+                <span className="font-display text-[18px] font-bold text-[#B45309]">
+                  {fmtCOP(estimate.amount)}
+                </span>
+              </div>
+            )}
             <button
               onClick={free}
               disabled={pending}
               className="w-full rounded-[14px] bg-rose p-[15px] text-[15px] font-extrabold text-white hover:bg-rose-dark disabled:opacity-70"
             >
-              Liberar parqueadero
+              {isVisitorSpot
+                ? "Registrar salida y cobrar"
+                : "Registrar salida"}
             </button>
           </div>
         )}

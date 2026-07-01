@@ -915,11 +915,13 @@ export async function countExpensesForVendor(
 
 export async function getFinancialSummary(conjuntoId: string) {
   const conjunto = await getConjuntoById(conjuntoId);
-  const [chargeRows, paymentRows, expenseRows] = await Promise.all([
-    listCharges(conjuntoId),
-    listPayments(conjuntoId),
-    listExpenses(conjuntoId),
-  ]);
+  const [chargeRows, paymentRows, expenseRows, sessionRows] =
+    await Promise.all([
+      listCharges(conjuntoId),
+      listPayments(conjuntoId),
+      listExpenses(conjuntoId),
+      listSessions(conjuntoId),
+    ]);
   const chargeInputs: ChargeInput[] = chargeRows.map((c) => ({
     id: c.id,
     aptoKey: c.aptoKey,
@@ -936,6 +938,8 @@ export async function getFinancialSummary(conjuntoId: string) {
     chargeInputs,
     paymentInputs,
     expenseRows.map((e) => e.amount),
+    // Visitor-parking charges collected at the gate (caja del vigilante).
+    sessionRows.map((s) => s.amount),
     conjunto?.moraRatePct ?? 0,
     conjunto?.moraGraceDays ?? 0,
   );

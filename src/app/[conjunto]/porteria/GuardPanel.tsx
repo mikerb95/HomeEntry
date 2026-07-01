@@ -31,7 +31,7 @@ import {
   ParkingStatus,
   EventType,
 } from "@/lib/meta";
-import { fmtDateTime, fmtPhone, fmtTime } from "@/lib/format";
+import { fmtCOP, fmtDateTime, fmtPhone, fmtTime } from "@/lib/format";
 import { useToast } from "@/lib/toast";
 
 type Spot = {
@@ -40,6 +40,7 @@ type Spot = {
   status: ParkingStatus;
   plate: string;
   aptoKey: string;
+  enteredAtIso: string | null;
 };
 type Incoming = {
   id: string;
@@ -61,6 +62,10 @@ type Props = {
   aptsPerTower: number;
   hasWhatsApp: Record<string, boolean>;
   parking: Spot[];
+  // Visitor-parking rates per hour (config del admin) and what this jornada
+  // has collected so far at the gate — the guard's caja del día.
+  rates: { car: number; moto: number };
+  cajaHoy: number;
   recent: { id: string; type: string; tower: string; apto: string; tsIso: string }[];
   incoming: Incoming[];
   pending: PendingResident[];
@@ -436,6 +441,14 @@ export function GuardPanel(props: Props) {
                   Visitantes
                 </div>
               </div>
+              <div className="rounded-[12px] bg-white/15 px-3.5 py-2 text-center">
+                <div className="font-display text-[20px] font-bold leading-none">
+                  {fmtCOP(props.cajaHoy)}
+                </div>
+                <div className="mt-[3px] text-[11px] font-semibold opacity-85">
+                  Caja de hoy
+                </div>
+              </div>
             </div>
           </div>
 
@@ -755,6 +768,7 @@ export function GuardPanel(props: Props) {
           slug={props.slug}
           spot={pkSpot}
           allApts={allApts}
+          rates={props.rates}
           onClose={() => setPkSpot(null)}
         />
       )}
