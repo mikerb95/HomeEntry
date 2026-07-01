@@ -93,6 +93,7 @@ export default async function AdminPanelPage({
       <AdminPanel
         slug={slug}
         name={config.name}
+        logoUrl={config.logoUrl}
         towers={config.towers}
         aptsPerTower={config.aptsPerTower}
         carSpots={config.carSpots}
