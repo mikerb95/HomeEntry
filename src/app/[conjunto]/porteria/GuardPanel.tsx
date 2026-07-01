@@ -83,9 +83,9 @@ export function GuardPanel(props: Props) {
   const show = useToast((s) => s.show);
   const [, start] = useTransition();
 
-  const [gTab, setGTab] = useState<"porteria" | "parqueadero" | "escanear">(
-    "porteria",
-  );
+  const [gTab, setGTab] = useState<
+    "porteria" | "parqueadero" | "escanear" | "solicitudes"
+  >("porteria");
   const [gType, setGType] = useState<AlertType>("visita");
   const [gTower, setGTower] = useState("");
   const [gApto, setGApto] = useState("");
@@ -130,6 +130,12 @@ export function GuardPanel(props: Props) {
     { key: "porteria", label: "Portería" },
     { key: "parqueadero", label: "Parqueadero" },
     { key: "escanear", label: "Escanear QR" },
+    {
+      key: "solicitudes",
+      label: props.pending.length
+        ? `Solicitudes (${props.pending.length})`
+        : "Solicitudes",
+    },
   ];
 
   const typeBtn = (
