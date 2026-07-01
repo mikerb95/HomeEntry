@@ -2,6 +2,7 @@ import { db } from "./index";
 import {
   accessLog,
   authGrants,
+  cities,
   conjuntos,
   events,
   parkingSessions,

@@ -21,6 +21,25 @@ describe("makeAuthCode", () => {
   });
 });
 
+describe("makeConjuntoCode", () => {
+  it("is the city tag (uppercased) followed by exactly 4 digits", () => {
+    expect(makeConjuntoCode("BOG")).toMatch(/^BOG\d{4}$/);
+    expect(makeConjuntoCode("mde")).toMatch(/^MDE\d{4}$/);
+  });
+
+  it("spans the full 0000–9999 range with a uniform-ish spread", () => {
+    let min = 9999;
+    let max = 0;
+    for (let i = 0; i < 20000; i++) {
+      const n = Number(makeConjuntoCode("BOG").slice(3));
+      if (n < min) min = n;
+      if (n > max) max = n;
+    }
+    expect(min).toBeLessThan(50); // reaches near the bottom
+    expect(max).toBeGreaterThan(9950); // and near the top
+  });
+});
+
 describe("isGrantExpired", () => {
   const now = 1_000_000_000_000;
 
