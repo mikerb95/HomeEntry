@@ -11,6 +11,10 @@ import {
 import { ParkingModal, ModalSpot } from "@/components/ParkingModal";
 import { GuardNotifications } from "@/components/GuardNotifications";
 import {
+  PendingResidents,
+  type PendingResident,
+} from "@/components/PendingResidents";
+import {
   IconUser,
   IconPackage,
   IconMessage,
@@ -58,6 +62,7 @@ type Props = {
   parking: Spot[];
   recent: { id: string; type: string; tower: string; apto: string; tsIso: string }[];
   incoming: Incoming[];
+  pending: PendingResident[];
   mVisits: number;
   mPackages: number;
   todayStr: string;
