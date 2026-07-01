@@ -5,14 +5,23 @@ import { db } from "./index";
 import {
   accessLog,
   authGrants,
+  charges,
   conjuntos,
   events,
+  expenses,
   parkingSessions,
   parkingSpots,
+  payments,
   residents,
   staffUsers,
+  vendors,
 } from "./schema";
 import { decryptPII, piiHash } from "@/lib/crypto";
+import {
+  computeConjuntoSummary,
+  type ChargeInput,
+  type PaymentInput,
+} from "@/lib/finance";
 
 // A resident with the phone decrypted for display, and the raw PII columns
 // (phoneEnc/phoneHash) stripped so they never leak past this layer.
@@ -267,4 +276,229 @@ export async function logAccess(
   target: string,
 ) {
   await db.insert(accessLog).values({ conjuntoId, actor, action, target });
+}
+
+export async function listRecentAccessLog(
+  conjuntoId: string,
+  actionPrefix: string,
+  limit = 20,
+) {
+  const rows = await db
+    .select()
+    .from(accessLog)
+    .where(eq(accessLog.conjuntoId, conjuntoId))
+    .orderBy(desc(accessLog.ts))
+    .limit(200);
+  return rows.filter((r) => r.action.startsWith(actionPrefix)).slice(0, limit);
+}
+
+// --- Vendors ("proveedores") ----------------------------------------------
+
+export type VendorView = {
+  id: string;
+  category: string;
+  name: string;
+  taxId: string;
+  contact: string;
+  createdAt: Date;
+};
+
+function toVendorView(v: typeof vendors.$inferSelect): VendorView {
+  return {
+    id: v.id,
+    category: v.category,
+    name: decryptPII(v.nameEnc),
+    taxId: v.taxIdEnc ? decryptPII(v.taxIdEnc) : "",
+    contact: v.contactEnc ? decryptPII(v.contactEnc) : "",
+    createdAt: v.createdAt,
+  };
+}
+
+export async function listVendors(conjuntoId: string): Promise<VendorView[]> {
+  const rows = await db
+    .select()
+    .from(vendors)
+    .where(eq(vendors.conjuntoId, conjuntoId));
+  return rows.map(toVendorView).sort((a, b) => a.name.localeCompare(b.name));
+}
+
+export async function getVendor(
+  conjuntoId: string,
+  vendorId: string,
+): Promise<VendorView | null> {
+  const rows = await db
+    .select()
+    .from(vendors)
+    .where(and(eq(vendors.conjuntoId, conjuntoId), eq(vendors.id, vendorId)))
+    .limit(1);
+  return rows[0] ? toVendorView(rows[0]) : null;
+}
+
+// --- Charges (cuotas) ------------------------------------------------------
+
+export type ChargeView = {
+  id: string;
+  aptoKey: string;
+  tower: string;
+  apt: string;
+  period: string;
+  concept: string;
+  amount: number;
+  dueDate: Date;
+};
+
+function toChargeView(c: typeof charges.$inferSelect): ChargeView {
+  return {
+    id: c.id,
+    aptoKey: c.aptoKey,
+    tower: c.tower,
+    apt: c.apt,
+    period: c.period,
+    concept: c.concept,
+    amount: parseInt(decryptPII(c.amountEnc) || "0", 10),
+    dueDate: c.dueDate,
+  };
+}
+
+export async function listCharges(conjuntoId: string): Promise<ChargeView[]> {
+  const rows = await db
+    .select()
+    .from(charges)
+    .where(eq(charges.conjuntoId, conjuntoId));
+  return rows.map(toChargeView);
+}
+
+export async function listChargesForApt(
+  conjuntoId: string,
+  aptoKey: string,
+): Promise<ChargeView[]> {
+  const rows = await db
+    .select()
+    .from(charges)
+    .where(and(eq(charges.conjuntoId, conjuntoId), eq(charges.aptoKey, aptoKey)));
+  return rows.map(toChargeView);
+}
+
+// --- Payments (pagos) -------------------------------------------------------
+
+export type PaymentView = {
+  id: string;
+  aptoKey: string;
+  tower: string;
+  apt: string;
+  amount: number;
+  method: string;
+  paidAt: Date;
+  registeredBy: string;
+  note: string;
+};
+
+function toPaymentView(p: typeof payments.$inferSelect): PaymentView {
+  return {
+    id: p.id,
+    aptoKey: p.aptoKey,
+    tower: p.tower,
+    apt: p.apt,
+    amount: parseInt(decryptPII(p.amountEnc) || "0", 10),
+    method: p.method,
+    paidAt: p.paidAt,
+    registeredBy: p.registeredBy,
+    note: p.noteEnc ? decryptPII(p.noteEnc) : "",
+  };
+}
+
+export async function listPayments(conjuntoId: string): Promise<PaymentView[]> {
+  const rows = await db
+    .select()
+    .from(payments)
+    .where(eq(payments.conjuntoId, conjuntoId))
+    .orderBy(desc(payments.paidAt));
+  return rows.map(toPaymentView);
+}
+
+export async function listPaymentsForApt(
+  conjuntoId: string,
+  aptoKey: string,
+): Promise<PaymentView[]> {
+  const rows = await db
+    .select()
+    .from(payments)
+    .where(and(eq(payments.conjuntoId, conjuntoId), eq(payments.aptoKey, aptoKey)))
+    .orderBy(desc(payments.paidAt));
+  return rows.map(toPaymentView);
+}
+
+// --- Expenses (gastos por proveedor) ---------------------------------------
+
+export type ExpenseView = {
+  id: string;
+  vendorId: string;
+  vendorName: string;
+  category: string;
+  amount: number;
+  description: string;
+  invoiceRef: string;
+  expenseDate: Date;
+  registeredBy: string;
+};
+
+export async function listExpenses(conjuntoId: string): Promise<ExpenseView[]> {
+  const rows = await db
+    .select({ expense: expenses, vendor: vendors })
+    .from(expenses)
+    .innerJoin(vendors, eq(expenses.vendorId, vendors.id))
+    .where(eq(expenses.conjuntoId, conjuntoId))
+    .orderBy(desc(expenses.expenseDate));
+  return rows.map(({ expense: e, vendor: v }) => ({
+    id: e.id,
+    vendorId: e.vendorId,
+    vendorName: decryptPII(v.nameEnc),
+    category: e.category,
+    amount: parseInt(decryptPII(e.amountEnc) || "0", 10),
+    description: decryptPII(e.descriptionEnc),
+    invoiceRef: e.invoiceRefEnc ? decryptPII(e.invoiceRefEnc) : "",
+    expenseDate: e.expenseDate,
+    registeredBy: e.registeredBy,
+  }));
+}
+
+export async function countExpensesForVendor(
+  conjuntoId: string,
+  vendorId: string,
+): Promise<number> {
+  const rows = await db
+    .select({ id: expenses.id })
+    .from(expenses)
+    .where(and(eq(expenses.conjuntoId, conjuntoId), eq(expenses.vendorId, vendorId)));
+  return rows.length;
+}
+
+// --- Financial summary -------------------------------------------------------
+
+export async function getFinancialSummary(conjuntoId: string) {
+  const conjunto = await getConjuntoById(conjuntoId);
+  const [chargeRows, paymentRows, expenseRows] = await Promise.all([
+    listCharges(conjuntoId),
+    listPayments(conjuntoId),
+    listExpenses(conjuntoId),
+  ]);
+  const chargeInputs: ChargeInput[] = chargeRows.map((c) => ({
+    id: c.id,
+    aptoKey: c.aptoKey,
+    period: c.period,
+    amount: c.amount,
+    dueDate: c.dueDate,
+  }));
+  const paymentInputs: PaymentInput[] = paymentRows.map((p) => ({
+    aptoKey: p.aptoKey,
+    amount: p.amount,
+    paidAt: p.paidAt,
+  }));
+  return computeConjuntoSummary(
+    chargeInputs,
+    paymentInputs,
+    expenseRows.map((e) => e.amount),
+    conjunto?.moraRatePct ?? 0,
+    conjunto?.moraGraceDays ?? 0,
+  );
 }
