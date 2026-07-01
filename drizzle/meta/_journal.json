@@ -8,6 +8,13 @@
       "when": 1782593435953,
       "tag": "0000_fantastic_ser_duncan",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1782872277909,
+      "tag": "0001_rich_rawhide_kid",
+      "breakpoints": true
     }
   ]
 }
