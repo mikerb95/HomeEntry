@@ -4,7 +4,6 @@ import { revalidatePath } from "next/cache";
 import {
   createNotice,
   createServiceRequest,
-  listOwnerUnitsForConjunto,
   removeOwnerLink,
   resolveNotice,
   updateServiceRequestStatus,
@@ -52,11 +51,6 @@ export async function unlinkOwner(
   await removeOwnerLink(ownerId, session.conjuntoId, aptoKey);
   revalidatePath(`/${slug}/admin`);
   return { ok: true };
-}
-
-export async function listOwnerLinks(slug: string) {
-  const session = await requireAdmin(slug);
-  return listOwnerUnitsForConjunto(session.conjuntoId);
 }
 
 export async function registerNotice(
