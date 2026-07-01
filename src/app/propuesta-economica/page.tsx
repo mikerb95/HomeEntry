@@ -71,7 +71,8 @@ const tiers: Tier[] = [
   },
 ];
 
-const comparisonGroups: { group: string; rows: [string, boolean, boolean, boolean][] }[] = [
+type Cell = boolean | string;
+const comparisonGroups: { group: string; rows: [string, Cell, Cell, Cell][] }[] = [
   {
     group: "Visitantes y portería",
     rows: [
