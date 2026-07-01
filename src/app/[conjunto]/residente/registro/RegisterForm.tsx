@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
-import { requestRegisterOtp, verifyRegisterOtp } from "@/app/actions/auth";
+import { registerResident } from "@/app/actions/auth";
 import { Label } from "@/components/ui";
 import { IconCheck } from "@/components/icons";
 import { towersArr, aptsArr } from "@/lib/meta";
@@ -45,45 +45,24 @@ export function RegisterForm({
   const [phone, setPhone] = useState(prefill?.phone ?? "");
   const [pin, setPin] = useState("");
   const [done, setDone] = useState(false);
-  // OTP step: once a code is requested we hold the signed token and switch the
-  // card to the code-entry view until it is verified.
-  const [token, setToken] = useState<string | null>(null);
-  const [code, setCode] = useState("");
   const [pending, start] = useTransition();
   const show = useToast((s) => s.show);
 
   const towerList = towersArr(towers);
   const aptList = aptsArr(aptsPerTower, tower);
 
-  function requestOtp() {
+  function register() {
     start(async () => {
-      const res = await requestRegisterOtp(slug, tower, apt, phone, pin);
-      if (!res.ok || !res.token) {
-        show(res.error || "Error", "warn");
-        return;
-      }
-      setToken(res.token);
-      setCode("");
-      show(
-        res.devCode
-          ? `Demo: tu código es ${res.devCode}`
-          : "Te enviamos un código por WhatsApp",
-        "ok",
-      );
-    });
-  }
-
-  function verifyOtp() {
-    if (!token) return;
-    start(async () => {
-      const res = await verifyRegisterOtp(token, code);
+      const res = await registerResident(slug, tower, apt, phone, pin);
       if (!res.ok) {
         show(res.error || "Error", "warn");
         return;
       }
-      setToken(null);
       setDone(true);
-      show("Contacto verificado correctamente", "ok");
+      show(
+        loggedIn ? "Datos actualizados correctamente" : "Registro completado",
+        "ok",
+      );
     });
   }
 
@@ -128,12 +107,11 @@ export function RegisterForm({
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            if (token) verifyOtp();
-            else requestOtp();
+            register();
           }}
           className="mt-6 rounded-[24px] border border-[#E6EBF2] bg-white p-8 shadow-[0_18px_44px_-26px_rgba(15,20,26,.34)] min-[780px]:mt-0"
         >
-          {!token && !done && (
+          {!done && (
             <>
               <Label htmlFor="reg-tower">Selecciona tu torre</Label>
               <div className="relative mb-4">
@@ -218,55 +196,9 @@ export function RegisterForm({
                 disabled={pending}
                 className="w-full rounded-[14px] bg-blue p-[17px] text-[16px] font-extrabold tracking-[.3px] text-white shadow-[0_10px_22px_-10px_rgba(47,107,255,.7)] hover:bg-blue-dark disabled:opacity-70"
               >
-                ENVIAR CÓDIGO POR WHATSAPP
+                {loggedIn ? "GUARDAR CAMBIOS" : "COMPLETAR REGISTRO"}
               </button>
             </>
-          )}
-
-          {token && !done && (
-            <div className="animate-pa-in">
-              <Label htmlFor="reg-otp">Código de verificación</Label>
-              <p className="mb-3 text-[13.5px] leading-[1.45] text-[#5B6675]">
-                Ingresa el código de 6 dígitos que enviamos por WhatsApp al{" "}
-                <span className="font-bold text-ink">+57 {fmtPhone(phone)}</span>.
-              </p>
-              <input
-                id="reg-otp"
-                value={code}
-                onChange={(e) => setCode(digits(e.target.value).slice(0, 6))}
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                placeholder="••••••"
-                className={`mb-[22px] text-center text-[22px] tracking-[10px] ${inputCls}`}
-              />
-              <button
-                type="submit"
-                disabled={pending || code.length < 6}
-                className="w-full rounded-[14px] bg-blue p-[17px] text-[16px] font-extrabold tracking-[.3px] text-white shadow-[0_10px_22px_-10px_rgba(47,107,255,.7)] hover:bg-blue-dark disabled:opacity-70"
-              >
-                VERIFICAR Y GUARDAR
-              </button>
-              <div className="mt-4 flex items-center justify-between gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setToken(null);
-                    setCode("");
-                  }}
-                  className="text-[13.5px] font-bold text-[#6B7585]"
-                >
-                  ← Editar datos
-                </button>
-                <button
-                  type="button"
-                  onClick={requestOtp}
-                  disabled={pending}
-                  className="text-[13.5px] font-bold text-blue disabled:opacity-60"
-                >
-                  Reenviar código
-                </button>
-              </div>
-            </div>
           )}
 
           {done && (
