@@ -20,6 +20,7 @@ import {
   resetGuardPassword,
   deleteGuard,
 } from "@/app/actions/guards";
+import { Modal } from "@/components/Modal";
 import { ParkingModal, ModalSpot } from "@/components/ParkingModal";
 import { PaymentModal } from "@/components/PaymentModal";
 import { ExpenseModal } from "@/components/ExpenseModal";
@@ -1582,14 +1583,7 @@ function ConfigModal({
   }
 
   return (
-    <div
-      onClick={onClose}
-      className="fixed inset-0 z-[60] flex animate-pa-in items-center justify-center bg-[rgba(15,20,26,.5)] p-5 backdrop-blur-[3px]"
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        className="w-[460px] max-w-full animate-pa-pop overflow-hidden rounded-[22px] bg-white shadow-[0_30px_70px_-20px_rgba(15,20,26,.5)]"
-      >
+    <Modal onClose={onClose} label="Configurar conjunto" className="w-[460px]">
         <div className="border-b border-[#EEF1F6] px-[22px] py-5">
           <h2 className="font-display text-[18px] font-bold">Configurar conjunto</h2>
           <div className="mt-0.5 text-[13px] text-[#6B7585]">
@@ -1661,8 +1655,7 @@ function ConfigModal({
             Aplicar configuración
           </button>
         </div>
-      </div>
-    </div>
+    </Modal>
   );
 }
 
