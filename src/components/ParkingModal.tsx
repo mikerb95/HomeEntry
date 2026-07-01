@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { assignParking, freeParking } from "@/app/actions/parking";
+import { Modal } from "@/components/Modal";
 import { statusMeta, ParkingStatus } from "@/lib/meta";
 import { isValidPlate, normalizePlate } from "@/lib/format";
 import { useToast } from "@/lib/toast";
@@ -88,14 +89,11 @@ export function ParkingModal({
   }
 
   return (
-    <div
-      onClick={onClose}
-      className="fixed inset-0 z-[60] flex animate-pa-in items-center justify-center bg-[rgba(15,20,26,.5)] p-5 backdrop-blur-[3px]"
+    <Modal
+      onClose={onClose}
+      label={`Parqueadero ${spot.id}`}
+      className="w-[400px]"
     >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        className="w-[400px] max-w-full animate-pa-pop overflow-hidden rounded-[22px] bg-white shadow-[0_30px_70px_-20px_rgba(15,20,26,.5)]"
-      >
         <div className="flex items-center justify-between border-b border-[#EEF1F6] px-[22px] py-[18px]">
           <div className="flex items-center gap-[11px]">
             <span className="font-display text-[22px] font-bold">{spot.id}</span>
@@ -105,6 +103,7 @@ export function ParkingModal({
           </div>
           <button
             onClick={onClose}
+            aria-label="Cerrar"
             className="h-[30px] w-[30px] rounded-[9px] bg-[#F0F3F8] text-[17px] text-[#5B6675]"
           >
             ✕
