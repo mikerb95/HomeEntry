@@ -1,8 +1,13 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { updateConfig, updateRate } from "@/app/actions/admin";
+import {
+  updateConfig,
+  updateRate,
+  updateLogo,
+  removeLogo,
+} from "@/app/actions/admin";
 import { freeParking } from "@/app/actions/parking";
 import {
   updateMoraConfig,

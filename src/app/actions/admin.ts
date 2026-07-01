@@ -126,7 +126,7 @@ export async function updateConfig(
 export async function updateLogo(
   slug: string,
   form: FormData,
-): Promise<Result> {
+): Promise<Result & { url?: string }> {
   const session = await requireAdmin(slug);
   const cid = session.conjuntoId;
 
@@ -159,7 +159,7 @@ export async function updateLogo(
 
   revalidatePath(`/${slug}`);
   revalidatePath(`/${slug}/admin`);
-  return { ok: true };
+  return { ok: true, url };
 }
 
 export async function removeLogo(slug: string): Promise<Result> {
