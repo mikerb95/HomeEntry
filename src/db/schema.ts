@@ -40,7 +40,11 @@ export const conjuntos = pgTable("conjuntos", {
   aptsPerTower: integer("apts_per_tower").notNull(),
   carSpots: integer("car_spots").notNull(),
   motoSpots: integer("moto_spots").notNull(),
-  visitorRate: integer("visitor_rate").notNull(),
+  // Visitor-parking rates in COP per hour, one per vehicle kind. The admin
+  // sets these; the guard's entry/exit flow uses them to compute the charge
+  // collected when a visitor vehicle leaves (residents park free).
+  visitorRate: integer("visitor_rate").notNull(), // carros
+  visitorRateMoto: integer("visitor_rate_moto").notNull().default(0), // motos
   // Late-fee ("mora") config: percent per month * 100 (e.g. 250 = 2.50%),
   // and a grace period in days before a past-due charge starts accruing it.
   moraRatePct: integer("mora_rate_pct").notNull().default(0),
@@ -109,6 +113,9 @@ export const parkingSpots = pgTable(
     status: text("status").notNull().default("free"), // 'free' | 'resident' | 'visitor'
     plate: text("plate").notNull().default(""),
     aptoKey: text("apto_key").notNull().default(""),
+    // When the vehicle entered (set on assign, cleared on free). Null on free
+    // spots and on rows that predate entry/exit billing.
+    enteredAt: timestamp("entered_at", { withTimezone: true }),
   },
   (t) => [primaryKey({ columns: [t.conjuntoId, t.id] })],
 );
@@ -176,7 +183,12 @@ export const authGrants = pgTable(
   (t) => [index("auth_grants_conjunto_code_idx").on(t.conjuntoId, t.code)],
 );
 
-// Parking usage history powering the admin audit views.
+// Parking usage history powering the admin audit views and the daily cash
+// ("caja") summary. A row is written when the guard frees a spot: `hours` is
+// the billed duration (entry→exit, rounded up) and `amount` the COP actually
+// charged at that moment's rate — 0 for residents, hours × rate for visitors.
+// Storing the amount (not just hours) keeps historic caja totals stable when
+// the admin later changes the rates.
 export const parkingSessions = pgTable(
   "parking_sessions",
   {
@@ -187,7 +199,9 @@ export const parkingSessions = pgTable(
     type: text("type").notNull(), // resident | visitor
     aptoKey: text("apto_key").notNull(),
     kind: text("kind").notNull(), // car | moto
+    plate: text("plate").notNull().default(""),
     hours: integer("hours").notNull(),
+    amount: integer("amount").notNull().default(0), // COP charged on exit
     start: timestamp("start", { withTimezone: true }).notNull(),
   },
   (t) => [index("parking_sessions_conjunto_idx").on(t.conjuntoId)],

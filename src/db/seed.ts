@@ -51,6 +51,7 @@ async function main() {
     carSpots: 12,
     motoSpots: 8,
     visitorRate: 3000,
+    visitorRateMoto: 1500,
   };
   const [conjunto] = await db
     .insert(conjuntos)
@@ -249,12 +250,15 @@ async function main() {
     const kind = rr() > 0.72 ? "moto" : "car";
     const hours =
       type === "visitor" ? 1 + Math.floor(rr() * 6) : 2 + Math.floor(rr() * 10);
+    // Visitors pay hours × the per-kind rate; residents park free.
+    const rate = kind === "moto" ? cfg.visitorRateMoto : cfg.visitorRate;
     sessions.push({
       conjuntoId: cid,
       type,
       aptoKey: apto,
       kind,
       hours,
+      amount: type === "visitor" ? hours * rate : 0,
       start: new Date(start),
     });
   }
