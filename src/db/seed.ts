@@ -1,6 +1,7 @@
 import { db } from "./index";
 import {
   accessLog,
+  announcements,
   authGrants,
   cities,
   conjuntos,
@@ -21,6 +22,7 @@ async function main() {
   await db.delete(accessLog);
   await db.delete(parkingSessions);
   await db.delete(authGrants);
+  await db.delete(announcements);
   await db.delete(events);
   await db.delete(parkingSpots);
   await db.delete(staffUsers);
@@ -172,6 +174,56 @@ async function main() {
     ev(360, "visita", "T2", "102", "Visita — Ana Gómez"),
     ev(420, "parqueadero", "T1", "105", "Placa MOT-11A en M-01 (Residente)"),
     ev(480, "visita", "T3", "105", "Domicilio farmacia"),
+  ]);
+
+  // Cartelera informativa (bulletin board)
+  const day = 86400000;
+  await db.insert(announcements).values([
+    {
+      conjuntoId: cid,
+      category: "mantenimiento",
+      title: "Corte de agua programado — martes 8 a.m. a 12 m.",
+      body: "Estimados residentes, informamos que el próximo martes se realizará mantenimiento a los tanques de almacenamiento. El servicio de agua se suspenderá entre las 8:00 a.m. y las 12:00 m. Les recomendamos almacenar el agua necesaria con anticipación.",
+      pinned: 1,
+      createdBy: "Administración",
+      createdAt: new Date(now - 1 * day),
+    },
+    {
+      conjuntoId: cid,
+      category: "seguridad",
+      title: "Recordatorio: registro obligatorio de visitantes",
+      body: "Recordamos que todo visitante debe ser autorizado previamente desde el portal antes de su ingreso. La portería no permitirá el acceso a personas sin autorización vigente. Gracias por ayudarnos a mantener la seguridad del conjunto.",
+      pinned: 0,
+      createdBy: "Administración",
+      createdAt: new Date(now - 3 * day),
+    },
+    {
+      conjuntoId: cid,
+      category: "evento",
+      title: "Asamblea general ordinaria — sábado 20, 9:00 a.m.",
+      body: "Convocamos a todos los propietarios a la Asamblea General Ordinaria que se realizará en el salón comunal. Se tratarán los temas del presupuesto anual y la elección del consejo de administración. Su asistencia es muy importante.",
+      pinned: 0,
+      createdBy: "Consejo de Administración",
+      createdAt: new Date(now - 6 * day),
+    },
+    {
+      conjuntoId: cid,
+      category: "pago",
+      title: "Fecha límite cuota de administración: día 5 de cada mes",
+      body: "Les recordamos que la cuota de administración debe pagarse antes del día 5 de cada mes para evitar intereses de mora. Puede consultar su estado de cuenta en el portal o acercarse a la administración.",
+      pinned: 0,
+      createdBy: "Administración",
+      createdAt: new Date(now - 10 * day),
+    },
+    {
+      conjuntoId: cid,
+      category: "general",
+      title: "Nuevo horario del salón comunal",
+      body: "A partir de este mes, el salón comunal estará disponible de lunes a domingo de 8:00 a.m. a 10:00 p.m. Para reservas, comuníquese con la administración con mínimo 48 horas de anticipación.",
+      pinned: 0,
+      createdBy: "Administración",
+      createdAt: new Date(now - 14 * day),
+    },
   ]);
 
   // Parking sessions (deterministic LCG, mirrors the prototype audit data)

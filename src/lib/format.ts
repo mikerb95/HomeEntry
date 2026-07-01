@@ -84,6 +84,18 @@ export function fmtDateTime(ts: Date | number | string): string {
   }
 }
 
+export function fmtDate(ts: Date | number | string): string {
+  try {
+    return new Date(ts).toLocaleDateString("es-CO", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  } catch {
+    return "";
+  }
+}
+
 export function todayStr(): string {
   return new Date().toLocaleDateString("es-CO", {
     weekday: "long",

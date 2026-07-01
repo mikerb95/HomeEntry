@@ -211,3 +211,24 @@ export const IconBell = ({ size = 18, className }: IconProps) =>
       strokeLinejoin="round"
     />,
   );
+
+export const IconMegaphone = ({ size = 18, className }: IconProps) =>
+  svg(
+    size,
+    className,
+    <>
+      <path
+        d="M3 11v2a1 1 0 0 0 1 1h2l4 4V6L6 10H4a1 1 0 0 0-1 1z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M10 6l9-3v18l-9-3M17 9.5a3 3 0 0 1 0 5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </>,
+  );

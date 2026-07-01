@@ -75,6 +75,29 @@ export const authStMeta: Record<
   vencido: { bg: "#FDE7EA", fg: "#BE123C", label: "Vencido" },
 };
 
+export type AnnouncementCategory =
+  | "general"
+  | "mantenimiento"
+  | "seguridad"
+  | "evento"
+  | "pago";
+
+export const announcementMeta: Record<
+  AnnouncementCategory,
+  { label: string; bg: string; fg: string; icon: string }
+> = {
+  general: { label: "General", bg: "#EEE9FF", fg: "#6D28D9", icon: "i" },
+  mantenimiento: {
+    label: "Mantenimiento",
+    bg: "#FEF3DC",
+    fg: "#B45309",
+    icon: "M",
+  },
+  seguridad: { label: "Seguridad", bg: "#FDE7EA", fg: "#BE123C", icon: "S" },
+  evento: { label: "Evento", bg: "#EAF1FF", fg: "#1E4FD6", icon: "E" },
+  pago: { label: "Pagos", bg: "#E9F8EE", fg: "#15803D", icon: "$" },
+};
+
 // Tower / apartment helpers derived from config.
 export function towersArr(towers: number) {
   return Array.from({ length: towers }, (_, i) => ({

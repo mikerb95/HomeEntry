@@ -5,14 +5,17 @@ export const dynamic = "force-dynamic";
 import {
   getConjuntoById,
   getResident,
+  listAnnouncements,
   listAuthsForApt,
   listEventsForApt,
   listParking,
 } from "@/db/queries";
 import { Shell } from "@/components/Shell";
 import { PushOptIn } from "@/components/PushOptIn";
-import { IconAuthorize } from "@/components/icons";
+import { IconAuthorize, IconMegaphone } from "@/components/icons";
 import {
+  announcementMeta,
+  AnnouncementCategory,
   authStMeta,
   GrantStatus,
   notifMeta,
@@ -20,7 +23,13 @@ import {
   statusMeta,
   EventType,
 } from "@/lib/meta";
-import { fmtDateTime, fmtPhone, fmtTime, isThisMonth } from "@/lib/format";
+import {
+  fmtDate,
+  fmtDateTime,
+  fmtPhone,
+  fmtTime,
+  isThisMonth,
+} from "@/lib/format";
 
 export default async function ResidentDashboard({
   params,
@@ -30,13 +39,16 @@ export default async function ResidentDashboard({
   const { conjunto: slug } = await params;
   const session = await requireResident(slug);
   const cid = session.conjuntoId;
-  const [config, me, myEvents, myParkingAll, myAuths] = await Promise.all([
-    getConjuntoById(cid),
-    getResident(cid, session.aptoKey),
-    listEventsForApt(cid, session.tower, session.apt),
-    listParking(cid),
-    listAuthsForApt(cid, session.aptoKey),
-  ]);
+  const [config, me, myEvents, myParkingAll, myAuths, announcements] =
+    await Promise.all([
+      getConjuntoById(cid),
+      getResident(cid, session.aptoKey),
+      listEventsForApt(cid, session.tower, session.apt),
+      listParking(cid),
+      listAuthsForApt(cid, session.aptoKey),
+      listAnnouncements(cid),
+    ]);
+  const boardPreview = announcements.slice(0, 3);
   const myParkings = myParkingAll.filter((p) => p.aptoKey === session.aptoKey);
 
   const resVisits = myEvents.filter(
@@ -82,6 +94,13 @@ export default async function ResidentDashboard({
             >
               <IconAuthorize size={18} />
               Autorizar ingreso
+            </Link>
+            <Link
+              href={`/${slug}/residente/cartelera`}
+              className="flex items-center gap-2 rounded-[13px] border-[1.5px] border-[#E3E8EF] bg-white px-[18px] py-[13px] text-[14.5px] font-bold text-ink hover:bg-[#F6F8FB]"
+            >
+              <IconMegaphone size={18} />
+              Cartelera
             </Link>
             <Link
               href={`/${slug}/residente/registro`}
@@ -154,6 +173,57 @@ export default async function ResidentDashboard({
           </div>
 
           <aside className="mt-[18px] flex flex-col gap-[18px] min-[780px]:mt-0">
+            <div className="rounded-[20px] border border-[#E8ECF2] bg-white p-5">
+              <div className="mb-3.5 flex items-center justify-between gap-2">
+                <h3 className="font-display text-[16px] font-bold">
+                  Cartelera
+                </h3>
+                <Link
+                  href={`/${slug}/residente/cartelera`}
+                  className="text-[12.5px] font-bold text-blue hover:text-blue-dark"
+                >
+                  Ver todo →
+                </Link>
+              </div>
+              <div className="flex flex-col gap-2.5">
+                {boardPreview.map((a) => {
+                  const m =
+                    announcementMeta[a.category as AnnouncementCategory] ??
+                    announcementMeta.general;
+                  return (
+                    <Link
+                      key={a.id}
+                      href={`/${slug}/residente/cartelera`}
+                      className="rounded-[13px] border border-[#EEF1F6] px-3.5 py-[13px] hover:bg-[#F6F8FB]"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span
+                          className="rounded-full px-[9px] py-[3px] text-[11px] font-bold"
+                          style={{ background: m.bg, color: m.fg }}
+                        >
+                          {m.label}
+                        </span>
+                        {a.pinned ? (
+                          <span className="text-[12px]">📌</span>
+                        ) : null}
+                        <span className="ml-auto text-[11.5px] font-semibold text-[#A2ABB8]">
+                          {fmtDate(a.createdAt)}
+                        </span>
+                      </div>
+                      <div className="mt-1.5 text-[14px] font-bold text-ink">
+                        {a.title}
+                      </div>
+                    </Link>
+                  );
+                })}
+                {boardPreview.length === 0 && (
+                  <div className="p-3.5 text-center text-[13.5px] text-[#6B7585]">
+                    Sin comunicados por ahora.
+                  </div>
+                )}
+              </div>
+            </div>
+
             <div className="rounded-[20px] border border-[#E8ECF2] bg-white p-5">
               <h3 className="mb-3.5 font-display text-[16px] font-bold">
                 Mis parqueaderos

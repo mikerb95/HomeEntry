@@ -4,6 +4,7 @@ import { GRANT_GRACE_MS, makeConjuntoCode } from "@/lib/code";
 import { db } from "./index";
 import {
   accessLog,
+  announcements,
   authGrants,
   charges,
   cities,
@@ -262,6 +263,18 @@ export async function listEventsForApt(
       ),
     )
     .orderBy(desc(events.ts));
+}
+
+// --- Cartelera (bulletin board) ------------------------------------------
+
+// Every announcement for a conjunto, pinned ones first and newest first.
+// Conjunto-wide: every resident sees the same board (no per-apt scoping).
+export async function listAnnouncements(conjuntoId: string) {
+  return db
+    .select()
+    .from(announcements)
+    .where(eq(announcements.conjuntoId, conjuntoId))
+    .orderBy(desc(announcements.pinned), desc(announcements.createdAt));
 }
 
 // --- Parking -------------------------------------------------------------

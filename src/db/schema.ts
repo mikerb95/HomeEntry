@@ -129,6 +129,30 @@ export const events = pgTable(
   (t) => [index("events_conjunto_idx").on(t.conjuntoId)],
 );
 
+// Bulletin board ("cartelera informativa") posts published by the
+// administración for the whole conjunto to read. Body is plain text (no PII —
+// it is a notice board visible to every resident). `pinned` keeps important
+// notices at the top of the board regardless of date.
+export const announcements = pgTable(
+  "announcements",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    conjuntoId: uuid("conjunto_id")
+      .notNull()
+      .references(() => conjuntos.id),
+    // general | mantenimiento | seguridad | evento | pago
+    category: text("category").notNull().default("general"),
+    title: text("title").notNull(),
+    body: text("body").notNull(),
+    pinned: integer("pinned").notNull().default(0), // 0 | 1
+    createdBy: text("created_by").notNull().default("Administración"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [index("announcements_conjunto_idx").on(t.conjuntoId, t.createdAt)],
+);
+
 export const authGrants = pgTable(
   "auth_grants",
   {
@@ -409,6 +433,7 @@ export type Conjunto = typeof conjuntos.$inferSelect;
 export type Resident = typeof residents.$inferSelect;
 export type ParkingSpot = typeof parkingSpots.$inferSelect;
 export type EventRow = typeof events.$inferSelect;
+export type Announcement = typeof announcements.$inferSelect;
 export type AuthGrant = typeof authGrants.$inferSelect;
 export type ParkingSession = typeof parkingSessions.$inferSelect;
 export type PushSubscriptionRow = typeof pushSubscriptions.$inferSelect;
