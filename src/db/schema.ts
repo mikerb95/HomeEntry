@@ -301,6 +301,7 @@ export const expenses = pgTable(
   ],
 );
 
+export type City = typeof cities.$inferSelect;
 export type Conjunto = typeof conjuntos.$inferSelect;
 export type Resident = typeof residents.$inferSelect;
 export type ParkingSpot = typeof parkingSpots.$inferSelect;
