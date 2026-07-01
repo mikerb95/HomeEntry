@@ -110,6 +110,7 @@ type Guard = {
 type Props = {
   slug: string;
   name: string;
+  logoUrl: string | null;
   towers: number;
   aptsPerTower: number;
   carSpots: number;
