@@ -14,7 +14,8 @@ export const dynamic = "force-dynamic";
 // role picker and send them straight to their panel.
 async function redirectIfLoggedIn(slug: string, conjuntoId: string) {
   const s = await getSession();
-  if (!s || s.role === "superadmin" || s.conjuntoSlug !== slug) return;
+  if (!s || s.role === "superadmin" || s.role === "owner") return;
+  if (s.conjuntoSlug !== slug) return;
 
   const v =
     s.role === "resident"
