@@ -251,7 +251,9 @@ async function main() {
     },
   ]);
 
-  console.log(`Seed complete. Conjunto "/${cfg.slug}" listo.`);
+  console.log(
+    `Seed complete. Conjunto "/${cfg.slug}" (código ${cfg.code}) listo.`,
+  );
   process.exit(0);
 }
 
