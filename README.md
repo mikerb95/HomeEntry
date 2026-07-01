@@ -1,4 +1,4 @@
-# PortAl · Gestión Residencial
+# Gestión Residencial
 
 ## Stack
 
