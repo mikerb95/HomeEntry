@@ -204,6 +204,11 @@ export function AdminPanel(props: Props) {
   const [gCategory, setGCategory] = useState("all");
   const [gVendor, setGVendor] = useState("all");
 
+  // --- vigilantes ---
+  const [gdUsername, setGdUsername] = useState("");
+  const [gdPassword, setGdPassword] = useState("");
+  const [resetGuardUser, setResetGuardUser] = useState<string | null>(null);
+
   const towerList = towersArr(props.towers);
   const allApts = allAptsArr(props.towers, props.aptsPerTower);
   const aptLabel = (key: string) =>
