@@ -129,7 +129,7 @@ export async function registerResident(
   aptId: string,
   phoneRaw: string,
   pin: string,
-): Promise<Result> {
+): Promise<Result & { pending?: boolean }> {
   const conjunto = await getConjuntoBySlug(slug);
   if (!conjunto) return { ok: false, error: "Conjunto no encontrado" };
 
