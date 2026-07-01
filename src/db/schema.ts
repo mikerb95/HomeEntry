@@ -19,6 +19,10 @@ export const conjuntos = pgTable("conjuntos", {
   carSpots: integer("car_spots").notNull(),
   motoSpots: integer("moto_spots").notNull(),
   visitorRate: integer("visitor_rate").notNull(),
+  // Late-fee ("mora") config: percent per month * 100 (e.g. 250 = 2.50%),
+  // and a grace period in days before a past-due charge starts accruing it.
+  moraRatePct: integer("mora_rate_pct").notNull().default(0),
+  moraGraceDays: integer("mora_grace_days").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
