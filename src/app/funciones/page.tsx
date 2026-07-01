@@ -257,7 +257,7 @@ export default function FuncionesPage() {
       <div className="mx-auto max-w-[900px] pt-3.5 animate-pa-in">
         <div className="mb-[26px] flex items-center gap-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-[14px] bg-ink font-display text-[24px] font-bold text-white">
-            P
+            O
           </div>
           <div>
             <div className="font-display text-[24px] font-bold tracking-[-.5px]">

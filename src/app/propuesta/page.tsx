@@ -127,7 +127,7 @@ export default function ProposalPage() {
         {/* Hero */}
         <div className="pt-6 text-center">
           <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-[16px] bg-ink font-display text-[28px] font-bold text-white">
-            P
+            O
           </div>
           <div className="mb-3 text-[12.5px] font-bold uppercase tracking-[0.08em] text-blue">
             Propuesta para administración y junta directiva

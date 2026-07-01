@@ -91,7 +91,7 @@ export default async function ConjuntoEntryPage({
             />
           ) : (
             <div className="flex h-12 w-12 items-center justify-center rounded-[14px] bg-ink font-display text-[24px] font-bold text-white">
-              P
+              O
             </div>
           )}
           <div>

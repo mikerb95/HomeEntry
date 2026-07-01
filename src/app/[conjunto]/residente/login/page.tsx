@@ -18,8 +18,8 @@ export default function ResidentLoginPage() {
   const [phone, setPhone] = useState("");
   const [pin, setPin] = useState("");
   const [err, setErr] = useState("");
+  const [pinHelp, setPinHelp] = useState(false);
   const [pending, start] = useTransition();
-  const show = useToast((s) => s.show);
   const errRef = useRef<HTMLDivElement>(null);
 
   // Move focus to the error so it is announced and keyboard users land on it.

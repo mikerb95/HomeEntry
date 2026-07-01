@@ -48,7 +48,7 @@ export default function LegalHubPage() {
             className="flex h-12 w-12 items-center justify-center rounded-[14px] bg-ink font-display text-[24px] font-bold text-white"
             aria-label="Inicio"
           >
-            P
+            O
           </Link>
           <div>
             <div className="font-display text-[24px] font-bold tracking-[-.5px]">

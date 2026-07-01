@@ -15,9 +15,13 @@ export const useToast = create<ToastState>((set, get) => ({
   show: (text, kind = "ok") => {
     const id = Date.now() + Math.random();
     set({ toast: { id, text, kind } });
-    setTimeout(() => {
-      if (get().toast?.id === id) set({ toast: null });
-    }, 2600);
+    // Warnings stay on screen until dismissed so slow readers don't lose the
+    // error; only success confirmations auto-hide.
+    if (kind === "ok") {
+      setTimeout(() => {
+        if (get().toast?.id === id) set({ toast: null });
+      }, 2600);
+    }
   },
   dismiss: () => set({ toast: null }),
 }));
