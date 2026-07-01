@@ -169,6 +169,8 @@ export async function registerResident(
     apt: aptId,
   };
   if (existing) {
+    // An update only reaches here for the authenticated owner (checked above),
+    // so it stays active — no re-approval needed. `status` is left untouched.
     await db
       .update(residents)
       .set(fields)
@@ -178,14 +180,18 @@ export async function registerResident(
           eq(residents.aptoKey, aptoKey),
         ),
       );
-  } else {
-    await db.insert(residents).values({
-      conjuntoId: conjunto.id,
-      aptoKey,
-      ...fields,
-    });
+    return { ok: true, pending: false };
   }
-  return { ok: true };
+
+  // A brand-new self-registration must be approved by staff before it can log
+  // in — this is the identity check that replaces the WhatsApp OTP.
+  await db.insert(residents).values({
+    conjuntoId: conjunto.id,
+    aptoKey,
+    ...fields,
+    status: "pending",
+  });
+  return { ok: true, pending: true };
 }
 
 export async function guardLogin(
