@@ -1,9 +1,31 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
-import { getConjuntoBySlug } from "@/db/queries";
+import { notFound, redirect } from "next/navigation";
+import {
+  getConjuntoBySlug,
+  getResidentVersion,
+  getStaffVersion,
+} from "@/db/queries";
+import { getSession } from "@/lib/auth";
 import { Shell } from "@/components/Shell";
 
 export const dynamic = "force-dynamic";
+
+// If the visitor already has a valid session for this conjunto, skip the
+// role picker and send them straight to their panel.
+async function redirectIfLoggedIn(slug: string, conjuntoId: string) {
+  const s = await getSession();
+  if (!s || s.role === "superadmin" || s.conjuntoSlug !== slug) return;
+
+  const v =
+    s.role === "resident"
+      ? await getResidentVersion(conjuntoId, s.aptoKey)
+      : await getStaffVersion(conjuntoId, s.username);
+  if (v === null || v !== s.v) return;
+
+  if (s.role === "resident") redirect(`/${slug}/residente`);
+  if (s.role === "guard") redirect(`/${slug}/porteria`);
+  if (s.role === "admin") redirect(`/${slug}/admin`);
+}
 
 export default async function ConjuntoEntryPage({
   params,
@@ -13,6 +35,8 @@ export default async function ConjuntoEntryPage({
   const { conjunto: slug } = await params;
   const conjunto = await getConjuntoBySlug(slug);
   if (!conjunto) notFound();
+
+  await redirectIfLoggedIn(slug, conjunto.id);
 
   const cards = [
     {
