@@ -12,7 +12,8 @@
     "db:push": "drizzle-kit push",
     "db:generate": "drizzle-kit generate",
     "db:seed": "tsx --env-file=.env src/db/seed.ts",
-    "db:reset": "npm run db:push -- --force && npm run db:seed"
+    "db:drop": "tsx --env-file=.env src/db/reset.ts",
+    "db:reset": "npm run db:drop && npm run db:push -- --force && npm run db:seed"
   },
   "dependencies": {
     "@types/web-push": "^3.6.4",
