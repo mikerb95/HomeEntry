@@ -128,15 +128,6 @@ export function RoleLanding({
             </Link>
             .
           </div>
-
-          <div className="mt-4 text-center">
-            <Link
-              href="/ayuda"
-              className="text-[13.5px] font-bold text-[#6B7585] hover:text-ink"
-            >
-              ¿Cómo funciona? Ver guía de uso →
-            </Link>
-          </div>
         </>
       ) : (
         <>
