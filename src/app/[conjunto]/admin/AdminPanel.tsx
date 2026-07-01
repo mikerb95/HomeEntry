@@ -1208,6 +1208,101 @@ export function AdminPanel(props: Props) {
         </>
       )}
 
+      {/* VIGILANTES */}
+      {tab === "vigilantes" && (
+        <>
+          <div className="mb-5 rounded-[20px] border border-[#E8ECF2] bg-white p-[22px]">
+            <h2 className="mb-3.5 font-display text-[19px] font-bold">
+              Nuevo vigilante
+            </h2>
+            <div className="flex flex-wrap items-end gap-3">
+              <div className="min-w-[180px] flex-1">
+                <label className="mb-1.5 block text-[11.5px] font-bold uppercase tracking-[.5px] text-[#6B7585]">
+                  Usuario
+                </label>
+                <input
+                  value={gdUsername}
+                  onChange={(e) => setGdUsername(e.target.value)}
+                  placeholder="vigilante1"
+                  className="w-full rounded-[11px] border-[1.5px] border-[#E3E8EF] bg-[#F6F8FB] px-[13px] py-[11px] text-[14px] font-semibold outline-none focus:border-blue"
+                />
+              </div>
+              <div className="min-w-[180px] flex-1">
+                <label className="mb-1.5 block text-[11.5px] font-bold uppercase tracking-[.5px] text-[#6B7585]">
+                  Contraseña
+                </label>
+                <input
+                  type="password"
+                  value={gdPassword}
+                  onChange={(e) => setGdPassword(e.target.value)}
+                  placeholder="Mínimo 6 caracteres"
+                  className="w-full rounded-[11px] border-[1.5px] border-[#E3E8EF] bg-[#F6F8FB] px-[13px] py-[11px] text-[14px] font-semibold outline-none focus:border-blue"
+                />
+              </div>
+              <button
+                onClick={submitGuard}
+                className="rounded-[11px] bg-blue px-4 py-[11px] text-[13.5px] font-extrabold text-white hover:bg-blue-dark"
+              >
+                Crear vigilante
+              </button>
+            </div>
+          </div>
+
+          <div className="overflow-hidden rounded-[20px] border border-[#E8ECF2] bg-white">
+            <div className="border-b border-[#EEF1F6] px-[22px] py-5">
+              <h2 className="font-display text-[19px] font-bold">
+                Vigilantes registrados
+              </h2>
+              <div className="mt-0.5 text-[13px] text-[#6B7585]">
+                Usuarios con acceso a portería
+              </div>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[520px] border-collapse">
+                <thead>
+                  <tr className="bg-[#FAFBFD]">
+                    <th className={`${th} pl-[22px]`}>Usuario</th>
+                    <th className={`${th} pr-[22px] text-right`}>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {props.guards.map((g) => (
+                    <tr key={g.username} className="border-t border-[#F0F3F7]">
+                      <td className="px-[22px] py-3.5 text-[14px] font-bold text-ink">
+                        {g.username}
+                      </td>
+                      <td className="px-[22px] py-3.5 text-right">
+                        <div className="flex justify-end gap-2">
+                          <button
+                            onClick={() => setResetGuardUser(g.username)}
+                            className="rounded-[9px] border-[1.5px] border-[#E3E8EF] bg-white px-3.5 py-[7px] text-[13px] font-bold text-ink hover:bg-[#F6F8FB]"
+                          >
+                            Restablecer contraseña
+                          </button>
+                          <button
+                            onClick={() => removeGuard(g.username)}
+                            disabled={props.guards.length <= 1}
+                            className="rounded-[9px] px-3.5 py-[7px] text-[13px] font-bold text-white disabled:opacity-40"
+                            style={{ background: "#E11D48" }}
+                          >
+                            Eliminar
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {props.guards.length === 0 && (
+                <div className="px-[22px] py-12 text-center text-[14px] text-[#6B7585]">
+                  Aún no hay vigilantes registrados.
+                </div>
+              )}
+            </div>
+          </div>
+        </>
+      )}
+
       {cfgOpen && (
         <ConfigModal
           slug={props.slug}
