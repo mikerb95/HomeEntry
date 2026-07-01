@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import { Shell } from "@/components/Shell";
 import { IconCheck } from "@/components/icons";
 
@@ -219,8 +220,8 @@ export default function PricingPage() {
               </thead>
               <tbody>
                 {comparisonGroups.map((g) => (
-                  <>
-                    <tr key={g.group} className="bg-[#F7F9FC]">
+                  <Fragment key={g.group}>
+                    <tr className="bg-[#F7F9FC]">
                       <td
                         colSpan={4}
                         className="px-5 py-2 text-[12px] font-bold uppercase tracking-[0.04em] text-muted-2"
