@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { put, del } from "@vercel/blob";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { conjuntos, parkingSpots } from "@/db/schema";
@@ -9,6 +10,16 @@ import { requireAdmin } from "@/lib/auth";
 import { clampText } from "@/lib/format";
 
 type Result = { ok: boolean; error?: string };
+
+// Logo upload constraints. 1MB keeps us under Next's default Server Action body
+// limit and is plenty for a logo. Extensions map 1:1 to the accepted types.
+const LOGO_MAX_BYTES = 1024 * 1024;
+const LOGO_TYPES: Record<string, string> = {
+  "image/png": "png",
+  "image/jpeg": "jpg",
+  "image/webp": "webp",
+  "image/svg+xml": "svg",
+};
 
 function clamp(v: unknown, min: number, max: number, fallback: number): number {
   const n = parseInt(String(v ?? ""), 10);
