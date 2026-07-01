@@ -1174,6 +1174,23 @@ export function AdminPanel(props: Props) {
       {pkSpot && (
         <ParkingModal slug={props.slug} spot={pkSpot} allApts={allApts} onClose={() => setPkSpot(null)} />
       )}
+
+      {payApt && (
+        <PaymentModal
+          slug={props.slug}
+          aptoKey={payApt.key}
+          aptoLabel={payApt.label}
+          onClose={() => setPayApt(null)}
+        />
+      )}
+
+      {expOpen && (
+        <ExpenseModal
+          slug={props.slug}
+          vendors={props.vendors}
+          onClose={() => setExpOpen(false)}
+        />
+      )}
     </div>
   );
 }
