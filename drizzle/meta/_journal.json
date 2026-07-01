@@ -15,6 +15,13 @@
       "when": 1782872277909,
       "tag": "0001_rich_rawhide_kid",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1782899917175,
+      "tag": "0002_mute_dreadnoughts",
+      "breakpoints": true
     }
   ]
 }
