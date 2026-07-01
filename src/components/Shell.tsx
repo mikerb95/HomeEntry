@@ -27,7 +27,7 @@ function LegalFooter() {
   return (
     <footer className="border-t border-[#E2E8F1] px-5 py-5">
       <div className="mx-auto flex max-w-[1120px] flex-col items-center justify-between gap-2.5 text-[12.5px] font-semibold text-[#9AA4B2] sm:flex-row">
-        <span>© {new Date().getFullYear()} PortAl</span>
+        <span>© {new Date().getFullYear()} La Oportunidad</span>
         <nav className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5">
           <Link href="/legal/terminos" className="hover:text-ink">
             Términos y condiciones

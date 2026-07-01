@@ -641,7 +641,8 @@ export function AdminPanel(props: Props) {
                       <td className="px-[22px] py-[13px] text-right">
                         <button
                           onClick={() => (free ? setPkSpot(p) : doFree(p.id))}
-                          className="rounded-[9px] px-4 py-[7px] text-[13px] font-bold text-white"
+                          disabled={pending}
+                          className="rounded-[9px] px-4 py-[7px] text-[13px] font-bold text-white disabled:opacity-60"
                           style={{ background: free ? "#2F6BFF" : "#E11D48" }}
                         >
                           {free ? "Asignar" : "Liberar"}
@@ -1276,9 +1277,10 @@ export function AdminPanel(props: Props) {
               </div>
               <button
                 onClick={submitGuard}
-                className="rounded-[11px] bg-blue px-4 py-[11px] text-[13.5px] font-extrabold text-white hover:bg-blue-dark"
+                disabled={pending}
+                className="rounded-[11px] bg-blue px-4 py-[11px] text-[13.5px] font-extrabold text-white hover:bg-blue-dark disabled:opacity-70"
               >
-                Crear vigilante
+                {pending ? "Creando…" : "Crear vigilante"}
               </button>
             </div>
           </div>
@@ -1316,7 +1318,7 @@ export function AdminPanel(props: Props) {
                           </button>
                           <button
                             onClick={() => removeGuard(g.username)}
-                            disabled={props.guards.length <= 1}
+                            disabled={props.guards.length <= 1 || pending}
                             className="rounded-[9px] px-3.5 py-[7px] text-[13px] font-bold text-white disabled:opacity-40"
                             style={{ background: "#E11D48" }}
                           >

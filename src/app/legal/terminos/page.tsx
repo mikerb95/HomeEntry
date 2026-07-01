@@ -6,9 +6,9 @@ import { LEGAL } from "../config";
 export const dynamic = "force-static";
 
 export const metadata: Metadata = {
-  title: "Términos y condiciones de uso · PortAl",
+  title: "Términos y condiciones de uso · La Oportunidad",
   description:
-    "Términos y condiciones que regulan el uso de la plataforma PortAl de gestión residencial.",
+    "Términos y condiciones que regulan el uso de la plataforma La Oportunidad de gestión residencial.",
 };
 
 export default function TerminosPage() {

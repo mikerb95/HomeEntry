@@ -3,7 +3,7 @@ import { Shell } from "@/components/Shell";
 
 export const dynamic = "force-static";
 
-// Public help page. Explains how to use PortAl for each role. There is no
+// Public help page. Explains how to use La Oportunidad for each role. There is no
 // global conjunto here (see RootPage), so links point at slug placeholders and
 // the QR flow rather than concrete panels.
 type Section = {
@@ -159,7 +159,7 @@ export default function AyudaPage() {
           </div>
           <div>
             <div className="font-display text-[24px] font-bold tracking-[-.5px]">
-              PortAl
+              La Oportunidad
             </div>
             <div className="text-[13.5px] font-semibold text-[#6B7585]">
               Centro de ayuda
@@ -168,7 +168,7 @@ export default function AyudaPage() {
         </div>
 
         <h1 className="mb-2.5 max-w-[620px] font-display text-[34px] font-bold leading-[1.1] tracking-[-1px]">
-          Cómo usar PortAl según tu rol
+          Cómo usar La Oportunidad según tu rol
         </h1>
         <p className="mb-8 max-w-[620px] text-[16px] leading-[1.55] text-[#6B7585]">
           Encuentra las instrucciones de uso para cada tipo de usuario. Si no
@@ -278,7 +278,7 @@ export default function AyudaPage() {
         <div className="mt-9 rounded-[16px] border border-[#E3E8EF] bg-white p-5 text-[13.5px] text-[#5B6675]">
           <span className="font-bold text-ink">¿Necesitas más ayuda? </span>
           Contacta a la administración de tu conjunto. Si eres administrador y aún
-          no tienes acceso, escribe al equipo de PortAl.
+          no tienes acceso, escribe al equipo de La Oportunidad.
         </div>
 
         <div className="mt-6 text-center">

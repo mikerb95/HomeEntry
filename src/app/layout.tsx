@@ -15,7 +15,7 @@ const grotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "PortAl · Gestión Residencial",
+  title: "La Oportunidad · Gestión Residencial",
   description: "Gestión de portería conectada por WhatsApp.",
   // Lets iOS launch the home-screen install in standalone (app) mode, which is
   // a prerequisite for Web Push notifications on iPhone.

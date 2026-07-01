@@ -12,9 +12,9 @@ import {
 } from "@/components/icons";
 
 export const metadata = {
-  title: "PortAl · Propuesta para administración y junta",
+  title: "La Oportunidad · Propuesta para administración y junta",
   description:
-    "Cómo funciona PortAl: módulos, roles, seguridad y beneficios para el conjunto residencial.",
+    "Cómo funciona La Oportunidad: módulos, roles, seguridad y beneficios para el conjunto residencial.",
 };
 
 function Section({
@@ -133,7 +133,7 @@ export default function ProposalPage() {
             Propuesta para administración y junta directiva
           </div>
           <h1 className="font-display text-[36px] font-bold leading-[1.08] tracking-[-1px] text-ink">
-            PortAl: portería digital conectada por WhatsApp
+            La Oportunidad: portería digital conectada por WhatsApp
           </h1>
           <p className="mx-auto mt-4 max-w-[560px] text-[16px] leading-[1.65] text-muted-2">
             Reemplaza el cuaderno de portería, los grupos de WhatsApp

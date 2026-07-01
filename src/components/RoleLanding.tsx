@@ -73,7 +73,7 @@ export function RoleLanding({
           P
         </div>
         <div className="font-display text-[24px] font-bold tracking-[-.5px]">
-          PortAl
+          La Oportunidad
         </div>
       </div>
 

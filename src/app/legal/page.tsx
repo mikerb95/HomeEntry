@@ -6,9 +6,9 @@ import { LEGAL } from "./config";
 export const dynamic = "force-static";
 
 export const metadata: Metadata = {
-  title: "Centro legal · PortAl",
+  title: "Centro legal · La Oportunidad",
   description:
-    "Términos y condiciones, política de tratamiento de datos personales y política de cookies de PortAl.",
+    "Términos y condiciones, política de tratamiento de datos personales y política de cookies de La Oportunidad.",
 };
 
 const docs = [

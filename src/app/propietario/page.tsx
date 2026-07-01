@@ -16,7 +16,7 @@ export default async function OwnerDashboard() {
   return (
     <Shell
       chrome={{
-        title: "PortAl",
+        title: "La Oportunidad",
         sub: `WhatsApp +57 ${fmtPhone(me?.phone ?? "")}`,
         role: "Propietario",
         badgeBg: "#EEE9FF",

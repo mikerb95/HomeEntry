@@ -4,7 +4,7 @@ import { Shell } from "@/components/Shell";
 export const dynamic = "force-static";
 
 // Public feature catalog. Unlike /ayuda (a role-based how-to), this page lists
-// everything PortAl can do, grouped by module. Kept in sync with the server
+// everything La Oportunidad can do, grouped by module. Kept in sync with the server
 // actions under src/app/actions and the panels each role uses.
 
 type Feature = { title: string; desc: string };
@@ -219,7 +219,7 @@ const modules: Module[] = [
     soft: "#EEF1F6",
     title: "Plataforma",
     intro:
-      "Capacidades transversales que hacen funcionar a PortAl en todos los conjuntos y roles.",
+      "Capacidades transversales que hacen funcionar a La Oportunidad en todos los conjuntos y roles.",
     features: [
       {
         title: "Arquitectura multi-conjunto",
@@ -261,7 +261,7 @@ export default function FuncionesPage() {
           </div>
           <div>
             <div className="font-display text-[24px] font-bold tracking-[-.5px]">
-              PortAl
+              La Oportunidad
             </div>
             <div className="text-[13.5px] font-semibold text-[#6B7585]">
               Funciones
@@ -270,7 +270,7 @@ export default function FuncionesPage() {
         </div>
 
         <h1 className="mb-2.5 max-w-[620px] font-display text-[34px] font-bold leading-[1.1] tracking-[-1px]">
-          Todo lo que puedes hacer con PortAl
+          Todo lo que puedes hacer con La Oportunidad
         </h1>
         <p className="mb-8 max-w-[620px] text-[16px] leading-[1.55] text-[#6B7585]">
           {totalFeatures} funciones organizadas por módulo para gestionar el

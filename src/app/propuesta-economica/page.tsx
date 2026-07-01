@@ -3,8 +3,8 @@ import { Shell } from "@/components/Shell";
 import { IconCheck } from "@/components/icons";
 
 export const metadata = {
-  title: "PortAl · Propuesta económica",
-  description: "Planes y precios de PortAl para conjuntos residenciales y administradoras.",
+  title: "La Oportunidad · Propuesta económica",
+  description: "Planes y precios de La Oportunidad para conjuntos residenciales y administradoras.",
 };
 
 type Tier = {

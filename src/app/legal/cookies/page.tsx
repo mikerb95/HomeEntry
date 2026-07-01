@@ -6,9 +6,9 @@ import { LEGAL } from "../config";
 export const dynamic = "force-static";
 
 export const metadata: Metadata = {
-  title: "Política de cookies y almacenamiento · PortAl",
+  title: "Política de cookies y almacenamiento · La Oportunidad",
   description:
-    "Cómo PortAl usa cookies técnicas, almacenamiento local y notificaciones push.",
+    "Cómo La Oportunidad usa cookies técnicas, almacenamiento local y notificaciones push.",
 };
 
 export default function CookiesPage() {

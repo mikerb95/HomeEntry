@@ -5,7 +5,7 @@
 // so they never drift apart across documents.
 export const LEGAL = {
   // Marca comercial visible al usuario final.
-  brand: "PortAl",
+  brand: "La Oportunidad",
 
   // Persona natural o jurídica que opera la plataforma (Encargado del
   // Tratamiento frente a los conjuntos; Responsable de sus propios datos).

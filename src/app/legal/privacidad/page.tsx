@@ -6,9 +6,9 @@ import { LEGAL } from "../config";
 export const dynamic = "force-static";
 
 export const metadata: Metadata = {
-  title: "Política de tratamiento de datos personales · PortAl",
+  title: "Política de tratamiento de datos personales · La Oportunidad",
   description:
-    "Política de tratamiento y protección de datos personales de PortAl conforme a la Ley 1581 de 2012 y el Decreto 1074 de 2015.",
+    "Política de tratamiento y protección de datos personales de La Oportunidad conforme a la Ley 1581 de 2012 y el Decreto 1074 de 2015.",
 };
 
 export default function PrivacidadPage() {
