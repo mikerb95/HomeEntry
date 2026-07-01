@@ -113,6 +113,7 @@ export function computeConjuntoSummary(
   const recaudoTotal = allPayments.reduce((a, p) => a + p.amount, 0);
   const moraTotal = aptBalances.reduce((a, b) => a + b.mora, 0);
   const gastoTotal = allExpenses.reduce((a, b) => a + b, 0);
+  const parqueaderoTotal = allParkingIncomes.reduce((a, b) => a + b, 0);
 
   return {
     aptBalances,
@@ -120,6 +121,7 @@ export function computeConjuntoSummary(
     recaudoTotal,
     moraTotal,
     gastoTotal,
-    balanceNeto: recaudoTotal - gastoTotal,
+    parqueaderoTotal,
+    balanceNeto: recaudoTotal + parqueaderoTotal - gastoTotal,
   };
 }

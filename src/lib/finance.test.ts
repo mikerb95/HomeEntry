@@ -82,6 +82,7 @@ describe("computeConjuntoSummary", () => {
       charges,
       payments,
       [30000, 20000],
+      [3000, 6000], // visitor-parking charges collected at the gate
       250,
       0,
       day(31),
@@ -90,6 +91,8 @@ describe("computeConjuntoSummary", () => {
     expect(summary.recaudoTotal).toBe(100000);
     expect(summary.moraTotal).toBeCloseTo(2500, 0);
     expect(summary.gastoTotal).toBe(50000);
-    expect(summary.balanceNeto).toBe(50000); // 100000 recaudo - 50000 gastos
+    expect(summary.parqueaderoTotal).toBe(9000);
+    // 100000 recaudo + 9000 parqueadero - 50000 gastos
+    expect(summary.balanceNeto).toBe(59000);
   });
 });
