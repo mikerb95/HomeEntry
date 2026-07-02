@@ -100,9 +100,28 @@ export function OwnersPanel({
         show(res.error || "Error", "warn");
         return;
       }
-      show("Propietario vinculado", "ok");
+      show(
+        res.created === false
+          ? "Unidad vinculada. El propietario ya existía y conserva su PIN actual"
+          : "Propietario vinculado",
+        "ok",
+      );
       setOpPhone("");
       setOpPin("");
+      router.refresh();
+    });
+  }
+
+  function submitPinReset(ownerId: string) {
+    start(async () => {
+      const res = await resetOwnerPin(slug, ownerId, newPin);
+      if (!res.ok) {
+        show(res.error || "Error", "warn");
+        return;
+      }
+      show("PIN restablecido. El propietario deberá iniciar sesión de nuevo", "ok");
+      setPinOwner(null);
+      setNewPin("");
       router.refresh();
     });
   }
