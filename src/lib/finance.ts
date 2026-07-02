@@ -4,12 +4,21 @@
 
 // Legal ceiling for `conjuntos.moraRatePct` (percent × 100, same encoding as
 // the column). Colombian mora on cuotas de administración is capped at 1.5×
-// the interés bancario corriente certified quarterly by the
-// Superintendencia Financiera (Ley 45/1990, art. 111 Código de Comercio) —
-// that rate moves over time and isn't fetched live here, so this constant is
-// a conservative ceiling the admin can't exceed from the UI. If the
-// certified rate ever allows a higher cap, raise this constant.
-export const MORA_RATE_CAP_PCT = 300; // 3.00% mensual
+// the interés bancario corriente (art. 884 Código de Comercio, modificado por
+// el art. 111 de la Ley 510 de 1999) — for Ley 675/2001 expensas comunes that
+// is the same "tasa de usura" the Superfinanciera certifies MONTHLY (not
+// quarterly). As of julio 2026 it's 28.79% EA (1.5× un IBC de 19.19% EA),
+// ≈ 2.13% efectivo mensual — https://www.superfinanciera.gov.co.
+//
+// That rate moves every month and isn't fetched live here, so this constant
+// is a deliberately conservative ceiling (below the current legal cap, not
+// at it) that blocks the UI from ever letting an admin configure an illegal
+// rate. Whoever maintains this must re-check the current certified rate
+// periodically — do NOT raise this constant without checking the current
+// tasa de usura first, since setting mora above the true legal cap doesn't
+// just risk a fine: art. 884 says the creditor loses ALL the interest, not
+// just the excess.
+export const MORA_RATE_CAP_PCT = 200; // 2.00% mensual (margen bajo ~2.13% actual)
 
 export type ChargeInput = {
   id: string;
