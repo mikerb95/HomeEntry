@@ -429,6 +429,25 @@ export function AdminPanel(props: Props) {
     });
   }
 
+  const debtorCount = props.aptBalances.filter((b) => b.total > 0).length;
+
+  function submitReminders() {
+    start(async () => {
+      const res = await sendPaymentReminders(props.slug);
+      if (!res.ok) {
+        show(res.error || "Error", "warn");
+        setRemModal(null);
+        return;
+      }
+      setRemModal({
+        notified: res.notified,
+        pushSent: res.pushSent,
+        skipped: res.skipped,
+        links: res.links,
+      });
+    });
+  }
+
   const coefSum = allApts.reduce((a, apt) => {
     const v = parseFloat((coefDraft[apt.id] || "0").replace(",", "."));
     return a + (isNaN(v) ? 0 : v);

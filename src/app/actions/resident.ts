@@ -92,3 +92,33 @@ export async function generateAuth(
     whenStr: fmtDateTime(when),
   };
 }
+
+// A resident files a service request for their own apartment — the only
+// creation path that isn't gated behind requireAdmin (see
+// registerServiceRequest in actions/owners.ts for the staff-side one).
+// `registeredBy` is tagged "residente:" so the admin/owner views can tell
+// who raised it apart from the staff-registered ones.
+export async function submitServiceRequest(
+  slug: string,
+  input: { subject: string; detail: string },
+): Promise<Result> {
+  const session = await requireResident(slug);
+  const subject = clampText(input.subject, 140);
+  if (!subject) return { ok: false, error: "Ingresa el asunto de la solicitud" };
+  const detail = clampText(input.detail, 500);
+  if (!detail) return { ok: false, error: "Describe la solicitud" };
+
+  await createServiceRequest({
+    conjuntoId: session.conjuntoId,
+    aptoKey: session.aptoKey,
+    tower: session.tower,
+    apt: session.apt,
+    subject,
+    detail,
+    registeredBy: `residente:${session.aptoKey}`,
+  });
+
+  revalidatePath(`/${slug}/residente/solicitudes`);
+  revalidatePath(`/${slug}/admin`);
+  return { ok: true };
+}
