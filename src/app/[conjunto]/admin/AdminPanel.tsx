@@ -956,6 +956,35 @@ export function AdminPanel(props: Props) {
             </div>
           </div>
 
+          <div className="mb-5 rounded-[20px] border border-[#E8ECF2] bg-white p-[22px]">
+            <h2 className="mb-3.5 font-display text-[16px] font-bold">
+              Antigüedad de cartera vencida
+            </h2>
+            <div className="grid grid-cols-2 gap-3.5 min-[680px]:grid-cols-4">
+              {[
+                { label: "1–30 días", value: props.agingTotals.d30, fg: "#B45309" },
+                { label: "31–60 días", value: props.agingTotals.d60, fg: "#C2410C" },
+                { label: "61–90 días", value: props.agingTotals.d90, fg: "#DC2626" },
+                { label: "Más de 90 días", value: props.agingTotals.d90plus, fg: "#991B1B" },
+              ].map((b) => (
+                <div
+                  key={b.label}
+                  className="rounded-[14px] border border-[#EEF1F6] bg-[#FAFBFD] p-3.5"
+                >
+                  <div className="mb-1.5 text-[12px] font-bold text-[#6B7585]">
+                    {b.label}
+                  </div>
+                  <div
+                    className="font-display text-[19px] font-bold tracking-[-.5px]"
+                    style={{ color: b.value > 0 ? b.fg : "#1B2432" }}
+                  >
+                    {fmtCOP(b.value)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <div className="overflow-hidden rounded-[20px] border border-[#E8ECF2] bg-white">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#EEF1F6] px-[22px] py-5">
               <div>
