@@ -395,6 +395,7 @@ export function AdminPanel(props: Props) {
         period: genPeriod,
         amount: genAmount,
         dueDate: genDue,
+        mode: genMode,
       });
       if (!res.ok) {
         show(res.error || "Error", "warn");
@@ -405,6 +406,39 @@ export function AdminPanel(props: Props) {
       setGenPeriod("");
       setGenAmount("");
       setGenDue("");
+      router.refresh();
+    });
+  }
+
+  const coefSum = useMemo(
+    () =>
+      allApts.reduce((a, apt) => {
+        const v = parseFloat((coefDraft[apt.id] || "0").replace(",", "."));
+        return a + (isNaN(v) ? 0 : v);
+      }, 0),
+    [allApts, coefDraft],
+  );
+  const coefComplete = Math.abs(coefSum - 100) < 0.01;
+
+  function submitCoefficients() {
+    for (const apt of allApts) {
+      const raw = coefDraft[apt.id];
+      if (!raw) continue;
+      const v = parseFloat(raw.replace(",", "."));
+      if (isNaN(v) || v < 0 || v > 100) {
+        show(`Coeficiente inválido en ${apt.label}`, "warn");
+        return;
+      }
+    }
+    start(async () => {
+      const res = await updateUnitCoefficients(props.slug, {
+        coefficients: coefDraft,
+      });
+      if (!res.ok) {
+        show(res.error || "Error", "warn");
+        return;
+      }
+      show("Coeficientes guardados", "ok");
       router.refresh();
     });
   }
@@ -928,15 +962,91 @@ export function AdminPanel(props: Props) {
                   Balance calculado en tiempo real
                 </div>
               </div>
-              <button
-                onClick={() => setGenOpen((v) => !v)}
-                className="rounded-[11px] border-[1.5px] border-[#E3E8EF] bg-white px-4 py-[11px] text-[13.5px] font-bold text-ink hover:bg-[#F6F8FB]"
-              >
-                Generar cuotas del mes
-              </button>
+              <div className="flex flex-wrap items-center gap-2.5">
+                <button
+                  onClick={() => setCoefOpen((v) => !v)}
+                  className="rounded-[11px] border-[1.5px] border-[#E3E8EF] bg-white px-4 py-[11px] text-[13.5px] font-bold text-ink hover:bg-[#F6F8FB]"
+                >
+                  Coeficientes
+                </button>
+                <button
+                  onClick={() => setGenOpen((v) => !v)}
+                  className="rounded-[11px] border-[1.5px] border-[#E3E8EF] bg-white px-4 py-[11px] text-[13.5px] font-bold text-ink hover:bg-[#F6F8FB]"
+                >
+                  Generar cuotas del mes
+                </button>
+              </div>
             </div>
+            {coefOpen && (
+              <div className="border-b border-[#EEF1F6] bg-[#FAFBFD] px-[22px] py-4">
+                <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+                  <div className="text-[13px] text-[#6B7585]">
+                    Coeficiente de copropiedad (%) por apartamento — se usa para
+                    repartir el presupuesto mensual al generar cuotas.
+                  </div>
+                  <div
+                    className={`text-[13px] font-bold ${
+                      coefComplete ? "text-[#0E9F6E]" : "text-[#B45309]"
+                    }`}
+                  >
+                    Suma: {coefSum.toFixed(4).replace(/\.?0+$/, "")}%
+                    {coefComplete ? " ✓" : " (debe sumar 100%)"}
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2.5 min-[680px]:grid-cols-4 min-[1040px]:grid-cols-6">
+                  {allApts.map((a) => (
+                    <div key={a.id}>
+                      <label className="mb-1 block text-[11px] font-bold uppercase tracking-[.5px] text-[#6B7585]">
+                        {a.label}
+                      </label>
+                      <div className="flex items-center rounded-[11px] border-[1.5px] border-[#E3E8EF] bg-white px-2.5">
+                        <input
+                          value={coefDraft[a.id] ?? ""}
+                          onChange={(e) =>
+                            setCoefDraft((d) => ({
+                              ...d,
+                              [a.id]: e.target.value.replace(/[^\d.,]/g, ""),
+                            }))
+                          }
+                          inputMode="decimal"
+                          placeholder="0"
+                          className="w-full bg-transparent py-2 text-[13.5px] font-semibold outline-none"
+                        />
+                        <span className="text-[12px] font-bold text-[#5B6675]">
+                          %
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  onClick={submitCoefficients}
+                  disabled={pending}
+                  className="mt-3.5 rounded-[11px] bg-blue px-4 py-[11px] text-[13.5px] font-extrabold text-white hover:bg-blue-dark disabled:opacity-70"
+                >
+                  {pending ? "Guardando…" : "Guardar coeficientes"}
+                </button>
+              </div>
+            )}
             {genOpen && (
               <div className="flex flex-wrap items-end gap-3 border-b border-[#EEF1F6] bg-[#FAFBFD] px-[22px] py-4">
+                <div>
+                  <label className="mb-1.5 block text-[11.5px] font-bold uppercase tracking-[.5px] text-[#6B7585]">
+                    Modo
+                  </label>
+                  <select
+                    value={genMode}
+                    onChange={(e) =>
+                      setGenMode(e.target.value as "fijo" | "coeficiente")
+                    }
+                    className="rounded-[11px] border-[1.5px] border-[#E3E8EF] bg-white px-[13px] py-[11px] text-[14px] font-semibold outline-none"
+                  >
+                    <option value="fijo">Monto fijo por apto</option>
+                    <option value="coeficiente">
+                      Presupuesto × coeficiente
+                    </option>
+                  </select>
+                </div>
                 <div>
                   <label className="mb-1.5 block text-[11.5px] font-bold uppercase tracking-[.5px] text-[#6B7585]">
                     Período
@@ -950,7 +1060,9 @@ export function AdminPanel(props: Props) {
                 </div>
                 <div>
                   <label className="mb-1.5 block text-[11.5px] font-bold uppercase tracking-[.5px] text-[#6B7585]">
-                    Monto por apto (COP)
+                    {genMode === "coeficiente"
+                      ? "Presupuesto del mes (COP)"
+                      : "Monto por apto (COP)"}
                   </label>
                   <input
                     value={genAmount}
