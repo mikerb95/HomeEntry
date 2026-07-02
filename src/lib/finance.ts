@@ -2,6 +2,15 @@
 // unit test. Amounts are plain numbers here — encryption/decryption happens
 // at the query layer (src/db/queries.ts), same split as resident phones.
 
+// Legal ceiling for `conjuntos.moraRatePct` (percent × 100, same encoding as
+// the column). Colombian mora on cuotas de administración is capped at 1.5×
+// the interés bancario corriente certified quarterly by the
+// Superintendencia Financiera (Ley 45/1990, art. 111 Código de Comercio) —
+// that rate moves over time and isn't fetched live here, so this constant is
+// a conservative ceiling the admin can't exceed from the UI. If the
+// certified rate ever allows a higher cap, raise this constant.
+export const MORA_RATE_CAP_PCT = 300; // 3.00% mensual
+
 export type ChargeInput = {
   id: string;
   aptoKey: string;
