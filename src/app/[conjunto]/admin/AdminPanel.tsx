@@ -37,6 +37,7 @@ import {
   type OwnerLink,
   type RequestRow,
 } from "./OwnersPanel";
+import { CarteleraPanel, type AnnouncementRow } from "./CarteleraPanel";
 import {
   IconUserSmall,
   IconPackage,
@@ -154,6 +155,7 @@ type Props = {
   ownerLinks: OwnerLink[];
   notices: NoticeRow[];
   serviceRequests: RequestRow[];
+  announcements: AnnouncementRow[];
 };
 
 const EXPENSE_CATEGORIES = [
