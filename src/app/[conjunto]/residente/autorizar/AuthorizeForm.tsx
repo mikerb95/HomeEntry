@@ -226,12 +226,13 @@ export function AuthorizeForm({ slug }: { slug: string }) {
           </div>
 
           <button
-            onClick={generate}
+            type="submit"
             disabled={pending}
             className="w-full rounded-[14px] bg-blue p-4 text-[15.5px] font-extrabold text-white hover:bg-blue-dark disabled:opacity-70"
           >
-            Generar autorización con QR
+            {pending ? "Generando…" : "Generar autorización con QR"}
           </button>
+          </form>
         </div>
 
         <div className="flex flex-col gap-[18px]">
