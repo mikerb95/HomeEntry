@@ -772,7 +772,7 @@ export async function listRecentFinanceAccessLog(conjuntoId: string, limit = 20)
 
 export type VendorView = {
   id: string;
-  category: string;
+  category: (typeof vendors.$inferSelect)["category"];
   name: string;
   taxId: string;
   contact: string;
