@@ -48,7 +48,13 @@ export async function updateMoraConfig(
 ): Promise<Result> {
   const session = await requireAdmin(slug);
   const cid = session.conjuntoId;
-  const moraRatePct = clampInt(input.moraRatePct, 0, 10000, 0); // up to 100.00%
+  const moraRatePct = clampInt(input.moraRatePct, 0, 100000, -1);
+  if (moraRatePct < 0) return { ok: false, error: "Tasa de mora inválida" };
+  if (moraRatePct > MORA_RATE_CAP_PCT)
+    return {
+      ok: false,
+      error: `La tasa de mora no puede superar el tope legal de ${(MORA_RATE_CAP_PCT / 100).toFixed(2)}% mensual (1.5x el interés bancario corriente certificado por la Superfinanciera)`,
+    };
   const moraGraceDays = clampInt(input.moraGraceDays, 0, 90, 0);
   await db
     .update(conjuntos)
