@@ -477,7 +477,9 @@ export const serviceRequests = pgTable(
 );
 
 export type City = typeof cities.$inferSelect;
+export type Company = typeof companies.$inferSelect;
 export type Conjunto = typeof conjuntos.$inferSelect;
+export type Unit = typeof units.$inferSelect;
 export type Resident = typeof residents.$inferSelect;
 export type ParkingSpot = typeof parkingSpots.$inferSelect;
 export type EventRow = typeof events.$inferSelect;
