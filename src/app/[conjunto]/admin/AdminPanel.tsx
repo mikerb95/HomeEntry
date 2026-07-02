@@ -1087,7 +1087,7 @@ export function AdminPanel(props: Props) {
                   presupuesto de cada generación de cuotas
                 </div>
               </div>
-              <div className="rounded-[14px] bg-gradient-to-br from-emerald to-emerald-dark px-5 py-4 text-white">
+              <div className="rounded-[14px] bg-gradient-to-br from-green to-green-dark px-5 py-4 text-white">
                 <div className="text-[12px] font-semibold opacity-85">
                   Saldo del fondo
                 </div>
