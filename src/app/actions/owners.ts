@@ -17,6 +17,22 @@ import { clampText, digits } from "@/lib/format";
 
 type Result = { ok: boolean; error?: string };
 
+const NOTICE_CATEGORIES = [
+  "ruido",
+  "mascotas",
+  "zonas_comunes",
+  "convivencia",
+  "otro",
+] as const;
+type NoticeCategory = (typeof NOTICE_CATEGORIES)[number];
+
+function clampNoticeCategory(v: unknown): NoticeCategory {
+  const s = String(v ?? "");
+  return (NOTICE_CATEGORIES as readonly string[]).includes(s)
+    ? (s as NoticeCategory)
+    : "otro";
+}
+
 // `created:false` means the phone already belonged to an owner: the unit was
 // linked but the typed PIN was NOT applied (the owner keeps their current
 // one). The UI surfaces this so the admin isn't misled.
@@ -93,7 +109,7 @@ export async function registerNotice(
     aptoKey: input.aptoKey,
     tower: input.tower,
     apt: input.apt,
-    category: input.category || "otro",
+    category: clampNoticeCategory(input.category),
     detail,
     registeredBy: `admin:${session.username}`,
   });

@@ -108,7 +108,9 @@ export const residents = pgTable(
     // verify the person really belongs to the apartment without a WhatsApp/SMS
     // OTP (the doorman already knows or can confirm the residents). Existing
     // rows and seeds default to "active" (they predate the approval flow).
-    status: text("status").notNull().default("active"), // 'active' | 'pending'
+    status: text("status", { enum: ["active", "pending"] })
+      .notNull()
+      .default("active"),
     // Bumping this invalidates every issued session for the resident.
     sessionVersion: integer("session_version").notNull().default(0),
     // PIN brute-force protection.
@@ -130,7 +132,7 @@ export const staffUsers = pgTable(
       .references(() => conjuntos.id),
     username: text("username").notNull(),
     passwordHash: text("password_hash").notNull(),
-    role: text("role").notNull(), // 'guard' | 'admin'
+    role: text("role", { enum: ["guard", "admin"] }).notNull(),
     sessionVersion: integer("session_version").notNull().default(0),
   },
   (t) => [primaryKey({ columns: [t.conjuntoId, t.username] })],
@@ -143,8 +145,10 @@ export const parkingSpots = pgTable(
       .notNull()
       .references(() => conjuntos.id),
     id: text("id").notNull(), // 'P-01' | 'M-01'
-    kind: text("kind").notNull(), // 'car' | 'moto'
-    status: text("status").notNull().default("free"), // 'free' | 'resident' | 'visitor'
+    kind: text("kind", { enum: ["car", "moto"] }).notNull(),
+    status: text("status", { enum: ["free", "resident", "visitor"] })
+      .notNull()
+      .default("free"),
     plate: text("plate").notNull().default(""),
     aptoKey: text("apto_key").notNull().default(""),
     // When the vehicle entered (set on assign, cleared on free). Null on free
@@ -162,7 +166,9 @@ export const events = pgTable(
       .notNull()
       .references(() => conjuntos.id),
     ts: timestamp("ts", { withTimezone: true }).notNull().defaultNow(),
-    type: text("type").notNull(), // visita | encomienda | parqueadero | mensaje
+    type: text("type", {
+      enum: ["visita", "encomienda", "parqueadero", "mensaje"],
+    }).notNull(),
     tower: text("tower").notNull(),
     apto: text("apto").notNull(),
     detail: text("detail").notNull(),
@@ -181,8 +187,11 @@ export const announcements = pgTable(
     conjuntoId: uuid("conjunto_id")
       .notNull()
       .references(() => conjuntos.id),
-    // general | mantenimiento | seguridad | evento | pago
-    category: text("category").notNull().default("general"),
+    category: text("category", {
+      enum: ["general", "mantenimiento", "seguridad", "evento", "pago"],
+    })
+      .notNull()
+      .default("general"),
     title: text("title").notNull(),
     body: text("body").notNull(),
     pinned: integer("pinned").notNull().default(0), // 0 | 1
@@ -212,7 +221,9 @@ export const authGrants = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
-    status: text("status").notNull().default("vigente"), // vigente | usado | vencido
+    status: text("status", { enum: ["vigente", "usado", "vencido"] })
+      .notNull()
+      .default("vigente"),
   },
   (t) => [index("auth_grants_conjunto_code_idx").on(t.conjuntoId, t.code)],
 );
@@ -230,9 +241,9 @@ export const parkingSessions = pgTable(
     conjuntoId: uuid("conjunto_id")
       .notNull()
       .references(() => conjuntos.id),
-    type: text("type").notNull(), // resident | visitor
+    type: text("type", { enum: ["resident", "visitor"] }).notNull(),
     aptoKey: text("apto_key").notNull(),
-    kind: text("kind").notNull(), // car | moto
+    kind: text("kind", { enum: ["car", "moto"] }).notNull(),
     plate: text("plate").notNull().default(""),
     hours: integer("hours").notNull(),
     amount: integer("amount").notNull().default(0), // COP charged on exit
@@ -292,7 +303,11 @@ export const vendors = pgTable(
       .notNull()
       .references(() => conjuntos.id),
     nameEnc: text("name_enc").notNull(),
-    category: text("category").notNull().default("otro"), // mantenimiento | aseo | jardineria | seguridad | otro
+    category: text("category", {
+      enum: ["mantenimiento", "aseo", "jardineria", "seguridad", "otro"],
+    })
+      .notNull()
+      .default("otro"),
     taxIdEnc: text("tax_id_enc"),
     contactEnc: text("contact_enc"),
     createdAt: timestamp("created_at", { withTimezone: true })
@@ -343,7 +358,13 @@ export const payments = pgTable(
     tower: text("tower").notNull(),
     apt: text("apt").notNull(),
     amountEnc: text("amount_enc").notNull(),
-    method: text("method").notNull().default("transferencia"),
+    // "acuerdo_pago" is synthetic — inserted by createPaymentAgreement to
+    // consolidate a unit's debt, never chosen manually in the payment form.
+    method: text("method", {
+      enum: ["transferencia", "efectivo", "otro", "acuerdo_pago"],
+    })
+      .notNull()
+      .default("transferencia"),
     gatewayRef: text("gateway_ref"),
     paidAt: timestamp("paid_at", { withTimezone: true }).notNull(),
     registeredBy: text("registered_by").notNull(),
@@ -367,7 +388,11 @@ export const expenses = pgTable(
       .notNull()
       .references(() => vendors.id),
     amountEnc: text("amount_enc").notNull(),
-    category: text("category").notNull().default("otro"),
+    category: text("category", {
+      enum: ["mantenimiento", "aseo", "jardineria", "seguridad", "otro"],
+    })
+      .notNull()
+      .default("otro"),
     descriptionEnc: text("description_enc").notNull(),
     invoiceRefEnc: text("invoice_ref_enc"),
     expenseDate: timestamp("expense_date", { withTimezone: true }).notNull(),
@@ -446,7 +471,11 @@ export const paymentAgreements = pgTable(
     totalAmountEnc: text("total_amount_enc").notNull(),
     installments: integer("installments").notNull(),
     startDate: timestamp("start_date", { withTimezone: true }).notNull(),
-    status: text("status").notNull().default("activo"), // activo | cumplido | incumplido
+    status: text("status", {
+      enum: ["activo", "cumplido", "incumplido"],
+    })
+      .notNull()
+      .default("activo"),
     registeredBy: text("registered_by").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
@@ -469,9 +498,15 @@ export const notices = pgTable(
     aptoKey: text("apto_key").notNull(),
     tower: text("tower").notNull(),
     apt: text("apt").notNull(),
-    category: text("category").notNull().default("otro"),
+    category: text("category", {
+      enum: ["ruido", "mascotas", "zonas_comunes", "convivencia", "otro"],
+    })
+      .notNull()
+      .default("otro"),
     detailEnc: text("detail_enc").notNull(),
-    status: text("status").notNull().default("abierto"), // abierto | cerrado
+    status: text("status", { enum: ["abierto", "cerrado"] })
+      .notNull()
+      .default("abierto"),
     registeredBy: text("registered_by").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
@@ -495,7 +530,11 @@ export const serviceRequests = pgTable(
     apt: text("apt").notNull(),
     subjectEnc: text("subject_enc").notNull(),
     detailEnc: text("detail_enc").notNull(),
-    status: text("status").notNull().default("abierto"), // abierto | en_proceso | resuelto
+    status: text("status", {
+      enum: ["abierto", "en_proceso", "resuelto"],
+    })
+      .notNull()
+      .default("abierto"),
     registeredBy: text("registered_by").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()

@@ -47,11 +47,30 @@ function clampAmount(v: unknown): number {
   return Math.max(0, parseInt(String(v ?? "").replace(/\D/g, "") || "0", 10));
 }
 
-const CATEGORIES = ["mantenimiento", "aseo", "jardineria", "seguridad", "otro"];
+const CATEGORIES = [
+  "mantenimiento",
+  "aseo",
+  "jardineria",
+  "seguridad",
+  "otro",
+] as const;
+type ServiceCategory = (typeof CATEGORIES)[number];
 
-function clampCategory(v: unknown): string {
+function clampCategory(v: unknown): ServiceCategory {
   const s = String(v ?? "");
-  return CATEGORIES.includes(s) ? s : "otro";
+  return (CATEGORIES as readonly string[]).includes(s)
+    ? (s as ServiceCategory)
+    : "otro";
+}
+
+const PAYMENT_METHODS = ["transferencia", "efectivo", "otro"] as const;
+type PaymentMethod = (typeof PAYMENT_METHODS)[number];
+
+function clampPaymentMethod(v: unknown): PaymentMethod {
+  const s = String(v ?? "");
+  return (PAYMENT_METHODS as readonly string[]).includes(s)
+    ? (s as PaymentMethod)
+    : "transferencia";
 }
 
 // --- Mora config -------------------------------------------------------------
@@ -282,9 +301,7 @@ export async function recordPayment(
   if (amount <= 0) return { ok: false, error: "Ingresa un monto válido" };
   const paidAt = input.paidAt ? new Date(input.paidAt) : new Date();
   if (isNaN(paidAt.getTime())) return { ok: false, error: "Fecha inválida" };
-  const method = ["transferencia", "efectivo", "otro"].includes(input.method)
-    ? input.method
-    : "transferencia";
+  const method = clampPaymentMethod(input.method);
   const [tower, apt] = input.aptoKey.split("-");
 
   await db.insert(payments).values({

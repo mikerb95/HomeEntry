@@ -9,11 +9,20 @@ import { clampText } from "@/lib/format";
 
 type Result = { ok: boolean; error?: string };
 
-const CATEGORIES = ["general", "mantenimiento", "seguridad", "evento", "pago"];
+const CATEGORIES = [
+  "general",
+  "mantenimiento",
+  "seguridad",
+  "evento",
+  "pago",
+] as const;
+type AnnouncementCategory = (typeof CATEGORIES)[number];
 
-function clampCategory(v: unknown): string {
+function clampCategory(v: unknown): AnnouncementCategory {
   const s = String(v ?? "");
-  return CATEGORIES.includes(s) ? s : "general";
+  return (CATEGORIES as readonly string[]).includes(s)
+    ? (s as AnnouncementCategory)
+    : "general";
 }
 
 // The board is conjunto-wide and residents read it on their dashboard and in
