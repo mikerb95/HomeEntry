@@ -47,23 +47,62 @@ export function encryptPII(plain: string): string {
   ].join(":");
 }
 
+function decryptRaw(blob: string): string {
+  const [ivB, tagB, encB] = blob.split(":");
+  if (!ivB || !tagB || !encB) throw new Error("Malformed ciphertext");
+  const decipher = createDecipheriv(
+    "aes-256-gcm",
+    key(),
+    Buffer.from(ivB, "base64"),
+  );
+  decipher.setAuthTag(Buffer.from(tagB, "base64"));
+  return Buffer.concat([
+    decipher.update(Buffer.from(encB, "base64")),
+    decipher.final(),
+  ]).toString("utf8");
+}
+
 export function decryptPII(blob: string): string {
   try {
-    const [ivB, tagB, encB] = blob.split(":");
-    if (!ivB || !tagB || !encB) return "";
-    const decipher = createDecipheriv(
-      "aes-256-gcm",
-      key(),
-      Buffer.from(ivB, "base64"),
-    );
-    decipher.setAuthTag(Buffer.from(tagB, "base64"));
-    return Buffer.concat([
-      decipher.update(Buffer.from(encB, "base64")),
-      decipher.final(),
-    ]).toString("utf8");
+    return decryptRaw(blob);
   } catch {
     return "";
   }
+}
+
+export class PIIDecryptError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "PIIDecryptError";
+  }
+}
+
+// Money fields (charges/payments/expenses/payment agreements) must never
+// silently collapse to $0 when decryption fails — that hides real cartera
+// and mora behind a clean-looking balance instead of surfacing the problem.
+// Unlike decryptPII (display-only text, where "" is a tolerable degradation),
+// this throws on a PII_SECRET mismatch or corrupted row so the failure is
+// loud (a 500) rather than a silently wrong financial number.
+export function decryptAmount(blob: string): number {
+  let plain: string;
+  try {
+    plain = decryptRaw(blob);
+  } catch (err) {
+    console.error(
+      "decryptAmount: failed to decrypt an encrypted amount (PII_SECRET mismatch or corrupted data)",
+      err,
+    );
+    throw new PIIDecryptError(
+      "Failed to decrypt an encrypted amount — check PII_SECRET or data integrity",
+    );
+  }
+  const n = parseInt(plain, 10);
+  if (!Number.isFinite(n) || n < 0) {
+    throw new PIIDecryptError(
+      `Decrypted amount is not a valid non-negative integer: "${plain}"`,
+    );
+  }
+  return n;
 }
 
 // Deterministic keyed hash for equality lookups (e.g. login by phone).
