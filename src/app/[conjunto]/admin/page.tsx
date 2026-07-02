@@ -4,6 +4,7 @@ export const dynamic = "force-dynamic";
 import {
   getConjuntoById,
   getFinancialSummary,
+  listAnnouncements,
   listEvents,
   listExpenses,
   listGuards,
@@ -47,6 +48,7 @@ export default async function AdminPanelPage({
     notices,
     serviceRequests,
     unitRows,
+    announcements,
   ] = await Promise.all([
     getConjuntoById(cid),
     listEvents(cid),

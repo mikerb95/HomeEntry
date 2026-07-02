@@ -1540,6 +1540,10 @@ export function AdminPanel(props: Props) {
         />
       )}
 
+      {tab === "cartelera" && (
+        <CarteleraPanel slug={props.slug} announcements={props.announcements} />
+      )}
+
       {cfgOpen && (
         <ConfigModal
           slug={props.slug}
