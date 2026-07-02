@@ -231,6 +231,9 @@ export function AdminPanel(props: Props) {
   const [payApt, setPayApt] = useState<{ key: string; label: string } | null>(
     null,
   );
+  const [agreementApt, setAgreementApt] = useState<
+    { key: string; label: string; debt: number } | null
+  >(null);
   const [genOpen, setGenOpen] = useState(false);
   const [genPeriod, setGenPeriod] = useState("");
   const [genAmount, setGenAmount] = useState("");
