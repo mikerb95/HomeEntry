@@ -43,6 +43,13 @@
       "when": 1782976742658,
       "tag": "0005_absurd_rhodey",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1783000369770,
+      "tag": "0006_thin_reptil",
+      "breakpoints": true
     }
   ]
 }
