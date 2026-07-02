@@ -144,6 +144,29 @@ export async function freeParking(
     isVisitor,
   );
 
+  // Free the spot first, conditionally: only the caller that actually flips
+  // it (still occupied, same plate we read) records the session, so two
+  // simultaneous exits can't double-bill the caja. The plate check also
+  // protects against the spot having been reassigned mid-flight.
+  const freed = await db
+    .update(parkingSpots)
+    .set({ status: "free", plate: "", aptoKey: "", enteredAt: null })
+    .where(
+      and(
+        eq(parkingSpots.conjuntoId, cid),
+        eq(parkingSpots.id, spotId),
+        ne(parkingSpots.status, "free"),
+        eq(parkingSpots.plate, spot.plate),
+      ),
+    )
+    .returning({ id: parkingSpots.id });
+  if (freed.length === 0) {
+    // Someone else already freed (or reassigned) it — nothing to bill here.
+    revalidatePath(`/${slug}/porteria`);
+    revalidatePath(`/${slug}/admin`);
+    return { ok: true };
+  }
+
   await db.insert(parkingSessions).values({
     conjuntoId: cid,
     type: isVisitor ? "visitor" : "resident",
@@ -154,11 +177,6 @@ export async function freeParking(
     amount,
     start: spot.enteredAt ?? now,
   });
-
-  await db
-    .update(parkingSpots)
-    .set({ status: "free", plate: "", aptoKey: "", enteredAt: null })
-    .where(and(eq(parkingSpots.conjuntoId, cid), eq(parkingSpots.id, spotId)));
 
   const [tower, apt] = spot.aptoKey.split("-");
   await db.insert(events).values({
