@@ -133,6 +133,22 @@ export function distributeByCoefficient(
   return out;
 }
 
+// Splits a total into `n` whole-peso installments that sum back to exactly
+// `total` (largest-remainder rounding, same technique as
+// distributeByCoefficient) — used to turn a unit's consolidated debt into an
+// acuerdo de pago's monthly cuotas.
+export function splitEvenly(total: number, n: number): number[] {
+  if (n <= 0) return [];
+  const base = Math.floor(total / n);
+  let remainder = total - base * n;
+  const out: number[] = [];
+  for (let i = 0; i < n; i++) {
+    out.push(base + (remainder > 0 ? 1 : 0));
+    remainder--;
+  }
+  return out;
+}
+
 export type ConjuntoSummary = {
   aptBalances: AptBalance[];
   carteraTotal: number;
