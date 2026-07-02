@@ -919,7 +919,7 @@ export type PaymentView = {
   tower: string;
   apt: string;
   amount: number;
-  method: string;
+  method: (typeof payments.$inferSelect)["method"];
   paidAt: Date;
   registeredBy: string;
   note: string;
@@ -970,7 +970,7 @@ export type PaymentAgreementView = {
   totalAmount: number;
   installments: number;
   startDate: Date;
-  status: string;
+  status: (typeof paymentAgreements.$inferSelect)["status"];
   registeredBy: string;
   createdAt: Date;
 };

@@ -94,6 +94,14 @@ type AptBalance = {
   enMora: boolean;
   aging: Aging;
 };
+type Agreement = {
+  id: string;
+  aptoKey: string;
+  totalAmount: number;
+  installments: number;
+  startDateIso: string;
+  status: string;
+};
 type Vendor = {
   id: string;
   name: string;
