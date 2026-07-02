@@ -7,6 +7,7 @@ import {
   listAnnouncements,
   listEvents,
   listExpenses,
+  listFondoMovements,
   listGuards,
   listNotices,
   listOwnerUnitsForConjunto,
@@ -22,6 +23,7 @@ import {
   logAccess,
 } from "@/db/queries";
 import { isToday, maskPhone, todayStr } from "@/lib/format";
+import { computeFondoBalance } from "@/lib/finance";
 import { Shell } from "@/components/Shell";
 import { AdminPanel } from "./AdminPanel";
 
@@ -51,6 +53,7 @@ export default async function AdminPanelPage({
     unitRows,
     announcements,
     agreements,
+    fondoMovements,
   ] = await Promise.all([
     getConjuntoById(cid),
     listEvents(cid),
@@ -69,6 +72,7 @@ export default async function AdminPanelPage({
     listUnits(cid),
     listAnnouncements(cid),
     listPaymentAgreements(cid),
+    listFondoMovements(cid),
   ]);
   if (!config) return null;
 
@@ -111,6 +115,16 @@ export default async function AdminPanelPage({
         visitorRateMoto={config.visitorRateMoto}
         moraRatePct={config.moraRatePct}
         moraGraceDays={config.moraGraceDays}
+        fondoImprevistosPct={config.fondoImprevistosPct}
+        fondoBalance={computeFondoBalance(fondoMovements)}
+        fondoMovements={fondoMovements.map((m) => ({
+          id: m.id,
+          type: m.type,
+          amount: m.amount,
+          concept: m.concept,
+          movementDateIso: m.movementDate.toISOString(),
+          registeredBy: m.registeredBy,
+        }))}
         todayStr={todayStr()}
         mVisits={mVisits}
         mPackages={mPackages}
