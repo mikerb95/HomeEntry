@@ -154,6 +154,7 @@ type Props = {
   aptBalances: AptBalance[];
   unitCoefficients: { aptoKey: string; coefficient: number }[];
   agingTotals: Aging;
+  agreements: Agreement[];
   carteraTotal: number;
   recaudoTotal: number;
   moraTotal: number;
