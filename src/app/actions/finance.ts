@@ -343,3 +343,91 @@ export async function deleteExpense(slug: string, expenseId: string): Promise<Re
   revalidatePath(`/${slug}/admin`);
   return { ok: true };
 }
+
+// --- Payment reminders ("recordatorios de cobro") ------------------------------
+
+export type ReminderResult =
+  | {
+      ok: true;
+      notified: number; // apts reached by WhatsApp API and/or push
+      pushSent: number; // total devices that got a push
+      // wa.me fallbacks for apts whose WhatsApp couldn't be sent server-side
+      // (no Meta credentials). The admin opens them one by one.
+      links: { aptoKey: string; amount: number; link: string }[];
+      skipped: number; // apts in debt with no registered resident
+    }
+  | { ok: false; error: string };
+
+// Sends a payment reminder to every apartment that currently owes money
+// (saldo + mora > 0): a web push to its registered devices and a WhatsApp —
+// direct when Meta credentials exist, otherwise returned as a wa.me link.
+export async function sendPaymentReminders(
+  slug: string,
+): Promise<ReminderResult> {
+  const session = await requireAdmin(slug);
+  const cid = session.conjuntoId;
+  const conjunto = await getConjuntoById(cid);
+  if (!conjunto) return { ok: false, error: "Conjunto no encontrado" };
+
+  const [summary, residents] = await Promise.all([
+    getFinancialSummary(cid),
+    listResidents(cid),
+  ]);
+  const phoneByApt = new Map(
+    residents
+      .filter((r) => r.status === "active")
+      .map((r) => [r.aptoKey, r.phone]),
+  );
+  const debtors = summary.aptBalances.filter((b) => b.total > 0);
+  if (!debtors.length)
+    return { ok: true, notified: 0, pushSent: 0, links: [], skipped: 0 };
+
+  let notified = 0;
+  let pushSent = 0;
+  let skipped = 0;
+  const links: { aptoKey: string; amount: number; link: string }[] = [];
+
+  for (const b of debtors) {
+    const amount = Math.round(b.total);
+    const [tower, apt] = b.aptoKey.split("-");
+    const text =
+      `Administración ${conjunto.name}: el apartamento ${apt} de la torre ` +
+      `${(tower || "").replace(/^T/, "")} presenta un saldo pendiente de ` +
+      `${fmtCOP(amount)} por cuotas de administración` +
+      (b.mora > 0 ? " (incluye intereses de mora)" : "") +
+      `. Puede consultar su estado de cuenta en el portal de residentes.`;
+
+    const push = await sendPushToApt(cid, b.aptoKey, {
+      title: "Recordatorio de pago",
+      body: text,
+      url: `/${slug}/residente/cuenta`,
+      tag: `recordatorio-${b.aptoKey}`,
+    });
+    pushSent += push.sent;
+
+    const phone = phoneByApt.get(b.aptoKey);
+    if (!phone) {
+      if (push.sent === 0) skipped++;
+      else notified++;
+      continue;
+    }
+    try {
+      const wa = await sendWhatsApp(phone, text);
+      if (wa.delivered || push.sent > 0) notified++;
+      if (!wa.delivered) links.push({ aptoKey: b.aptoKey, amount, link: wa.link });
+    } catch {
+      // Meta API hiccup for this number: fall back to a manual link.
+      if (push.sent > 0) notified++;
+      links.push({ aptoKey: b.aptoKey, amount, link: "" });
+    }
+  }
+
+  await logAccess(
+    cid,
+    `admin:${session.username}`,
+    "send_payment_reminders",
+    `${debtors.length} unidades`,
+  );
+  revalidatePath(`/${slug}/admin`);
+  return { ok: true, notified, pushSent, links, skipped };
+}
