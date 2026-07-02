@@ -3,11 +3,20 @@
 import { revalidatePath } from "next/cache";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { charges, conjuntos, expenses, payments, vendors } from "@/db/schema";
+import {
+  charges,
+  conjuntos,
+  expenses,
+  paymentAgreements,
+  payments,
+  vendors,
+} from "@/db/schema";
 import {
   countExpensesForVendor,
   getConjuntoById,
   getFinancialSummary,
+  listChargesForApt,
+  listPaymentsForApt,
   listResidents,
   listUnits,
   logAccess,
@@ -15,7 +24,12 @@ import {
 } from "@/db/queries";
 import { requireAdmin } from "@/lib/auth";
 import { encryptPII } from "@/lib/crypto";
-import { distributeByCoefficient } from "@/lib/finance";
+import {
+  computeAptBalance,
+  distributeByCoefficient,
+  MORA_RATE_CAP_PCT,
+  splitEvenly,
+} from "@/lib/finance";
 import { clampText, fmtCOP } from "@/lib/format";
 import { allAptsArr } from "@/lib/meta";
 import { sendPushToApt } from "@/lib/push";
