@@ -167,6 +167,15 @@ export function computeConjuntoSummary(
   const moraTotal = aptBalances.reduce((a, b) => a + b.mora, 0);
   const gastoTotal = allExpenses.reduce((a, b) => a + b, 0);
   const parqueaderoTotal = allParkingIncomes.reduce((a, b) => a + b, 0);
+  const agingTotals = aptBalances.reduce(
+    (a, b) => ({
+      d30: a.d30 + b.aging.d30,
+      d60: a.d60 + b.aging.d60,
+      d90: a.d90 + b.aging.d90,
+      d90plus: a.d90plus + b.aging.d90plus,
+    }),
+    { d30: 0, d60: 0, d90: 0, d90plus: 0 },
+  );
 
   return {
     aptBalances,
@@ -176,5 +185,6 @@ export function computeConjuntoSummary(
     gastoTotal,
     parqueaderoTotal,
     balanceNeto: recaudoTotal + parqueaderoTotal - gastoTotal,
+    agingTotals,
   };
 }
