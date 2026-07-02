@@ -59,6 +59,7 @@ import {
   ParkingStatus,
 } from "@/lib/meta";
 import { fmtCOP, fmtTime } from "@/lib/format";
+import { FONDO_IMPREVISTOS_MIN_PCT } from "@/lib/finance";
 import { useToast } from "@/lib/toast";
 
 type Ev = {
