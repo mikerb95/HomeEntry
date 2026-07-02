@@ -15,12 +15,14 @@ export const statusMeta: Record<
     label: "Libre",
     dot: "#22C55E",
   },
+  // Blue (the resident accent everywhere else) instead of red: red reads as
+  // "problem" to a new guard, but an occupied-by-resident spot is normal.
   resident: {
-    bg: "#FDE7EA",
-    border: "#F19AA8",
-    fg: "#BE123C",
+    bg: "#EAF1FF",
+    border: "#9DBBFF",
+    fg: "#1E4FD6",
     label: "Residente",
-    dot: "#E11D48",
+    dot: "#2F6BFF",
   },
   visitor: {
     bg: "#FEF3DC",
