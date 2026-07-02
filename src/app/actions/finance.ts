@@ -455,3 +455,102 @@ export async function sendPaymentReminders(
   revalidatePath(`/${slug}/admin`);
   return { ok: true, notified, pushSent, links, skipped };
 }
+
+// --- Payment agreements (acuerdos de pago) --------------------------------------
+
+// Consolidates a unit's current debt (saldo + mora) into an installment plan:
+// inserts a synthetic payment for the consolidated amount (so the old charges
+// stop accruing further mora) plus one new charge per installment. From then
+// on the installments behave like any other charge — mora accrues normally
+// if one goes unpaid, so a broken agreement needs no special handling.
+export async function createPaymentAgreement(
+  slug: string,
+  input: { aptoKey: string; installments: string; startDate: string },
+): Promise<Result> {
+  const session = await requireAdmin(slug);
+  const cid = session.conjuntoId;
+  const conjunto = await getConjuntoById(cid);
+  if (!conjunto) return { ok: false, error: "Conjunto no encontrado" };
+
+  const valid = new Set(
+    allAptsArr(conjunto.towers, conjunto.aptsPerTower).map((a) => a.id),
+  );
+  if (!valid.has(input.aptoKey))
+    return { ok: false, error: "Apartamento inválido" };
+
+  const installments = clampInt(input.installments, 2, 36, 0);
+  if (installments < 2)
+    return { ok: false, error: "Elige entre 2 y 36 cuotas" };
+
+  const startDate = new Date(input.startDate);
+  if (isNaN(startDate.getTime()))
+    return { ok: false, error: "Fecha de inicio inválida" };
+
+  const [aptCharges, aptPayments] = await Promise.all([
+    listChargesForApt(cid, input.aptoKey),
+    listPaymentsForApt(cid, input.aptoKey),
+  ]);
+  const balance = computeAptBalance(
+    aptCharges,
+    aptPayments,
+    conjunto.moraRatePct,
+    conjunto.moraGraceDays,
+  );
+  const totalAmount = Math.round(balance.total);
+  if (totalAmount <= 0)
+    return { ok: false, error: "La unidad no tiene saldo pendiente que acordar" };
+
+  const [tower, apt] = input.aptoKey.split("-");
+  const cuotas = splitEvenly(totalAmount, installments);
+
+  // Consolidating payment: offsets every existing overdue charge (oldest
+  // first, per computeAptBalance's rules) so mora stops accruing on them.
+  await db.insert(payments).values({
+    conjuntoId: cid,
+    aptoKey: input.aptoKey,
+    tower,
+    apt,
+    amountEnc: encryptPII(String(totalAmount)),
+    method: "acuerdo_pago",
+    paidAt: new Date(),
+    registeredBy: session.username,
+    noteEnc: encryptPII(`Consolidado en acuerdo de pago a ${installments} cuotas`),
+  });
+
+  await db.insert(charges).values(
+    cuotas.map((amount, i) => {
+      const dueDate = new Date(startDate);
+      dueDate.setMonth(dueDate.getMonth() + i);
+      return {
+        conjuntoId: cid,
+        aptoKey: input.aptoKey,
+        tower,
+        apt,
+        period: `${dueDate.getFullYear()}-${String(dueDate.getMonth() + 1).padStart(2, "0")}`,
+        concept: `Acuerdo de pago (cuota ${i + 1}/${installments})`,
+        amountEnc: encryptPII(String(amount)),
+        dueDate,
+      };
+    }),
+  );
+
+  await db.insert(paymentAgreements).values({
+    conjuntoId: cid,
+    aptoKey: input.aptoKey,
+    tower,
+    apt,
+    totalAmountEnc: encryptPII(String(totalAmount)),
+    installments,
+    startDate,
+    registeredBy: session.username,
+  });
+
+  await logAccess(
+    cid,
+    `admin:${session.username}`,
+    "create_payment_agreement",
+    input.aptoKey,
+  );
+  revalidatePath(`/${slug}/admin`);
+  return { ok: true };
+}
