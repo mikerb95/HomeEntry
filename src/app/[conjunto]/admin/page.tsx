@@ -142,6 +142,7 @@ export default async function AdminPanelPage({
           aptoKey: u.aptoKey,
           coefficient: u.coefficient,
         }))}
+        agingTotals={financeSummary.agingTotals}
         carteraTotal={financeSummary.carteraTotal}
         recaudoTotal={financeSummary.recaudoTotal}
         moraTotal={financeSummary.moraTotal}
