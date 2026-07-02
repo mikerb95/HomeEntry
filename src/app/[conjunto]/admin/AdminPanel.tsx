@@ -1144,10 +1144,10 @@ export function AdminPanel(props: Props) {
                   >
                     {v.name}
                     <button
-                      onClick={() => removeVendor(v.id)}
+                      onClick={() => setVendorToDelete(v)}
                       disabled={pending}
                       aria-label={`Eliminar proveedor ${v.name}`}
-                      className="flex h-[18px] w-[18px] items-center justify-center rounded-full bg-white text-[11px] text-[#6B7585] hover:text-rose disabled:opacity-50"
+                      className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-[11px] text-[#6B7585] hover:text-rose disabled:opacity-50"
                     >
                       ✕
                     </button>
@@ -1361,7 +1361,7 @@ export function AdminPanel(props: Props) {
                             Restablecer contraseña
                           </button>
                           <button
-                            onClick={() => removeGuard(g.username)}
+                            onClick={() => setGuardToDelete(g.username)}
                             disabled={props.guards.length <= 1 || pending}
                             className="rounded-[9px] px-3.5 py-[7px] text-[13px] font-bold text-white disabled:opacity-40"
                             style={{ background: "#E11D48" }}
@@ -1459,6 +1459,36 @@ export function AdminPanel(props: Props) {
           slug={props.slug}
           username={resetGuardUser}
           onClose={() => setResetGuardUser(null)}
+        />
+      )}
+
+      {vendorToDelete && (
+        <ConfirmDialog
+          title="Eliminar proveedor"
+          body={
+            <>
+              Se eliminará <strong>{vendorToDelete.name}</strong> de la lista de
+              proveedores. Los gastos ya registrados se conservan.
+            </>
+          }
+          pending={pending}
+          onConfirm={() => removeVendor(vendorToDelete.id)}
+          onClose={() => setVendorToDelete(null)}
+        />
+      )}
+
+      {guardToDelete && (
+        <ConfirmDialog
+          title="Eliminar vigilante"
+          body={
+            <>
+              <strong>{guardToDelete}</strong> perderá el acceso a portería y su
+              sesión activa se cerrará.
+            </>
+          }
+          pending={pending}
+          onConfirm={() => removeGuard(guardToDelete)}
+          onClose={() => setGuardToDelete(null)}
         />
       )}
     </div>
