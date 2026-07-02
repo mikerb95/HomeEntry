@@ -158,6 +158,26 @@ export function splitEvenly(total: number, n: number): number[] {
   return out;
 }
 
+// Ley 675/2001 art. 35: floor an admin can't configure `fondoImprevistosPct`
+// below — 1.00% (percent × 100, same encoding as the column). Raising it is
+// always allowed; this only blocks going under the legal minimum.
+export const FONDO_IMPREVISTOS_MIN_PCT = 100; // 1.00%
+
+export type FondoMovementInput = {
+  type: "aporte" | "retiro";
+  amount: number;
+};
+
+// Running balance of the fondo de imprevistos: aportes minus retiros, in the
+// order they were recorded (order doesn't actually matter for a plain sum,
+// but callers pass movements chronologically for a readable running ledger).
+export function computeFondoBalance(movements: FondoMovementInput[]): number {
+  return movements.reduce(
+    (a, m) => a + (m.type === "aporte" ? m.amount : -m.amount),
+    0,
+  );
+}
+
 export type ConjuntoSummary = {
   aptBalances: AptBalance[];
   carteraTotal: number;

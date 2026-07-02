@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   computeAptBalance,
   computeConjuntoSummary,
+  computeFondoBalance,
   distributeByCoefficient,
   splitEvenly,
 } from "./finance";
@@ -192,5 +193,20 @@ describe("splitEvenly", () => {
   it("returns an empty array for zero or negative installments", () => {
     expect(splitEvenly(100000, 0)).toEqual([]);
     expect(splitEvenly(100000, -1)).toEqual([]);
+  });
+});
+
+describe("computeFondoBalance", () => {
+  it("sums aportes and subtracts retiros", () => {
+    const balance = computeFondoBalance([
+      { type: "aporte", amount: 100000 },
+      { type: "aporte", amount: 50000 },
+      { type: "retiro", amount: 30000 },
+    ]);
+    expect(balance).toBe(120000);
+  });
+
+  it("returns 0 for an empty ledger", () => {
+    expect(computeFondoBalance([])).toBe(0);
   });
 });

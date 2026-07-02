@@ -16,6 +16,7 @@ import {
   createVendor,
   deleteVendor,
   sendPaymentReminders,
+  updateFondoConfig,
 } from "@/app/actions/finance";
 import {
   createGuard,
@@ -28,6 +29,7 @@ import { TabBar } from "@/components/TabBar";
 import { ParkingModal, ModalSpot } from "@/components/ParkingModal";
 import { PaymentModal } from "@/components/PaymentModal";
 import { PaymentAgreementModal } from "@/components/PaymentAgreementModal";
+import { FondoMovementModal } from "@/components/FondoMovementModal";
 import { ExpenseModal } from "@/components/ExpenseModal";
 import {
   PendingResidents,
@@ -102,6 +104,14 @@ type Agreement = {
   startDateIso: string;
   status: string;
 };
+type FondoMovement = {
+  id: string;
+  type: "aporte" | "retiro";
+  amount: number;
+  concept: string;
+  movementDateIso: string;
+  registeredBy: string;
+};
 type Vendor = {
   id: string;
   name: string;
@@ -143,6 +153,9 @@ type Props = {
   visitorRateMoto: number;
   moraRatePct: number;
   moraGraceDays: number;
+  fondoImprevistosPct: number;
+  fondoBalance: number;
+  fondoMovements: FondoMovement[];
   todayStr: string;
   mVisits: number;
   mPackages: number;
@@ -237,6 +250,10 @@ export function AdminPanel(props: Props) {
     props.moraRatePct ? String(props.moraRatePct / 100) : "0",
   );
   const [moraGrace, setMoraGrace] = useState(String(props.moraGraceDays));
+  const [fondoPct, setFondoPct] = useState(
+    String(props.fondoImprevistosPct / 100),
+  );
+  const [fondoModalOpen, setFondoModalOpen] = useState(false);
   const [payApt, setPayApt] = useState<{ key: string; label: string } | null>(
     null,
   );
@@ -417,6 +434,25 @@ export function AdminPanel(props: Props) {
         return;
       }
       show("Configuración de mora guardada", "ok");
+      router.refresh();
+    });
+  }
+
+  function saveFondoConfig() {
+    const pct = parseFloat(fondoPct.replace(",", "."));
+    if (isNaN(pct) || pct < 0) {
+      show("Ingresa un porcentaje válido", "warn");
+      return;
+    }
+    start(async () => {
+      const res = await updateFondoConfig(props.slug, {
+        fondoImprevistosPct: String(Math.round(pct * 100)),
+      });
+      if (!res.ok) {
+        show(res.error || "Error", "warn");
+        return;
+      }
+      show("Configuración del fondo guardada", "ok");
       router.refresh();
     });
   }
@@ -1037,6 +1073,96 @@ export function AdminPanel(props: Props) {
                 </div>
               ))}
             </div>
+          </div>
+
+          <div className="mb-5 rounded-[20px] border border-[#E8ECF2] bg-white p-[22px]">
+            <div className="mb-3.5 flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <h2 className="font-display text-[16px] font-bold">
+                  Fondo de imprevistos
+                </h2>
+                <div className="mt-0.5 text-[13px] text-[#6B7585]">
+                  Ley 675 de 2001, art. 35 — mínimo{" "}
+                  {(FONDO_IMPREVISTOS_MIN_PCT / 100).toFixed(2)}% del
+                  presupuesto de cada generación de cuotas
+                </div>
+              </div>
+              <div className="rounded-[14px] bg-gradient-to-br from-emerald to-emerald-dark px-5 py-4 text-white">
+                <div className="text-[12px] font-semibold opacity-85">
+                  Saldo del fondo
+                </div>
+                <div className="font-display text-[24px] font-bold tracking-[-.6px]">
+                  {fmtCOP(props.fondoBalance)}
+                </div>
+              </div>
+            </div>
+
+            <div className="mb-4 flex flex-wrap items-end gap-3 rounded-[14px] bg-[#F6F8FB] p-4">
+              <div>
+                <label className="mb-1.5 block text-[11.5px] font-bold uppercase tracking-[.5px] text-[#6B7585]">
+                  % del presupuesto por período
+                </label>
+                <div className="flex items-center rounded-[11px] border-[1.5px] border-[#E3E8EF] bg-white px-3">
+                  <input
+                    value={fondoPct}
+                    onChange={(e) =>
+                      setFondoPct(e.target.value.replace(/[^\d.,]/g, ""))
+                    }
+                    inputMode="decimal"
+                    className="w-[80px] bg-transparent px-1.5 py-2.5 text-[15px] font-bold outline-none"
+                  />
+                  <span className="font-bold text-[#5B6675]">%</span>
+                </div>
+              </div>
+              <button
+                onClick={saveFondoConfig}
+                disabled={pending}
+                className="rounded-[11px] bg-blue px-4 py-[13px] text-[13.5px] font-extrabold text-white hover:bg-blue-dark disabled:opacity-70"
+              >
+                {pending ? "Guardando…" : "Guardar"}
+              </button>
+              <button
+                onClick={() => setFondoModalOpen(true)}
+                className="ml-auto rounded-[11px] border-[1.5px] border-[#E3E8EF] bg-white px-4 py-[13px] text-[13.5px] font-bold text-ink hover:bg-[#F6F8FB]"
+              >
+                Registrar movimiento
+              </button>
+            </div>
+
+            {props.fondoMovements.length > 0 && (
+              <div className="overflow-x-auto rounded-[14px] border border-[#EEF1F6]">
+                <table className="w-full min-w-[560px] border-collapse">
+                  <thead>
+                    <tr className="bg-[#FAFBFD]">
+                      <th className={`${th} pl-4`}>Fecha</th>
+                      <th className={th}>Concepto</th>
+                      <th className={`${th} text-right pr-4`}>Monto</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {props.fondoMovements.slice(0, 8).map((m) => (
+                      <tr key={m.id} className="border-t border-[#F0F3F7]">
+                        <td className="px-4 py-3 text-[13px] text-[#6B7585]">
+                          {new Date(m.movementDateIso).toLocaleDateString("es-CO")}
+                        </td>
+                        <td className="px-3.5 py-3 text-[13.5px] text-ink">
+                          {m.concept}
+                        </td>
+                        <td
+                          className="px-3.5 py-3 pr-4 text-right text-[13.5px] font-bold"
+                          style={{
+                            color: m.type === "aporte" ? "#16A34A" : "#E11D48",
+                          }}
+                        >
+                          {m.type === "aporte" ? "+" : "−"}
+                          {fmtCOP(m.amount)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
 
           <div className="overflow-hidden rounded-[20px] border border-[#E8ECF2] bg-white">

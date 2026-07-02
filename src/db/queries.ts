@@ -19,6 +19,7 @@ import {
   parkingSpots,
   paymentAgreements,
   payments,
+  reserveFundMovements,
   residents,
   serviceRequests,
   staffUsers,
@@ -1001,6 +1002,41 @@ export async function listPaymentAgreements(
     .where(eq(paymentAgreements.conjuntoId, conjuntoId))
     .orderBy(desc(paymentAgreements.createdAt));
   return rows.map(toPaymentAgreementView);
+}
+
+// --- Reserve fund (fondo de imprevistos) --------------------------------------
+
+export type FondoMovementView = {
+  id: string;
+  type: "aporte" | "retiro";
+  amount: number;
+  concept: string;
+  movementDate: Date;
+  registeredBy: string;
+};
+
+function toFondoMovementView(
+  m: typeof reserveFundMovements.$inferSelect,
+): FondoMovementView {
+  return {
+    id: m.id,
+    type: m.type,
+    amount: decryptAmount(m.amountEnc),
+    concept: decryptPII(m.conceptEnc),
+    movementDate: m.movementDate,
+    registeredBy: m.registeredBy,
+  };
+}
+
+export async function listFondoMovements(
+  conjuntoId: string,
+): Promise<FondoMovementView[]> {
+  const rows = await db
+    .select()
+    .from(reserveFundMovements)
+    .where(eq(reserveFundMovements.conjuntoId, conjuntoId))
+    .orderBy(desc(reserveFundMovements.movementDate));
+  return rows.map(toFondoMovementView);
 }
 
 // --- Expenses (gastos por proveedor) ---------------------------------------

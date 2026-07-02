@@ -492,6 +492,34 @@ export const paymentAgreements = pgTable(
   ],
 );
 
+// Fondo de imprevistos ledger (Ley 675/2001 art. 35): "aporte" grows the
+// reserve — the automatic ones are inserted by generateMonthlyCharges (a
+// cut of every batch of cuotas generated) and admins can also log a manual
+// aporte (e.g. rendimientos financieros, an assembly-approved extra
+// contribution); "retiro" spends it down for an imprevisto approved by
+// asamblea. The running balance is just aportes minus retiros — see
+// computeFondoBalance in src/lib/finance.ts.
+export const reserveFundMovements = pgTable(
+  "reserve_fund_movements",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    conjuntoId: uuid("conjunto_id")
+      .notNull()
+      .references(() => conjuntos.id),
+    type: text("type", { enum: ["aporte", "retiro"] }).notNull(),
+    amountEnc: text("amount_enc").notNull(),
+    conceptEnc: text("concept_enc").notNull(),
+    movementDate: timestamp("movement_date", { withTimezone: true }).notNull(),
+    registeredBy: text("registered_by").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("reserve_fund_movements_conjunto_idx").on(t.conjuntoId),
+  ],
+);
+
 // Disciplinary/attention notices ("llamados de atención") raised by staff
 // against a unit. Detail is encrypted like other free-text PII fields.
 export const notices = pgTable(
@@ -567,4 +595,5 @@ export type Vendor = typeof vendors.$inferSelect;
 export type Charge = typeof charges.$inferSelect;
 export type Payment = typeof payments.$inferSelect;
 export type PaymentAgreement = typeof paymentAgreements.$inferSelect;
+export type ReserveFundMovement = typeof reserveFundMovements.$inferSelect;
 export type Expense = typeof expenses.$inferSelect;

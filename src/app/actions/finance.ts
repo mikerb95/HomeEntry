@@ -9,6 +9,7 @@ import {
   expenses,
   paymentAgreements,
   payments,
+  reserveFundMovements,
   vendors,
 } from "@/db/schema";
 import {
@@ -16,6 +17,7 @@ import {
   getConjuntoById,
   getFinancialSummary,
   listChargesForApt,
+  listFondoMovements,
   listPaymentsForApt,
   listResidents,
   listUnits,
@@ -27,6 +29,7 @@ import { encryptPII } from "@/lib/crypto";
 import {
   computeAptBalance,
   distributeByCoefficient,
+  FONDO_IMPREVISTOS_MIN_PCT,
   MORA_RATE_CAP_PCT,
   splitEvenly,
 } from "@/lib/finance";
@@ -258,6 +261,7 @@ export async function generateMonthlyCharges(
         apt,
         period,
         concept,
+        amount: amountByApt.get(a.id)!,
         amountEnc: encryptPII(String(amountByApt.get(a.id))),
         dueDate,
       };
@@ -274,7 +278,34 @@ export async function generateMonthlyCharges(
       .where(and(eq(charges.conjuntoId, cid), eq(charges.period, period)));
     const already = new Set(existing.map((e) => `${e.aptoKey}::${e.concept}`));
     const toInsert = rows.filter((r) => !already.has(`${r.aptoKey}::${r.concept}`));
-    if (toInsert.length) await db.insert(charges).values(toInsert);
+    if (toInsert.length) {
+      await db
+        .insert(charges)
+        .values(toInsert.map(({ amount: _amount, ...r }) => r));
+
+      // Ley 675/2001 art. 35: the fondo de imprevistos grows with a fixed
+      // percentage of the presupuesto — this batch of cuotas is the closest
+      // proxy this system has to "presupuesto" (no separate budget object
+      // exists yet), so every batch contributes automatically. Skipped
+      // duplicate rows (double-click) correctly don't count twice since
+      // they're already excluded from toInsert.
+      const totalGenerated = toInsert.reduce((a, r) => a + r.amount, 0);
+      const fondoAmount = Math.round(
+        (totalGenerated * conjunto.fondoImprevistosPct) / 10000,
+      );
+      if (fondoAmount > 0) {
+        await db.insert(reserveFundMovements).values({
+          conjuntoId: cid,
+          type: "aporte",
+          amountEnc: encryptPII(String(fondoAmount)),
+          conceptEnc: encryptPII(
+            `Aporte automático al fondo de imprevistos (${period}, ${(conjunto.fondoImprevistosPct / 100).toFixed(2)}% de ${fmtCOP(totalGenerated)})`,
+          ),
+          movementDate: new Date(),
+          registeredBy: session.username,
+        });
+      }
+    }
   }
 
   await logAccess(cid, `admin:${session.username}`, "generate_monthly_charges", period);
@@ -567,6 +598,81 @@ export async function createPaymentAgreement(
     `admin:${session.username}`,
     "create_payment_agreement",
     input.aptoKey,
+  );
+  revalidatePath(`/${slug}/admin`);
+  return { ok: true };
+}
+
+// --- Fondo de imprevistos (reserve fund) ----------------------------------------
+
+// Ley 675/2001 art. 35 sets the floor, not a ceiling: raising the percentage
+// is always allowed, only going below the legal minimum is blocked.
+export async function updateFondoConfig(
+  slug: string,
+  input: { fondoImprevistosPct: string },
+): Promise<Result> {
+  const session = await requireAdmin(slug);
+  const cid = session.conjuntoId;
+  const pct = clampInt(input.fondoImprevistosPct, 0, 100000, -1);
+  if (pct < 0) return { ok: false, error: "Porcentaje inválido" };
+  if (pct < FONDO_IMPREVISTOS_MIN_PCT)
+    return {
+      ok: false,
+      error: `El fondo de imprevistos no puede ser menor al mínimo legal de ${(FONDO_IMPREVISTOS_MIN_PCT / 100).toFixed(2)}% del presupuesto (Ley 675 de 2001, art. 35)`,
+    };
+  await db
+    .update(conjuntos)
+    .set({ fondoImprevistosPct: pct })
+    .where(eq(conjuntos.id, cid));
+  await logAccess(cid, `admin:${session.username}`, "update_fondo_config", cid);
+  revalidatePath(`/${slug}/admin`);
+  return { ok: true };
+}
+
+// Manual movement: a rendimiento financiero, an assembly-approved extra
+// aporte, or a retiro to cover an approved imprevisto. Automatic aportes from
+// generateMonthlyCharges don't go through here.
+export async function registerFondoMovement(
+  slug: string,
+  input: { type: string; amount: string; concept: string; date: string },
+): Promise<Result> {
+  const session = await requireAdmin(slug);
+  const cid = session.conjuntoId;
+  const type = input.type === "retiro" ? "retiro" : "aporte";
+  const amount = clampAmount(input.amount);
+  if (amount <= 0) return { ok: false, error: "Ingresa un monto válido" };
+  const concept = clampText(input.concept, 200);
+  if (!concept) return { ok: false, error: "Ingresa un concepto" };
+  const movementDate = input.date ? new Date(input.date) : new Date();
+  if (isNaN(movementDate.getTime()))
+    return { ok: false, error: "Fecha inválida" };
+
+  if (type === "retiro") {
+    const movements = await listFondoMovements(cid);
+    const balance = movements.reduce(
+      (a, m) => a + (m.type === "aporte" ? m.amount : -m.amount),
+      0,
+    );
+    if (amount > balance)
+      return {
+        ok: false,
+        error: `El retiro (${fmtCOP(amount)}) supera el saldo disponible del fondo (${fmtCOP(balance)})`,
+      };
+  }
+
+  await db.insert(reserveFundMovements).values({
+    conjuntoId: cid,
+    type,
+    amountEnc: encryptPII(String(amount)),
+    conceptEnc: encryptPII(concept),
+    movementDate,
+    registeredBy: session.username,
+  });
+  await logAccess(
+    cid,
+    `admin:${session.username}`,
+    "register_fondo_movement",
+    type,
   );
   revalidatePath(`/${slug}/admin`);
   return { ok: true };

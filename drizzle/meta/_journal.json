@@ -50,6 +50,13 @@
       "when": 1783000369770,
       "tag": "0006_thin_reptil",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1783002969961,
+      "tag": "0007_stale_sandman",
+      "breakpoints": true
     }
   ]
 }
