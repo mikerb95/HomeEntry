@@ -19,7 +19,7 @@ import { distributeByCoefficient } from "@/lib/finance";
 import { clampText, fmtCOP } from "@/lib/format";
 import { allAptsArr } from "@/lib/meta";
 import { sendPushToApt } from "@/lib/push";
-import { sendWhatsApp } from "@/lib/whatsapp";
+import { sendWhatsApp, waLink } from "@/lib/whatsapp";
 
 type Result = { ok: boolean; error?: string };
 

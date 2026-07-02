@@ -8,7 +8,7 @@ import { getConjuntoById, getResident, logAccess } from "@/db/queries";
 import { requireGuard } from "@/lib/auth";
 import { clampText } from "@/lib/format";
 import { isGrantExpired } from "@/lib/code";
-import { AlertType, buildMessage, sendWhatsApp } from "@/lib/whatsapp";
+import { AlertType, buildMessage, sendWhatsApp, waLink } from "@/lib/whatsapp";
 import { sendPushToApt } from "@/lib/push";
 
 type AlertInput = {
@@ -73,7 +73,16 @@ export async function confirmAlert(
   if (!prep.ok) return prep;
 
   await logAccess(cid, `guard:${session.username}`, "send_alert", prep.apto);
-  const result = await sendWhatsApp(prep.phone, prep.text);
+  // sendWhatsApp throws when Meta credentials are configured but the API call
+  // itself fails (network/5xx) — a real outage must never crash the guard's
+  // screen. Fall back to the same manual wa.me link used when no credentials
+  // are configured at all, so the alert can still be sent by hand.
+  let result;
+  try {
+    result = await sendWhatsApp(prep.phone, prep.text);
+  } catch {
+    result = { delivered: false as const, link: waLink(prep.phone, prep.text) };
+  }
 
   const labels: Record<AlertType, string> = {
     visita: "Alerta de visita",
