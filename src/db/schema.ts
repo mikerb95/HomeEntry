@@ -426,6 +426,37 @@ export const ownerUnits = pgTable(
   ],
 );
 
+// Acuerdos de pago: consolidates a unit's outstanding debt (saldo + mora at
+// creation time) into an installment plan. The admin action that creates one
+// also inserts a synthetic `payments` row for the consolidated amount (so the
+// old charges stop accruing mora — they're "paid" from the ledger's point of
+// view) and one `charges` row per installment. Mora then accrues normally on
+// any installment that goes unpaid past its due date, so no special handling
+// is needed elsewhere — this row is purely for display/tracking.
+export const paymentAgreements = pgTable(
+  "payment_agreements",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    conjuntoId: uuid("conjunto_id")
+      .notNull()
+      .references(() => conjuntos.id),
+    aptoKey: text("apto_key").notNull(),
+    tower: text("tower").notNull(),
+    apt: text("apt").notNull(),
+    totalAmountEnc: text("total_amount_enc").notNull(),
+    installments: integer("installments").notNull(),
+    startDate: timestamp("start_date", { withTimezone: true }).notNull(),
+    status: text("status").notNull().default("activo"), // activo | cumplido | incumplido
+    registeredBy: text("registered_by").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("payment_agreements_conjunto_apt_idx").on(t.conjuntoId, t.aptoKey),
+  ],
+);
+
 // Disciplinary/attention notices ("llamados de atención") raised by staff
 // against a unit. Detail is encrypted like other free-text PII fields.
 export const notices = pgTable(
