@@ -441,6 +441,8 @@ export default function ProductoPage() {
                 "Intereses de mora con días de gracia y tasa propia del conjunto.",
                 "Estado de cuenta por apartamento, visible para la administración y el propietario.",
                 "Gastos y proveedores registrados por categoría, listos para rendir cuentas.",
+                "Fondo de imprevistos con movimientos y saldo calculado automáticamente.",
+                "Acuerdos de pago para formalizar y seguir la cartera en mora.",
               ].map((t) => (
                 <li
                   key={t}
