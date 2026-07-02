@@ -176,3 +176,21 @@ describe("aging (antigüedad de cartera)", () => {
     expect(b.aging.d30).toBe(50000);
   });
 });
+
+describe("splitEvenly", () => {
+  it("splits an indivisible total into whole-peso installments summing back exactly", () => {
+    const out = splitEvenly(100000, 3);
+    expect(out).toHaveLength(3);
+    expect(out.reduce((a, b) => a + b, 0)).toBe(100000);
+    expect(Math.max(...out) - Math.min(...out)).toBeLessThanOrEqual(1);
+  });
+
+  it("divides evenly when it divides evenly", () => {
+    expect(splitEvenly(90000, 3)).toEqual([30000, 30000, 30000]);
+  });
+
+  it("returns an empty array for zero or negative installments", () => {
+    expect(splitEvenly(100000, 0)).toEqual([]);
+    expect(splitEvenly(100000, -1)).toEqual([]);
+  });
+});

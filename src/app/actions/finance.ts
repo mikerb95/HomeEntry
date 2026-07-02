@@ -224,15 +224,17 @@ export async function generateMonthlyCharges(
       };
     });
   if (rows.length) {
-    // One row per (conjunto, apto, period) is desired; skip apts that
-    // already have a charge for this period instead of erroring, so a
-    // double-click doesn't double-bill anyone.
+    // One row per (conjunto, apto, period, concept) is desired: skip apts
+    // that already have a charge with this exact concept this period, so a
+    // double-click doesn't double-bill anyone — but still allow a distinct
+    // concept (e.g. an extraordinary charge) alongside the regular cuota in
+    // the same period, since `concept` is admin-editable for exactly that.
     const existing = await db
-      .select({ aptoKey: charges.aptoKey })
+      .select({ aptoKey: charges.aptoKey, concept: charges.concept })
       .from(charges)
       .where(and(eq(charges.conjuntoId, cid), eq(charges.period, period)));
-    const already = new Set(existing.map((e) => e.aptoKey));
-    const toInsert = rows.filter((r) => !already.has(r.aptoKey));
+    const already = new Set(existing.map((e) => `${e.aptoKey}::${e.concept}`));
+    const toInsert = rows.filter((r) => !already.has(`${r.aptoKey}::${r.concept}`));
     if (toInsert.length) await db.insert(charges).values(toInsert);
   }
 

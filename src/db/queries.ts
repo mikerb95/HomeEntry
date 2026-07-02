@@ -17,6 +17,7 @@ import {
   owners,
   parkingSessions,
   parkingSpots,
+  paymentAgreements,
   payments,
   residents,
   serviceRequests,
