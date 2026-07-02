@@ -65,6 +65,7 @@ export default async function AdminPanelPage({
     listNotices(cid),
     listServiceRequests(cid),
     listUnits(cid),
+    listAnnouncements(cid),
   ]);
   if (!config) return null;
 
@@ -189,6 +190,14 @@ export default async function AdminPanelPage({
           detail: r.detail,
           status: r.status,
           createdAtIso: r.createdAt.toISOString(),
+        }))}
+        announcements={announcements.map((a) => ({
+          id: a.id,
+          category: a.category,
+          title: a.title,
+          body: a.body,
+          pinned: a.pinned === 1,
+          createdAtIso: a.createdAt.toISOString(),
         }))}
       />
     </Shell>
