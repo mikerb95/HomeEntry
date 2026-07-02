@@ -42,7 +42,7 @@ export type ResidentView = {
   apt: string;
   phone: string;
   pinHash: string;
-  status: string;
+  status: (typeof residents.$inferSelect)["status"];
   sessionVersion: number;
   failedPins: number;
   lockedUntil: Date | null;
@@ -573,9 +573,9 @@ export type NoticeView = {
   aptoKey: string;
   tower: string;
   apt: string;
-  category: string;
+  category: (typeof notices.$inferSelect)["category"];
   detail: string;
-  status: string;
+  status: (typeof notices.$inferSelect)["status"];
   registeredBy: string;
   createdAt: Date;
   resolvedAt: Date | null;
