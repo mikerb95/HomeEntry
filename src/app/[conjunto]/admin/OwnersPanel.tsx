@@ -255,19 +255,61 @@ export function OwnersPanel({
             {ownerLinks.map((o) => (
               <div
                 key={`${o.ownerId}-${o.aptoKey}`}
-                className="flex items-center justify-between gap-3 rounded-[13px] border border-[#EEF1F6] px-3.5 py-3"
+                className="flex flex-wrap items-center justify-between gap-3 rounded-[13px] border border-[#EEF1F6] px-3.5 py-3"
               >
                 <div className="text-[13.5px] font-semibold text-[#3C4654]">
                   <strong className="text-ink">{aptLabel(o.aptoKey)}</strong> ·
                   {" "}WhatsApp {maskPhone(o.phone)}
                 </div>
-                <button
-                  onClick={() => unlink(o.ownerId, o.aptoKey)}
-                  className="rounded-[9px] px-3.5 py-[7px] text-[13px] font-bold text-white"
-                  style={{ background: "#E11D48" }}
-                >
-                  Quitar
-                </button>
+                <div className="flex items-center gap-2">
+                  {pinOwner === o.ownerId ? (
+                    <>
+                      <input
+                        value={newPin}
+                        onChange={(e) => setNewPin(digits(e.target.value).slice(0, 4))}
+                        inputMode="numeric"
+                        placeholder="Nuevo PIN"
+                        autoFocus
+                        className="w-[104px] rounded-[9px] border-[1.5px] border-[#E3E8EF] bg-[#F6F8FB] px-3 py-[7px] text-[13px] font-semibold tracking-[3px] outline-none focus:border-[#6D28D9]"
+                      />
+                      <button
+                        onClick={() => submitPinReset(o.ownerId)}
+                        disabled={pending || newPin.length < 4}
+                        className="rounded-[9px] bg-[#6D28D9] px-3.5 py-[7px] text-[13px] font-bold text-white hover:bg-[#5B21B6] disabled:opacity-50"
+                      >
+                        Guardar
+                      </button>
+                      <button
+                        onClick={() => {
+                          setPinOwner(null);
+                          setNewPin("");
+                        }}
+                        className="rounded-[9px] border-[1.5px] border-[#E3E8EF] bg-white px-3.5 py-[7px] text-[13px] font-bold text-[#5B6675]"
+                      >
+                        Cancelar
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => {
+                          setPinOwner(o.ownerId);
+                          setNewPin("");
+                        }}
+                        className="rounded-[9px] border-[1.5px] border-[#E3E8EF] bg-white px-3.5 py-[7px] text-[13px] font-bold text-ink hover:bg-[#F6F8FB]"
+                      >
+                        Restablecer PIN
+                      </button>
+                      <button
+                        onClick={() => unlink(o.ownerId, o.aptoKey)}
+                        className="rounded-[9px] px-3.5 py-[7px] text-[13px] font-bold text-white"
+                        style={{ background: "#E11D48" }}
+                      >
+                        Quitar
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
             ))}
           </div>
