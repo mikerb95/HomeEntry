@@ -996,6 +996,18 @@ export function AdminPanel(props: Props) {
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-2.5">
+                <a
+                  href={`/${props.slug}/admin/export?type=cartera`}
+                  className="rounded-[11px] border-[1.5px] border-[#E3E8EF] bg-white px-4 py-[11px] text-[13.5px] font-bold text-ink hover:bg-[#F6F8FB]"
+                >
+                  Exportar cartera
+                </a>
+                <a
+                  href={`/${props.slug}/admin/export?type=ingresos`}
+                  className="rounded-[11px] border-[1.5px] border-[#E3E8EF] bg-white px-4 py-[11px] text-[13.5px] font-bold text-ink hover:bg-[#F6F8FB]"
+                >
+                  Exportar ingresos
+                </a>
                 <button
                   onClick={() => setCoefOpen((v) => !v)}
                   className="rounded-[11px] border-[1.5px] border-[#E3E8EF] bg-white px-4 py-[11px] text-[13.5px] font-bold text-ink hover:bg-[#F6F8FB]"
