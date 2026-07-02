@@ -1619,6 +1619,14 @@ function ConfigModal({
     "w-full rounded-[12px] border-[1.5px] border-[#E3E8EF] bg-[#F6F8FB] px-[15px] py-[13px] text-[15px] font-bold outline-none focus:border-blue";
   const lab = "mb-[7px] block text-[12px] font-bold uppercase tracking-[.5px] text-[#5B6675]";
 
+  // Reducing the structure can leave registered residents or occupied spots
+  // outside the new range, so warn before applying.
+  const shrinking =
+    (parseInt(towers, 10) || 0) < initial.towers ||
+    (parseInt(apts, 10) || 0) < initial.aptsPerTower ||
+    (parseInt(carSpots, 10) || 0) < initial.carSpots ||
+    (parseInt(motoSpots, 10) || 0) < initial.motoSpots;
+
   function onPickLogo(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = ""; // allow re-selecting the same file later
@@ -1733,6 +1741,19 @@ function ConfigModal({
               <input value={motoSpots} onChange={(e) => setMotoSpots(e.target.value)} inputMode="numeric" className={numCls} />
             </div>
           </div>
+
+          {shrinking && (
+            <div className="mt-3.5 flex items-start gap-2.5 rounded-[13px] border border-[#F4CE7A] bg-[#FEF3DC] px-3.5 py-3">
+              <span className="flex h-5 w-5 flex-none items-center justify-center rounded-full bg-[#D97706] text-[12px] font-extrabold text-white">
+                !
+              </span>
+              <p className="text-[12.5px] font-semibold leading-[1.45] text-[#92610B]">
+                Estás reduciendo la estructura actual. Los apartamentos o
+                parqueaderos que queden fuera del nuevo rango dejarán de ser
+                visibles, incluidos sus residentes registrados.
+              </p>
+            </div>
+          )}
         </div>
         <div className="flex gap-2.5 border-t border-[#EEF1F6] px-[22px] py-4">
           <button onClick={onClose} className="flex-none rounded-[13px] border-[1.5px] border-[#E3E8EF] bg-white px-[18px] py-3.5 text-[14px] font-bold text-[#5B6675]">
