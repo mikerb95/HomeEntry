@@ -3,6 +3,7 @@ import {
   computeAptBalance,
   computeConjuntoSummary,
   distributeByCoefficient,
+  splitEvenly,
 } from "./finance";
 
 const day = (n: number) => new Date(Date.UTC(2026, 0, n));
