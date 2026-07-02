@@ -1234,12 +1234,28 @@ export function AdminPanel(props: Props) {
                         </span>
                       </td>
                       <td className="px-[22px] py-3.5 text-right">
-                        <button
-                          onClick={() => setPayApt({ key: a.id, label: a.label })}
-                          className="rounded-[9px] bg-blue px-4 py-[7px] text-[13px] font-bold text-white hover:bg-blue-dark"
-                        >
-                          Registrar pago
-                        </button>
+                        <div className="flex justify-end gap-2">
+                          {a.balance.total > 0 && (
+                            <button
+                              onClick={() =>
+                                setAgreementApt({
+                                  key: a.id,
+                                  label: a.label,
+                                  debt: Math.round(a.balance.total),
+                                })
+                              }
+                              className="rounded-[9px] border-[1.5px] border-[#E3E8EF] bg-white px-3.5 py-[6.5px] text-[13px] font-bold text-ink hover:bg-[#F6F8FB]"
+                            >
+                              Acuerdo de pago
+                            </button>
+                          )}
+                          <button
+                            onClick={() => setPayApt({ key: a.id, label: a.label })}
+                            className="rounded-[9px] bg-blue px-4 py-[7px] text-[13px] font-bold text-white hover:bg-blue-dark"
+                          >
+                            Registrar pago
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -1247,6 +1263,68 @@ export function AdminPanel(props: Props) {
               </table>
             </div>
           </div>
+
+          {props.agreements.length > 0 && (
+            <div className="mb-5 overflow-hidden rounded-[20px] border border-[#E8ECF2] bg-white">
+              <div className="border-b border-[#EEF1F6] px-[22px] py-5">
+                <h2 className="font-display text-[19px] font-bold">
+                  Acuerdos de pago
+                </h2>
+                <div className="mt-0.5 text-[13px] text-[#6B7585]">
+                  Deuda consolidada en cuotas mensuales
+                </div>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[640px] border-collapse">
+                  <thead>
+                    <tr className="bg-[#FAFBFD]">
+                      <th className={`${th} pl-[22px]`}>Apartamento</th>
+                      <th className={`${th} text-right`}>Total</th>
+                      <th className={`${th} text-right`}>Cuotas</th>
+                      <th className={th}>Inicio</th>
+                      <th className={`${th} pr-[22px]`}>Estado</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {props.agreements.map((ag) => (
+                      <tr key={ag.id} className="border-t border-[#F0F3F7]">
+                        <td className="px-[22px] py-3.5 text-[14px] font-bold text-ink">
+                          {aptLabel(ag.aptoKey)}
+                        </td>
+                        <td className="px-3.5 py-3.5 text-right text-[14px] font-semibold text-[#3C4654]">
+                          {fmtCOP(ag.totalAmount)}
+                        </td>
+                        <td className="px-3.5 py-3.5 text-right text-[14px] font-semibold text-[#3C4654]">
+                          {ag.installments}
+                        </td>
+                        <td className="px-3.5 py-3.5 text-[13.5px] text-[#6B7585]">
+                          {new Date(ag.startDateIso).toLocaleDateString("es-CO")}
+                        </td>
+                        <td className="px-3.5 py-3.5 pr-[22px]">
+                          <span
+                            className="inline-block rounded-full px-[11px] py-1 text-[12.5px] font-bold"
+                            style={
+                              ag.status === "cumplido"
+                                ? { background: "#E9F8EE", color: "#16A34A" }
+                                : ag.status === "incumplido"
+                                  ? { background: "#FDECEF", color: "#E11D48" }
+                                  : { background: "#EAF1FF", color: "#2F6BFF" }
+                            }
+                          >
+                            {ag.status === "cumplido"
+                              ? "Cumplido"
+                              : ag.status === "incumplido"
+                                ? "Incumplido"
+                                : "Activo"}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
 
           {props.financeAccessLog.length > 0 && (
             <div className="mt-5 overflow-hidden rounded-[20px] border border-[#E8ECF2] bg-white">
