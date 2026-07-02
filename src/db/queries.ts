@@ -960,6 +960,49 @@ export async function listPaymentsForApt(
   return rows.map(toPaymentView);
 }
 
+// --- Payment agreements (acuerdos de pago) ----------------------------------
+
+export type PaymentAgreementView = {
+  id: string;
+  aptoKey: string;
+  tower: string;
+  apt: string;
+  totalAmount: number;
+  installments: number;
+  startDate: Date;
+  status: string;
+  registeredBy: string;
+  createdAt: Date;
+};
+
+function toPaymentAgreementView(
+  a: typeof paymentAgreements.$inferSelect,
+): PaymentAgreementView {
+  return {
+    id: a.id,
+    aptoKey: a.aptoKey,
+    tower: a.tower,
+    apt: a.apt,
+    totalAmount: parseInt(decryptPII(a.totalAmountEnc) || "0", 10),
+    installments: a.installments,
+    startDate: a.startDate,
+    status: a.status,
+    registeredBy: a.registeredBy,
+    createdAt: a.createdAt,
+  };
+}
+
+export async function listPaymentAgreements(
+  conjuntoId: string,
+): Promise<PaymentAgreementView[]> {
+  const rows = await db
+    .select()
+    .from(paymentAgreements)
+    .where(eq(paymentAgreements.conjuntoId, conjuntoId))
+    .orderBy(desc(paymentAgreements.createdAt));
+  return rows.map(toPaymentAgreementView);
+}
+
 // --- Expenses (gastos por proveedor) ---------------------------------------
 
 export type ExpenseView = {
