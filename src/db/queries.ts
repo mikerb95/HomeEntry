@@ -25,7 +25,7 @@ import {
   units,
   vendors,
 } from "./schema";
-import { decryptPII, encryptPII, piiHash } from "@/lib/crypto";
+import { decryptAmount, decryptPII, encryptPII, piiHash } from "@/lib/crypto";
 import { hashSecret } from "@/lib/password";
 import {
   computeConjuntoSummary,
@@ -887,7 +887,7 @@ function toChargeView(c: typeof charges.$inferSelect): ChargeView {
     apt: c.apt,
     period: c.period,
     concept: c.concept,
-    amount: parseInt(decryptPII(c.amountEnc) || "0", 10),
+    amount: decryptAmount(c.amountEnc),
     dueDate: c.dueDate,
   };
 }
@@ -931,7 +931,7 @@ function toPaymentView(p: typeof payments.$inferSelect): PaymentView {
     aptoKey: p.aptoKey,
     tower: p.tower,
     apt: p.apt,
-    amount: parseInt(decryptPII(p.amountEnc) || "0", 10),
+    amount: decryptAmount(p.amountEnc),
     method: p.method,
     paidAt: p.paidAt,
     registeredBy: p.registeredBy,
