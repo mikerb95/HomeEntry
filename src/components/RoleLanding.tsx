@@ -120,16 +120,7 @@ export function RoleLanding({
             })}
           </div>
 
-          <div className="mx-auto mt-7 max-w-[900px] rounded-[16px] border border-[#E3E8EF] bg-white p-5 text-left text-[13.5px] text-[#5B6675]">
-            <div className="mb-1 font-bold text-ink">¿Eres administrador general?</div>
-            El panel de gestión de conjuntos está en{" "}
-            <Link href="/superadmin" className="font-mono font-semibold text-ink">
-              /superadmin
-            </Link>
-            .
-          </div>
-
-          <div className="mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-center">
+          <div className="mt-7 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-center">
             <Link
               href="/ayuda"
               className="text-[13.5px] font-bold text-[#6B7585] hover:text-ink"
