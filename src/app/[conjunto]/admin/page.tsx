@@ -50,6 +50,7 @@ export default async function AdminPanelPage({
     serviceRequests,
     unitRows,
     announcements,
+    agreements,
   ] = await Promise.all([
     getConjuntoById(cid),
     listEvents(cid),
@@ -67,6 +68,7 @@ export default async function AdminPanelPage({
     listServiceRequests(cid),
     listUnits(cid),
     listAnnouncements(cid),
+    listPaymentAgreements(cid),
   ]);
   if (!config) return null;
 
