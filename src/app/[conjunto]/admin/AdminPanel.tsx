@@ -1717,6 +1717,111 @@ export function AdminPanel(props: Props) {
           onClose={() => setGuardToDelete(null)}
         />
       )}
+
+      {remModal === "confirm" && (
+        <Modal
+          onClose={() => setRemModal(null)}
+          label="Enviar recordatorios de cobro"
+          className="w-[420px]"
+        >
+          <div className="px-[22px] py-5">
+            <h2 className="mb-1.5 font-display text-[18px] font-bold">
+              Enviar recordatorios de cobro
+            </h2>
+            <p className="text-[14px] leading-[1.5] text-[#5B6675]">
+              Se notificará a las <strong>{debtorCount}</strong> unidades con
+              saldo pendiente por notificación en la app y WhatsApp con el
+              valor de su deuda.
+            </p>
+          </div>
+          <div className="flex gap-2.5 border-t border-[#EEF1F6] px-[22px] py-4">
+            <button
+              onClick={() => setRemModal(null)}
+              className="flex-1 rounded-[13px] border-[1.5px] border-[#E3E8EF] bg-white px-[18px] py-3.5 text-[14px] font-bold text-[#5B6675]"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={submitReminders}
+              disabled={pending}
+              className="flex-1 rounded-[13px] bg-blue p-3.5 text-[14.5px] font-extrabold text-white hover:bg-blue-dark disabled:opacity-70"
+            >
+              {pending ? "Enviando…" : "Enviar"}
+            </button>
+          </div>
+        </Modal>
+      )}
+
+      {remModal !== null && remModal !== "confirm" && (
+        <Modal
+          onClose={() => setRemModal(null)}
+          label="Recordatorios enviados"
+          className="w-[460px]"
+        >
+          <div className="px-[22px] py-5">
+            <h2 className="mb-1.5 font-display text-[18px] font-bold">
+              Recordatorios enviados
+            </h2>
+            <p className="text-[14px] leading-[1.5] text-[#5B6675]">
+              {remModal.notified} unidad{remModal.notified === 1 ? "" : "es"}{" "}
+              notificada{remModal.notified === 1 ? "" : "s"} ·{" "}
+              {remModal.pushSent} notificación
+              {remModal.pushSent === 1 ? "" : "es"} en la app
+              {remModal.skipped > 0 && (
+                <> · {remModal.skipped} sin residente registrado</>
+              )}
+            </p>
+            {remModal.links.length > 0 && (
+              <>
+                <p className="mt-3 text-[13px] leading-[1.5] text-[#5B6675]">
+                  Estas unidades requieren envío manual por WhatsApp (no hay
+                  envío automático configurado):
+                </p>
+                <div className="mt-2.5 flex max-h-[260px] flex-col gap-2 overflow-y-auto">
+                  {remModal.links.map((l) => (
+                    <div
+                      key={l.aptoKey}
+                      className="flex items-center justify-between gap-3 rounded-[11px] border border-[#EEF1F6] px-3.5 py-2.5"
+                    >
+                      <div className="text-[13.5px] font-bold text-ink">
+                        {l.aptoKey}
+                        <span className="ml-2 font-semibold text-[#6B7585]">
+                          {fmtCOP(l.amount)}
+                        </span>
+                      </div>
+                      {l.link ? (
+                        <a
+                          href={l.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="whitespace-nowrap rounded-[9px] bg-[#E9F8EE] px-3 py-1.5 text-[12.5px] font-bold text-[#16A34A] hover:opacity-80"
+                        >
+                          Abrir WhatsApp
+                        </a>
+                      ) : (
+                        <span className="text-[12px] font-bold text-[#B45309]">
+                          Falló el envío
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+          <div className="border-t border-[#EEF1F6] px-[22px] py-4">
+            <button
+              onClick={() => {
+                setRemModal(null);
+                router.refresh();
+              }}
+              className="w-full rounded-[13px] bg-ink p-3.5 text-[14.5px] font-extrabold text-white hover:opacity-90"
+            >
+              Listo
+            </button>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }
