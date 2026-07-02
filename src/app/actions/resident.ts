@@ -3,11 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import { authGrants } from "@/db/schema";
-import { getAuthByCode } from "@/db/queries";
+import { createServiceRequest, getAuthByCode } from "@/db/queries";
 import { requireResident } from "@/lib/auth";
 import { makeAuthCode } from "@/lib/code";
 import { qrDataUrl } from "@/lib/qr";
 import { clampText, fmtDateTime, isValidPlate } from "@/lib/format";
+
+type Result = { ok: boolean; error?: string };
 
 // Generate a code that is unique within the conjunto. Collisions are already
 // astronomically unlikely (32^8), but a few retries make it a guarantee.

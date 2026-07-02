@@ -235,6 +235,17 @@ export function AdminPanel(props: Props) {
   const [genAmount, setGenAmount] = useState("");
   const [genDue, setGenDue] = useState("");
   const [genMode, setGenMode] = useState<"fijo" | "coeficiente">("fijo");
+  // Reminder flow: "confirm" shows the dialog; an object shows the result.
+  const [remModal, setRemModal] = useState<
+    | null
+    | "confirm"
+    | {
+        notified: number;
+        pushSent: number;
+        skipped: number;
+        links: { aptoKey: string; amount: number; link: string }[];
+      }
+  >(null);
   // Coefficient editor: percent strings keyed by aptoKey ("0.8542").
   const [coefOpen, setCoefOpen] = useState(false);
   const [coefDraft, setCoefDraft] = useState<Record<string, string>>(() =>
