@@ -165,7 +165,7 @@ export function RoleLanding({
 
           <div className="max-w-[430px]">
             <div className="mb-4 flex items-center gap-2.5 rounded-[13px] border-[1.5px] border-[#E3E8EF] bg-[#F6F8FB] px-3.5">
-              <IconSearch size={16} className="flex-none text-[#9AA4B2]" />
+              <IconSearch size={16} className="flex-none text-[#6B7585]" />
               <input
                 autoFocus
                 value={query}

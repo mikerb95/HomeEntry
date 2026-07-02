@@ -314,7 +314,7 @@ export function OwnersPanel({
                   {aptLabel(n.aptoKey)} · {n.category}
                 </div>
                 <div className="text-[13px] text-[#6B7585]">{n.detail}</div>
-                <div className="text-[12px] font-semibold text-[#A2ABB8]">
+                <div className="text-[12px] font-semibold text-[#6B7585]">
                   {fmtDateTime(n.createdAtIso)}
                 </div>
               </div>
@@ -398,7 +398,7 @@ export function OwnersPanel({
                   {aptLabel(r.aptoKey)} · {r.subject}
                 </div>
                 <div className="text-[13px] text-[#6B7585]">{r.detail}</div>
-                <div className="text-[12px] font-semibold text-[#A2ABB8]">
+                <div className="text-[12px] font-semibold text-[#6B7585]">
                   {fmtDateTime(r.createdAtIso)}
                 </div>
               </div>

@@ -9,6 +9,7 @@ import {
   confirmScan,
 } from "@/app/actions/guard";
 import { Modal } from "@/components/Modal";
+import { TabBar } from "@/components/TabBar";
 import { ParkingModal, ModalSpot } from "@/components/ParkingModal";
 import { GuardNotifications } from "@/components/GuardNotifications";
 import {
@@ -112,7 +113,6 @@ export function GuardPanel(props: Props) {
   const gKey = gTower && gApto ? `${gTower}-${gApto}` : "";
   const guardSelected = !!gKey;
   const guardHasNumber = gKey ? !!props.hasWhatsApp[gKey] : false;
-  const sendDisabled = !guardHasNumber || pending;
 
   const tabSpots = props.parking.filter((p) => p.kind === pkTab);
   const freeCount = tabSpots.filter((p) => p.status === "free").length;
@@ -232,20 +232,13 @@ export function GuardPanel(props: Props) {
     <div className="animate-pa-in">
       <GuardNotifications slug={props.slug} serverNowIso={props.serverNowIso} />
 
-      <div className="mb-5 flex w-max max-w-full gap-1.5 overflow-x-auto rounded-[14px] border border-[#E3E8EF] bg-white p-[5px]">
-        {gTabs.map((t) => (
-          <button
-            key={t.key}
-            onClick={() => setGTab(t.key)}
-            className="whitespace-nowrap rounded-[10px] px-[18px] py-2.5 text-[14px] font-bold"
-            style={{
-              background: gTab === t.key ? "#0F141A" : "transparent",
-              color: gTab === t.key ? "#fff" : "#5B6675",
-            }}
-          >
-            {t.label}
-          </button>
-        ))}
+      <div className="mb-5">
+        <TabBar
+          label="Secciones de portería"
+          tabs={gTabs}
+          active={gTab}
+          onChange={setGTab}
+        />
       </div>
 
       {/* TAB PORTERÍA */}
@@ -343,17 +336,15 @@ export function GuardPanel(props: Props) {
                 </div>
               ))}
 
+            {/* Always enabled (except mid-send): tapping it with missing data
+                explains what to fix instead of silently refusing. */}
             <button
               onClick={onSend}
-              disabled={sendDisabled}
-              className="flex w-full items-center justify-center gap-2.5 rounded-[14px] p-[17px] text-[16px] font-extrabold tracking-[.3px] text-white"
-              style={{
-                background: sendDisabled ? "#9BD5AE" : "#16A34A",
-                cursor: sendDisabled ? "not-allowed" : "pointer",
-              }}
+              disabled={pending}
+              className="flex w-full items-center justify-center gap-2.5 rounded-[14px] bg-green p-[17px] text-[16px] font-extrabold tracking-[.3px] text-white hover:bg-green-dark disabled:opacity-70"
             >
               <IconSend size={20} />
-              {pending ? "ENVIANDO…" : "ENVIAR ALERTA POR WHATSAPP"}
+              {pending ? "Enviando…" : "Enviar alerta por WhatsApp"}
             </button>
           </div>
 
@@ -474,7 +465,7 @@ export function GuardPanel(props: Props) {
               Disponible
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="h-[11px] w-[11px] rounded-[3px] bg-[#E11D48]" />
+              <span className="h-[11px] w-[11px] rounded-[3px] bg-[#2F6BFF]" />
               Residente
             </span>
             <span className="flex items-center gap-1.5">
@@ -489,12 +480,13 @@ export function GuardPanel(props: Props) {
                 value={pkQuery}
                 onChange={(e) => setPkQuery(e.target.value)}
                 placeholder="Buscar por cupo o placa…"
-                className="w-full rounded-[13px] border-[1.5px] border-[#E3E8EF] bg-[#F6F8FB] py-2.5 pl-4 pr-9 text-[14px] font-semibold uppercase outline-none placeholder:normal-case placeholder:font-medium placeholder:text-[#9AA4B2] focus:border-green"
+                className="w-full rounded-[13px] border-[1.5px] border-[#E3E8EF] bg-[#F6F8FB] py-2.5 pl-4 pr-9 text-[14px] font-semibold uppercase outline-none placeholder:normal-case placeholder:font-medium placeholder:text-[#6B7585] focus:border-green"
               />
               {pkQuery && (
                 <button
                   onClick={() => setPkQuery("")}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[15px] text-[#9AA4B2] hover:text-[#5B6675]"
+                  aria-label="Limpiar búsqueda"
+                  className="absolute right-1 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-[10px] text-[15px] text-[#6B7585] hover:text-[#5B6675]"
                 >
                   ✕
                 </button>

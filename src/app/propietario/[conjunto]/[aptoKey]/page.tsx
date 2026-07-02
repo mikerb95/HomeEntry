@@ -141,7 +141,7 @@ export default async function OwnerUnitPage({
                     <div className="mt-0.5 text-[13px] text-[#6B7585]">
                       {n.detail}
                     </div>
-                    <div className="mt-1 text-[12px] font-semibold text-[#A2ABB8]">
+                    <div className="mt-1 text-[12px] font-semibold text-[#6B7585]">
                       {fmtDateTime(n.createdAt)}
                     </div>
                   </div>
@@ -183,7 +183,7 @@ export default async function OwnerUnitPage({
                     <div className="mt-0.5 text-[13px] text-[#6B7585]">
                       {r.detail}
                     </div>
-                    <div className="mt-1 text-[12px] font-semibold text-[#A2ABB8]">
+                    <div className="mt-1 text-[12px] font-semibold text-[#6B7585]">
                       {fmtDateTime(r.createdAt)}
                     </div>
                   </div>

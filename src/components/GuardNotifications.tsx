@@ -212,7 +212,7 @@ export function GuardNotifications({
                         <div className="truncate text-[12.5px] text-[#6B7585]">
                           {describe(n)}
                         </div>
-                        <div className="mt-0.5 text-[11.5px] font-semibold text-[#9AA4B2]">
+                        <div className="mt-0.5 text-[11.5px] font-semibold text-[#6B7585]">
                           {fmtTime(n.createdAtIso)}
                         </div>
                       </div>

@@ -46,6 +46,18 @@ body {
   color: #fff;
 }
 
+/* Visible keyboard focus for interactive controls. Text inputs keep their
+   border highlight instead, so they are excluded here. */
+button:focus-visible,
+a:focus-visible,
+select:focus-visible,
+[role="tab"]:focus-visible,
+input[type="checkbox"]:focus-visible,
+input[type="file"]:focus-visible {
+  outline: 2px solid #2f6bff;
+  outline-offset: 2px;
+}
+
 .pa-scroll::-webkit-scrollbar {
   width: 8px;
   height: 8px;

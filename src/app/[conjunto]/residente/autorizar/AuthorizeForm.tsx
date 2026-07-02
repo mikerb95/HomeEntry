@@ -196,7 +196,7 @@ export function AuthorizeForm({ slug }: { slug: string }) {
               </span>
             ) : (
               !foreign && (
-                <span className="text-[#9AA4B2]">
+                <span className="text-[#6B7585]">
                   {vehicleKind === "moto"
                     ? "3 letras, 2 números y 1 letra"
                     : "3 letras y 3 números"}

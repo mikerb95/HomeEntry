@@ -158,7 +158,7 @@ export default async function ResidentDashboard({
                         {n.detail}
                       </div>
                     </div>
-                    <div className="whitespace-nowrap text-[12px] font-semibold text-[#A2ABB8]">
+                    <div className="whitespace-nowrap text-[12px] font-semibold text-[#6B7585]">
                       {fmtTime(n.ts)}
                     </div>
                   </div>
@@ -206,7 +206,7 @@ export default async function ResidentDashboard({
                         {a.pinned ? (
                           <span className="text-[12px]">📌</span>
                         ) : null}
-                        <span className="ml-auto text-[11.5px] font-semibold text-[#A2ABB8]">
+                        <span className="ml-auto text-[11.5px] font-semibold text-[#6B7585]">
                           {fmtDate(a.createdAt)}
                         </span>
                       </div>

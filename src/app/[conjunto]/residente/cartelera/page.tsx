@@ -90,7 +90,7 @@ export default async function CarteleraPage({
                           📌 Fijado
                         </span>
                       ) : null}
-                      <span className="text-[12px] font-semibold text-[#A2ABB8]">
+                      <span className="text-[12px] font-semibold text-[#6B7585]">
                         {fmtDate(a.createdAt)}
                       </span>
                     </div>
@@ -111,7 +111,7 @@ export default async function CarteleraPage({
 
           {items.length === 0 && (
             <div className="rounded-[20px] border border-[#E8ECF2] bg-white px-5 py-14 text-center">
-              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-[14px] bg-[#F1F4F9] text-[#A2ABB8]">
+              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-[14px] bg-[#F1F4F9] text-[#6B7585]">
                 <IconMegaphone size={22} />
               </div>
               <div className="text-[15px] font-bold text-ink">
