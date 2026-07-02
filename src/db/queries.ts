@@ -8,6 +8,7 @@ import {
   authGrants,
   charges,
   cities,
+  companies,
   conjuntos,
   events,
   expenses,
@@ -771,6 +772,25 @@ export async function getVendor(
     .where(and(eq(vendors.conjuntoId, conjuntoId), eq(vendors.id, vendorId)))
     .limit(1);
   return rows[0] ? toVendorView(rows[0]) : null;
+}
+
+// --- Companies (administradoras) ---------------------------------------------
+
+export type CompanyView = {
+  id: string;
+  name: string;
+  nit: string;
+  createdAt: Date;
+};
+
+export async function listCompanies(): Promise<CompanyView[]> {
+  const rows = await db.select().from(companies).orderBy(asc(companies.name));
+  return rows.map((c) => ({
+    id: c.id,
+    name: c.name,
+    nit: c.nitEnc ? decryptPII(c.nitEnc) : "",
+    createdAt: c.createdAt,
+  }));
 }
 
 // --- Units (coeficientes de copropiedad) ------------------------------------
