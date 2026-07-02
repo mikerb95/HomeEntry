@@ -538,7 +538,7 @@ export default function ProductoPage() {
         </div>
         <div className="mt-12 grid gap-6 rounded-[24px] border border-[#E3E8EF] bg-white px-8 py-9 text-center shadow-[0_1px_3px_rgba(16,24,40,.05)] sm:grid-cols-4">
           {[
-            ["42", "funciones organizadas por módulo"],
+            ["44", "funciones organizadas por módulo"],
             ["5", "roles, cada uno con su panel"],
             ["2", "canales de aviso: WhatsApp y push"],
             ["1", "plataforma para todos tus conjuntos"],
