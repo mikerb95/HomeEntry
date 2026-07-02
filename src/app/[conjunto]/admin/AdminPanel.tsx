@@ -410,14 +410,10 @@ export function AdminPanel(props: Props) {
     });
   }
 
-  const coefSum = useMemo(
-    () =>
-      allApts.reduce((a, apt) => {
-        const v = parseFloat((coefDraft[apt.id] || "0").replace(",", "."));
-        return a + (isNaN(v) ? 0 : v);
-      }, 0),
-    [allApts, coefDraft],
-  );
+  const coefSum = allApts.reduce((a, apt) => {
+    const v = parseFloat((coefDraft[apt.id] || "0").replace(",", "."));
+    return a + (isNaN(v) ? 0 : v);
+  }, 0);
   const coefComplete = Math.abs(coefSum - 100) < 0.01;
 
   function submitCoefficients() {
