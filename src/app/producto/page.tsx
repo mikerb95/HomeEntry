@@ -313,7 +313,7 @@ export default function ProductoPage() {
                 href="/funciones"
                 className="rounded-full border border-white/20 px-7 py-3.5 text-[15px] font-bold text-white transition-colors hover:bg-white/10"
               >
-                Ver las 42 funciones
+                Ver las 44 funciones
               </Link>
             </div>
           </div>
@@ -397,7 +397,7 @@ export default function ProductoPage() {
           <BigTitle>Un módulo para cada frente de la copropiedad.</BigTitle>
           <Lead>
             Desde el paquete que llega a portería hasta la cartera que revisa
-            el consejo: 42 funciones organizadas para que nada dependa de un
+            el consejo: 44 funciones organizadas para que nada dependa de un
             cuaderno, una planilla o la memoria de alguien.
           </Lead>
           <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
