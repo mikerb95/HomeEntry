@@ -416,9 +416,11 @@ export async function sendPaymentReminders(
       if (wa.delivered || push.sent > 0) notified++;
       if (!wa.delivered) links.push({ aptoKey: b.aptoKey, amount, link: wa.link });
     } catch {
-      // Meta API hiccup for this number: fall back to a manual link.
+      // Meta API hiccup for this number: the wa.me link needs no credentials,
+      // so it still works even though the automatic send failed — falling
+      // back to "" would strand the admin with no way to reach the resident.
       if (push.sent > 0) notified++;
-      links.push({ aptoKey: b.aptoKey, amount, link: "" });
+      links.push({ aptoKey: b.aptoKey, amount, link: waLink(phone, text) });
     }
   }
 
