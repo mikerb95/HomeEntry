@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, desc, eq, gt, lt } from "drizzle-orm";
+import { and, asc, desc, eq, gt, lt, sql } from "drizzle-orm";
 import { GRANT_GRACE_MS, makeConjuntoCode } from "@/lib/code";
 import { db } from "./index";
 import {
@@ -20,6 +20,7 @@ import {
   residents,
   serviceRequests,
   staffUsers,
+  units,
   vendors,
 } from "./schema";
 import { decryptPII, encryptPII, piiHash } from "@/lib/crypto";
@@ -770,6 +771,43 @@ export async function getVendor(
     .where(and(eq(vendors.conjuntoId, conjuntoId), eq(vendors.id, vendorId)))
     .limit(1);
   return rows[0] ? toVendorView(rows[0]) : null;
+}
+
+// --- Units (coeficientes de copropiedad) ------------------------------------
+
+export type UnitView = {
+  aptoKey: string;
+  tower: string;
+  apt: string;
+  coefficient: number; // percent × 10 000 (see schema)
+};
+
+export async function listUnits(conjuntoId: string): Promise<UnitView[]> {
+  const rows = await db
+    .select()
+    .from(units)
+    .where(eq(units.conjuntoId, conjuntoId))
+    .orderBy(asc(units.aptoKey));
+  return rows.map(({ aptoKey, tower, apt, coefficient }) => ({
+    aptoKey,
+    tower,
+    apt,
+    coefficient,
+  }));
+}
+
+export async function upsertUnitCoefficients(
+  conjuntoId: string,
+  entries: { aptoKey: string; tower: string; apt: string; coefficient: number }[],
+) {
+  if (!entries.length) return;
+  await db
+    .insert(units)
+    .values(entries.map((e) => ({ conjuntoId, ...e })))
+    .onConflictDoUpdate({
+      target: [units.conjuntoId, units.aptoKey],
+      set: { coefficient: sql`excluded.coefficient` },
+    });
 }
 
 // --- Charges (cuotas) ------------------------------------------------------

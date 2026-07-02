@@ -7,10 +7,13 @@ import { charges, conjuntos, expenses, payments, vendors } from "@/db/schema";
 import {
   countExpensesForVendor,
   getConjuntoById,
+  listUnits,
   logAccess,
+  upsertUnitCoefficients,
 } from "@/db/queries";
 import { requireAdmin } from "@/lib/auth";
 import { encryptPII } from "@/lib/crypto";
+import { distributeByCoefficient } from "@/lib/finance";
 import { clampText } from "@/lib/format";
 import { allAptsArr } from "@/lib/meta";
 
@@ -48,6 +51,43 @@ export async function updateMoraConfig(
     .set({ moraRatePct, moraGraceDays })
     .where(eq(conjuntos.id, cid));
   await logAccess(cid, `admin:${session.username}`, "update_mora_config", cid);
+  revalidatePath(`/${slug}/admin`);
+  return { ok: true };
+}
+
+// --- Units (coeficientes de copropiedad) --------------------------------------
+
+// Saves the coeficiente of every apartment. Values arrive as human percent
+// strings ("0.8542") and are stored as integers × 10 000. The sum is not
+// forced to 100% here — the admin may assign them progressively; the UI
+// shows a live sum so they can tell when the conjunto is fully assigned.
+export async function updateUnitCoefficients(
+  slug: string,
+  input: { coefficients: Record<string, string> },
+): Promise<Result> {
+  const session = await requireAdmin(slug);
+  const cid = session.conjuntoId;
+  const conjunto = await getConjuntoById(cid);
+  if (!conjunto) return { ok: false, error: "Conjunto no encontrado" };
+
+  const valid = new Set(
+    allAptsArr(conjunto.towers, conjunto.aptsPerTower).map((a) => a.id),
+  );
+  const entries: { aptoKey: string; tower: string; apt: string; coefficient: number }[] =
+    [];
+  for (const [aptoKey, raw] of Object.entries(input.coefficients || {})) {
+    if (!valid.has(aptoKey)) continue;
+    const pct = parseFloat(String(raw ?? "").replace(",", "."));
+    if (isNaN(pct) || pct < 0 || pct > 100)
+      return { ok: false, error: `Coeficiente inválido para ${aptoKey}` };
+    const [tower, apt] = aptoKey.split("-");
+    entries.push({ aptoKey, tower, apt, coefficient: Math.round(pct * 10000) });
+  }
+  if (!entries.length)
+    return { ok: false, error: "No hay coeficientes para guardar" };
+
+  await upsertUnitCoefficients(cid, entries);
+  await logAccess(cid, `admin:${session.username}`, "update_coefficients", cid);
   revalidatePath(`/${slug}/admin`);
   return { ok: true };
 }
