@@ -1763,6 +1763,16 @@ export function AdminPanel(props: Props) {
         />
       )}
 
+      {agreementApt && (
+        <PaymentAgreementModal
+          slug={props.slug}
+          aptoKey={agreementApt.key}
+          aptoLabel={agreementApt.label}
+          currentDebt={agreementApt.debt}
+          onClose={() => setAgreementApt(null)}
+        />
+      )}
+
       {expOpen && (
         <ExpenseModal
           slug={props.slug}
