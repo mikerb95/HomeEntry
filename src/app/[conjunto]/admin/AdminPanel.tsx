@@ -27,6 +27,7 @@ import { Modal } from "@/components/Modal";
 import { TabBar } from "@/components/TabBar";
 import { ParkingModal, ModalSpot } from "@/components/ParkingModal";
 import { PaymentModal } from "@/components/PaymentModal";
+import { PaymentAgreementModal } from "@/components/PaymentAgreementModal";
 import { ExpenseModal } from "@/components/ExpenseModal";
 import {
   PendingResidents,

@@ -622,7 +622,7 @@ export async function createNotice(params: {
   aptoKey: string;
   tower: string;
   apt: string;
-  category: string;
+  category: (typeof notices.$inferSelect)["category"];
   detail: string;
   registeredBy: string;
 }) {
@@ -653,7 +653,7 @@ export type ServiceRequestView = {
   apt: string;
   subject: string;
   detail: string;
-  status: string;
+  status: (typeof serviceRequests.$inferSelect)["status"];
   registeredBy: string;
   createdAt: Date;
   resolvedAt: Date | null;
