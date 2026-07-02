@@ -15,6 +15,7 @@ import {
   listResidents,
   listServiceRequests,
   listSessions,
+  listUnits,
   listVendors,
   logAccess,
 } from "@/db/queries";
@@ -45,6 +46,7 @@ export default async function AdminPanelPage({
     ownerLinks,
     notices,
     serviceRequests,
+    unitRows,
   ] = await Promise.all([
     getConjuntoById(cid),
     listEvents(cid),
@@ -60,6 +62,7 @@ export default async function AdminPanelPage({
     listOwnerUnitsForConjunto(cid),
     listNotices(cid),
     listServiceRequests(cid),
+    listUnits(cid),
   ]);
   if (!config) return null;
 
@@ -132,6 +135,10 @@ export default async function AdminPanelPage({
           startIso: s.start.toISOString(),
         }))}
         aptBalances={financeSummary.aptBalances}
+        unitCoefficients={unitRows.map((u) => ({
+          aptoKey: u.aptoKey,
+          coefficient: u.coefficient,
+        }))}
         carteraTotal={financeSummary.carteraTotal}
         recaudoTotal={financeSummary.recaudoTotal}
         moraTotal={financeSummary.moraTotal}
