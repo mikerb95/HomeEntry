@@ -81,6 +81,7 @@ type Sess = {
   amount: number;
   startIso: string;
 };
+type Aging = { d30: number; d60: number; d90: number; d90plus: number };
 type AptBalance = {
   aptoKey: string;
   totalCargado: number;
@@ -89,6 +90,7 @@ type AptBalance = {
   mora: number;
   total: number;
   enMora: boolean;
+  aging: Aging;
 };
 type Vendor = {
   id: string;
@@ -141,6 +143,7 @@ type Props = {
   sessions: Sess[];
   aptBalances: AptBalance[];
   unitCoefficients: { aptoKey: string; coefficient: number }[];
+  agingTotals: Aging;
   carteraTotal: number;
   recaudoTotal: number;
   moraTotal: number;
@@ -454,6 +457,7 @@ export function AdminPanel(props: Props) {
       mora: 0,
       total: 0,
       enMora: false,
+      aging: { d30: 0, d60: 0, d90: 0, d90plus: 0 },
     },
   }));
 
