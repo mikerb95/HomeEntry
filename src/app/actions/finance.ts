@@ -261,7 +261,6 @@ export async function generateMonthlyCharges(
         apt,
         period,
         concept,
-        amount: amountByApt.get(a.id)!,
         amountEnc: encryptPII(String(amountByApt.get(a.id))),
         dueDate,
       };
@@ -279,9 +278,7 @@ export async function generateMonthlyCharges(
     const already = new Set(existing.map((e) => `${e.aptoKey}::${e.concept}`));
     const toInsert = rows.filter((r) => !already.has(`${r.aptoKey}::${r.concept}`));
     if (toInsert.length) {
-      await db
-        .insert(charges)
-        .values(toInsert.map(({ amount: _amount, ...r }) => r));
+      await db.insert(charges).values(toInsert);
 
       // Ley 675/2001 art. 35: the fondo de imprevistos grows with a fixed
       // percentage of the presupuesto — this batch of cuotas is the closest
@@ -289,7 +286,10 @@ export async function generateMonthlyCharges(
       // exists yet), so every batch contributes automatically. Skipped
       // duplicate rows (double-click) correctly don't count twice since
       // they're already excluded from toInsert.
-      const totalGenerated = toInsert.reduce((a, r) => a + r.amount, 0);
+      const totalGenerated = toInsert.reduce(
+        (a, r) => a + (amountByApt.get(r.aptoKey) ?? 0),
+        0,
+      );
       const fondoAmount = Math.round(
         (totalGenerated * conjunto.fondoImprevistosPct) / 10000,
       );
