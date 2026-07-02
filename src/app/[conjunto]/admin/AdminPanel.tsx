@@ -703,6 +703,7 @@ export function AdminPanel(props: Props) {
                     <button
                       key={p.key}
                       onClick={() => setAuPreset(p.key)}
+                      aria-pressed={auPreset === p.key}
                       className="rounded-[8px] px-3.5 py-2 text-[13px] font-bold"
                       style={{
                         background: auPreset === p.key ? "#6D28D9" : "transparent",
