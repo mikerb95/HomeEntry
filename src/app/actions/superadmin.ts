@@ -1,14 +1,16 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { conjuntos, parkingSpots, staffUsers } from "@/db/schema";
+import { companies, conjuntos, parkingSpots, staffUsers } from "@/db/schema";
 import {
   getCityByCode,
   getConjuntoBySlug,
   reserveConjuntoCode,
 } from "@/db/queries";
 import { requireSuperadmin } from "@/lib/auth";
+import { encryptPII } from "@/lib/crypto";
 import { hashSecret } from "@/lib/password";
 import { clampText } from "@/lib/format";
 
