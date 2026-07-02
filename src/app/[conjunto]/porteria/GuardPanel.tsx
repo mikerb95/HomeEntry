@@ -448,6 +448,7 @@ export function GuardPanel(props: Props) {
               <button
                 key={k}
                 onClick={() => setPkTab(k)}
+                aria-pressed={pkTab === k}
                 className="flex-1 rounded-[10px] p-[11px] text-[14px] font-bold"
                 style={{
                   background: pkTab === k ? "#fff" : "transparent",
@@ -494,6 +495,7 @@ export function GuardPanel(props: Props) {
             </div>
             <button
               onClick={() => setPkOnlyFree((v) => !v)}
+              aria-pressed={pkOnlyFree}
               className="flex-none rounded-[13px] border-[1.5px] px-4 py-2.5 text-[13.5px] font-bold transition-colors"
               style={{
                 borderColor: pkOnlyFree ? "#22C55E" : "#E3E8EF",

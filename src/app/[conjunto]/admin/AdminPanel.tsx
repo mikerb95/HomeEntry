@@ -20,7 +20,9 @@ import {
   resetGuardPassword,
   deleteGuard,
 } from "@/app/actions/guards";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { Modal } from "@/components/Modal";
+import { TabBar } from "@/components/TabBar";
 import { ParkingModal, ModalSpot } from "@/components/ParkingModal";
 import { PaymentModal } from "@/components/PaymentModal";
 import { ExpenseModal } from "@/components/ExpenseModal";
