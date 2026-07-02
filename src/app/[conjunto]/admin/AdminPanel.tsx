@@ -212,7 +212,11 @@ export function AdminPanel(props: Props) {
   const [pkSpot, setPkSpot] = useState<ModalSpot | null>(null);
 
   // --- finanzas ---
-  const [moraRate, setMoraRate] = useState(String(props.moraRatePct));
+  // Human-readable percentage ("1.5"); converted to basis points on save so
+  // the admin can type decimals naturally.
+  const [moraRate, setMoraRate] = useState(
+    props.moraRatePct ? String(props.moraRatePct / 100) : "0",
+  );
   const [moraGrace, setMoraGrace] = useState(String(props.moraGraceDays));
   const [payApt, setPayApt] = useState<{ key: string; label: string } | null>(
     null,
@@ -349,9 +353,14 @@ export function AdminPanel(props: Props) {
 
   // --- finanzas ---
   function saveMoraConfig() {
+    const pct = parseFloat(moraRate.replace(",", "."));
+    if (isNaN(pct) || pct < 0) {
+      show("Ingresa una tasa de mora válida", "warn");
+      return;
+    }
     start(async () => {
       const res = await updateMoraConfig(props.slug, {
-        moraRatePct: moraRate,
+        moraRatePct: String(Math.round(pct * 100)),
         moraGraceDays: moraGrace,
       });
       if (!res.ok) {
@@ -717,6 +726,7 @@ export function AdminPanel(props: Props) {
                   <input
                     value={String(rateMoto)}
                     onChange={(e) => onRate(e.target.value, "moto")}
+                    onBlur={() => saveRate("moto")}
                     inputMode="numeric"
                     className="w-[90px] bg-transparent px-1.5 py-2.5 text-[15px] font-bold outline-none"
                   />
@@ -833,15 +843,10 @@ export function AdminPanel(props: Props) {
                   </label>
                   <div className="flex items-center rounded-[11px] border-[1.5px] border-[#E3E8EF] bg-[#F6F8FB] px-3">
                     <input
-                      value={
-                        moraRate === ""
-                          ? ""
-                          : (parseInt(moraRate, 10) / 100).toString()
+                      value={moraRate}
+                      onChange={(e) =>
+                        setMoraRate(e.target.value.replace(/[^\d.,]/g, ""))
                       }
-                      onChange={(e) => {
-                        const pct = parseFloat(e.target.value.replace(",", "."));
-                        setMoraRate(isNaN(pct) ? "0" : String(Math.round(pct * 100)));
-                      }}
                       inputMode="decimal"
                       className="w-[80px] bg-transparent px-1.5 py-2.5 text-[15px] font-bold outline-none"
                     />
@@ -914,12 +919,12 @@ export function AdminPanel(props: Props) {
               <div className="flex flex-wrap items-end gap-3 border-b border-[#EEF1F6] bg-[#FAFBFD] px-[22px] py-4">
                 <div>
                   <label className="mb-1.5 block text-[11.5px] font-bold uppercase tracking-[.5px] text-[#6B7585]">
-                    Período (YYYY-MM)
+                    Período
                   </label>
                   <input
+                    type="month"
                     value={genPeriod}
                     onChange={(e) => setGenPeriod(e.target.value)}
-                    placeholder="2026-07"
                     className="rounded-[11px] border-[1.5px] border-[#E3E8EF] bg-white px-[13px] py-[11px] text-[14px] font-semibold outline-none"
                   />
                 </div>
