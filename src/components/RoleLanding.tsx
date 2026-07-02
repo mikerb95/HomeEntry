@@ -56,12 +56,12 @@ export function RoleLanding({
   const [role, setRole] = useState<Role["key"] | null>(null);
   const [query, setQuery] = useState("");
 
-  const matches = useMemo(() => {
+  const { matches, hiddenMatches } = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return conjuntos.slice(0, 8);
-    return conjuntos
-      .filter((c) => c.name.toLowerCase().includes(q))
-      .slice(0, 8);
+    const all = q
+      ? conjuntos.filter((c) => c.name.toLowerCase().includes(q))
+      : conjuntos;
+    return { matches: all.slice(0, 8), hiddenMatches: all.length - 8 };
   }, [conjuntos, query]);
 
   const activeRole = ROLES.find((r) => r.key === role) ?? null;
