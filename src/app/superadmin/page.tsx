@@ -1,18 +1,20 @@
 import Link from "next/link";
 import { requireSuperadmin } from "@/lib/auth";
-import { listConjuntos, listCities } from "@/db/queries";
+import { listConjuntos, listCities, listCompanies } from "@/db/queries";
 import { logout } from "@/app/actions/auth";
 import { Shell } from "@/components/Shell";
 import { IconLogout } from "@/components/icons";
 import { CreateConjuntoForm } from "./CreateConjuntoForm";
+import { CompaniesPanel } from "./CompaniesPanel";
 
 export const dynamic = "force-dynamic";
 
 export default async function SuperadminPage() {
   await requireSuperadmin();
-  const [conjuntos, cities] = await Promise.all([
+  const [conjuntos, cities, companies] = await Promise.all([
     listConjuntos(),
     listCities(),
+    listCompanies(),
   ]);
 
   return (
@@ -70,6 +72,19 @@ export default async function SuperadminPage() {
             </Link>
           ))}
         </div>
+
+        <CompaniesPanel
+          companies={companies.map((c) => ({
+            id: c.id,
+            name: c.name,
+            nit: c.nit,
+          }))}
+          conjuntos={conjuntos.map((c) => ({
+            id: c.id,
+            name: c.name,
+            companyId: c.companyId,
+          }))}
+        />
 
         <CreateConjuntoForm cities={cities} />
       </div>
