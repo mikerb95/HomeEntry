@@ -141,3 +141,43 @@ export async function createConjunto(input: {
   revalidatePath("/superadmin");
   return { ok: true };
 }
+
+// --- Companies (administradoras) ----------------------------------------------
+
+export async function createCompany(input: {
+  name: string;
+  nit?: string;
+}): Promise<Result> {
+  await requireSuperadmin();
+  const name = clampText(input.name, 80);
+  if (!name) return { ok: false, error: "Ingresa el nombre de la administradora" };
+  const nit = clampText(input.nit, 20);
+  await db
+    .insert(companies)
+    .values({ name, nitEnc: nit ? encryptPII(nit) : null });
+  revalidatePath("/superadmin");
+  return { ok: true };
+}
+
+// Assigns (or clears, with companyId = "") the administradora of a conjunto.
+export async function assignConjuntoCompany(input: {
+  conjuntoId: string;
+  companyId: string;
+}): Promise<Result> {
+  await requireSuperadmin();
+  const companyId = input.companyId || null;
+  if (companyId) {
+    const rows = await db
+      .select({ id: companies.id })
+      .from(companies)
+      .where(eq(companies.id, companyId))
+      .limit(1);
+    if (!rows[0]) return { ok: false, error: "Administradora no encontrada" };
+  }
+  await db
+    .update(conjuntos)
+    .set({ companyId })
+    .where(eq(conjuntos.id, input.conjuntoId));
+  revalidatePath("/superadmin");
+  return { ok: true };
+}
