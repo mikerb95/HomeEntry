@@ -136,10 +136,24 @@ export async function confirmScan(
     return { ok: false, error: "La autorización está vencida" };
   }
 
-  await db
+  // Conditional on still being "vigente": if two guards confirm the same
+  // grant at once, only the first records the entry — the loser errors out
+  // instead of logging a duplicate ingreso.
+  const updated = await db
     .update(authGrants)
     .set({ status: "usado" })
-    .where(and(eq(authGrants.conjuntoId, cid), eq(authGrants.id, authId)));
+    .where(
+      and(
+        eq(authGrants.conjuntoId, cid),
+        eq(authGrants.id, authId),
+        eq(authGrants.status, "vigente"),
+      ),
+    )
+    .returning({ id: authGrants.id });
+  if (updated.length === 0) {
+    revalidatePath(`/${slug}/porteria`);
+    return { ok: false, error: "La autorización ya fue utilizada" };
+  }
   await db.insert(events).values({
     conjuntoId: cid,
     type: "visita",
