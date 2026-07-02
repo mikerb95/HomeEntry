@@ -633,6 +633,7 @@ export function AdminPanel(props: Props) {
                 <button
                   key={k}
                   onClick={() => setApFilter(k)}
+                  aria-pressed={apFilter === k}
                   className="rounded-[8px] px-3.5 py-2 text-[13px] font-bold"
                   style={{
                     background: apFilter === k ? "#0F141A" : "#fff",
