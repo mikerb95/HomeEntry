@@ -1243,9 +1243,17 @@ export function AdminPanel(props: Props) {
       {tab === "gastos" && (
         <>
           <div className="mb-5 rounded-[20px] border border-[#E8ECF2] bg-white p-[22px]">
-            <h2 className="mb-3.5 font-display text-[19px] font-bold">
-              Nuevo proveedor
-            </h2>
+            <div className="mb-3.5 flex flex-wrap items-center justify-between gap-3">
+              <h2 className="font-display text-[19px] font-bold">
+                Nuevo proveedor
+              </h2>
+              <a
+                href={`/${props.slug}/admin/export?type=gastos`}
+                className="rounded-[11px] border-[1.5px] border-[#E3E8EF] bg-white px-4 py-[11px] text-[13.5px] font-bold text-ink hover:bg-[#F6F8FB]"
+              >
+                Exportar gastos
+              </a>
+            </div>
             <div className="flex flex-wrap items-end gap-3">
               <div className="min-w-[180px] flex-1">
                 <label className="mb-1.5 block text-[11.5px] font-bold uppercase tracking-[.5px] text-[#6B7585]">
