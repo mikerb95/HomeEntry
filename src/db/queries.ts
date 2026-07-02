@@ -1009,7 +1009,7 @@ export type ExpenseView = {
   id: string;
   vendorId: string;
   vendorName: string;
-  category: string;
+  category: (typeof expenses.$inferSelect)["category"];
   amount: number;
   description: string;
   invoiceRef: string;
