@@ -243,6 +243,10 @@ export function AdminPanel(props: Props) {
   const [gdPassword, setGdPassword] = useState("");
   const [resetGuardUser, setResetGuardUser] = useState<string | null>(null);
 
+  // Destructive actions ask for confirmation in a dialog first.
+  const [vendorToDelete, setVendorToDelete] = useState<Vendor | null>(null);
+  const [guardToDelete, setGuardToDelete] = useState<string | null>(null);
+
   const towerList = towersArr(props.towers);
   const allApts = allAptsArr(props.towers, props.aptsPerTower);
   const aptLabel = (key: string) =>
@@ -434,6 +438,7 @@ export function AdminPanel(props: Props) {
   function removeVendor(id: string) {
     start(async () => {
       const res = await deleteVendor(props.slug, id);
+      setVendorToDelete(null);
       if (!res.ok) {
         show(res.error || "Error", "warn");
         return;
@@ -462,9 +467,9 @@ export function AdminPanel(props: Props) {
   }
 
   function removeGuard(username: string) {
-    if (!confirm(`¿Eliminar al vigilante "${username}"?`)) return;
     start(async () => {
       const res = await deleteGuard(props.slug, username);
+      setGuardToDelete(null);
       if (!res.ok) {
         show(res.error || "Error", "warn");
         return;
