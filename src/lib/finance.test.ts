@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { computeAptBalance, computeConjuntoSummary } from "./finance";
+import {
+  computeAptBalance,
+  computeConjuntoSummary,
+  distributeByCoefficient,
+} from "./finance";
 
 const day = (n: number) => new Date(Date.UTC(2026, 0, n));
 
@@ -94,5 +98,48 @@ describe("computeConjuntoSummary", () => {
     expect(summary.parqueaderoTotal).toBe(9000);
     // 100000 recaudo + 9000 parqueadero - 50000 gastos
     expect(summary.balanceNeto).toBe(59000);
+  });
+});
+
+describe("distributeByCoefficient", () => {
+  it("splits the budget proportionally and sums exactly to the budget", () => {
+    // Coefficients 40% / 35% / 25% over a budget that doesn't divide evenly.
+    const out = distributeByCoefficient(1000001, [
+      { aptoKey: "T1-101", coefficient: 400000 },
+      { aptoKey: "T1-102", coefficient: 350000 },
+      { aptoKey: "T1-103", coefficient: 250000 },
+    ]);
+    const total = [...out.values()].reduce((a, b) => a + b, 0);
+    expect(total).toBe(1000001);
+    expect(out.get("T1-101")).toBeGreaterThan(out.get("T1-102")!);
+    expect(out.get("T1-102")).toBeGreaterThan(out.get("T1-103")!);
+  });
+
+  it("distributes over the actual coefficient sum when partially assigned", () => {
+    // Only two units have coefficients (sum 50%): they split the whole budget.
+    const out = distributeByCoefficient(300000, [
+      { aptoKey: "T1-101", coefficient: 300000 },
+      { aptoKey: "T1-102", coefficient: 200000 },
+      { aptoKey: "T1-103", coefficient: 0 },
+    ]);
+    expect(out.get("T1-101")).toBe(180000);
+    expect(out.get("T1-102")).toBe(120000);
+    expect(out.has("T1-103")).toBe(false);
+  });
+
+  it("equal coefficients with an indivisible budget stay within 1 peso", () => {
+    const out = distributeByCoefficient(100, [
+      { aptoKey: "A", coefficient: 10000 },
+      { aptoKey: "B", coefficient: 10000 },
+      { aptoKey: "C", coefficient: 10000 },
+    ]);
+    const values = [...out.values()];
+    expect(values.reduce((a, b) => a + b, 0)).toBe(100);
+    expect(Math.max(...values) - Math.min(...values)).toBeLessThanOrEqual(1);
+  });
+
+  it("returns empty when there is no budget or no coefficients", () => {
+    expect(distributeByCoefficient(0, [{ aptoKey: "A", coefficient: 1 }]).size).toBe(0);
+    expect(distributeByCoefficient(1000, []).size).toBe(0);
   });
 });
