@@ -163,6 +163,14 @@ const modules: Module[] = [
         title: "Tarifa de parqueadero",
         desc: "Define y actualiza la tarifa de los cupos de parqueadero.",
       },
+      {
+        title: "Fondo de imprevistos",
+        desc: "Registra ingresos y egresos del fondo y consulta el saldo calculado automáticamente.",
+      },
+      {
+        title: "Acuerdos de pago",
+        desc: "Formaliza y da seguimiento a acuerdos de pago para cartera en mora.",
+      },
     ],
   },
   {
