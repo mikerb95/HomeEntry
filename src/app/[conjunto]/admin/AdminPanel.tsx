@@ -201,6 +201,7 @@ export function AdminPanel(props: Props) {
     | "vigilantes"
     | "solicitudes"
     | "propietarios"
+    | "cartelera"
   >("dashboard");
   const [fType, setFType] = useState("all");
   const [fTower, setFTower] = useState("all");
@@ -281,6 +282,7 @@ export function AdminPanel(props: Props) {
         : "Solicitudes",
     },
     { key: "propietarios", label: "Propietarios" },
+    { key: "cartelera", label: "Cartelera" },
   ];
 
   // --- history table ---
