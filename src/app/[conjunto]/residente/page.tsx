@@ -12,7 +12,7 @@ import {
 } from "@/db/queries";
 import { Shell } from "@/components/Shell";
 import { PushOptIn } from "@/components/PushOptIn";
-import { IconAuthorize, IconMegaphone } from "@/components/icons";
+import { IconAuthorize, IconGear, IconMegaphone } from "@/components/icons";
 import {
   announcementMeta,
   AnnouncementCategory,
@@ -107,6 +107,13 @@ export default async function ResidentDashboard({
               className="flex items-center gap-2 rounded-[13px] border-[1.5px] border-[#E3E8EF] bg-white px-[18px] py-[13px] text-[14.5px] font-bold text-ink hover:bg-[#F6F8FB]"
             >
               Estado de cuenta
+            </Link>
+            <Link
+              href={`/${slug}/residente/solicitudes`}
+              className="flex items-center gap-2 rounded-[13px] border-[1.5px] border-[#E3E8EF] bg-white px-[18px] py-[13px] text-[14.5px] font-bold text-ink hover:bg-[#F6F8FB]"
+            >
+              <IconGear size={18} />
+              Solicitudes
             </Link>
             <Link
               href={`/${slug}/residente/registro`}
