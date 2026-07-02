@@ -413,6 +413,8 @@ export async function getOwnerVersion(ownerId: string): Promise<number | null> {
 // Finds (or creates) the owner identified by `phone`, then links it to a
 // unit. Reusing the same phone across links is how one owner ends up with
 // several units. Called only from the admin panel — owners never self-serve.
+// `created` tells the caller whether the PIN was applied: an existing owner
+// keeps their current PIN (use updateOwnerPin for a deliberate reset).
 export async function upsertOwnerLink(params: {
   phone: string;
   pin: string;
@@ -420,7 +422,7 @@ export async function upsertOwnerLink(params: {
   aptoKey: string;
   tower: string;
   apt: string;
-}): Promise<{ ownerId: string }> {
+}): Promise<{ ownerId: string; created: boolean }> {
   const existing = await getOwnerByPhone(params.phone);
   const ownerId = existing
     ? existing.id
@@ -446,7 +448,40 @@ export async function upsertOwnerLink(params: {
     })
     .onConflictDoNothing();
 
-  return { ownerId };
+  return { ownerId, created: !existing };
+}
+
+// True when the owner holds at least one unit in the conjunto — the scope
+// check for admin operations on an owner account (e.g. PIN reset).
+export async function ownerLinkedToConjunto(
+  ownerId: string,
+  conjuntoId: string,
+): Promise<boolean> {
+  const rows = await db
+    .select({ ownerId: ownerUnits.ownerId })
+    .from(ownerUnits)
+    .where(
+      and(
+        eq(ownerUnits.ownerId, ownerId),
+        eq(ownerUnits.conjuntoId, conjuntoId),
+      ),
+    )
+    .limit(1);
+  return rows.length > 0;
+}
+
+// Deliberate PIN reset by an admin: new hash, revoke every issued session and
+// clear the brute-force lockout so the owner can log in right away.
+export async function updateOwnerPin(ownerId: string, pin: string) {
+  await db
+    .update(owners)
+    .set({
+      pinHash: hashSecret(pin),
+      sessionVersion: sql`${owners.sessionVersion} + 1`,
+      failedPins: 0,
+      lockedUntil: null,
+    })
+    .where(eq(owners.id, ownerId));
 }
 
 export async function removeOwnerLink(
