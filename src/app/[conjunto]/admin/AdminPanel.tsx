@@ -11,6 +11,7 @@ import {
 import { freeParking } from "@/app/actions/parking";
 import {
   updateMoraConfig,
+  updateUnitCoefficients,
   generateMonthlyCharges,
   createVendor,
   deleteVendor,
@@ -138,6 +139,7 @@ type Props = {
   parking: Spot[];
   sessions: Sess[];
   aptBalances: AptBalance[];
+  unitCoefficients: { aptoKey: string; coefficient: number }[];
   carteraTotal: number;
   recaudoTotal: number;
   moraTotal: number;
@@ -225,6 +227,17 @@ export function AdminPanel(props: Props) {
   const [genPeriod, setGenPeriod] = useState("");
   const [genAmount, setGenAmount] = useState("");
   const [genDue, setGenDue] = useState("");
+  const [genMode, setGenMode] = useState<"fijo" | "coeficiente">("fijo");
+  // Coefficient editor: percent strings keyed by aptoKey ("0.8542").
+  const [coefOpen, setCoefOpen] = useState(false);
+  const [coefDraft, setCoefDraft] = useState<Record<string, string>>(() =>
+    Object.fromEntries(
+      props.unitCoefficients.map((u) => [
+        u.aptoKey,
+        String(u.coefficient / 10000),
+      ]),
+    ),
+  );
 
   // --- gastos ---
   const [expOpen, setExpOpen] = useState(false);

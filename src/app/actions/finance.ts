@@ -160,9 +160,19 @@ export async function deleteVendor(slug: string, vendorId: string): Promise<Resu
 
 // --- Charges (cuotas) ---------------------------------------------------------
 
+// `mode` selects how `amount` is interpreted: "fijo" (default) bills that
+// exact amount to every apartment; "coeficiente" treats it as the total
+// monthly budget and splits it by each unit's coeficiente de copropiedad
+// (units with coefficient 0 — or never assigned — get no charge).
 export async function generateMonthlyCharges(
   slug: string,
-  input: { period: string; amount: string; dueDate: string; concept?: string },
+  input: {
+    period: string;
+    amount: string;
+    dueDate: string;
+    concept?: string;
+    mode?: string;
+  },
 ): Promise<Result> {
   const session = await requireAdmin(slug);
   const cid = session.conjuntoId;
@@ -173,25 +183,42 @@ export async function generateMonthlyCharges(
   const dueDate = new Date(input.dueDate);
   if (isNaN(dueDate.getTime())) return { ok: false, error: "Fecha límite inválida" };
   const concept = clampText(input.concept, 80) || "Cuota de administración";
+  const mode = input.mode === "coeficiente" ? "coeficiente" : "fijo";
 
   const conjunto = await getConjuntoById(cid);
   if (!conjunto) return { ok: false, error: "Conjunto no encontrado" };
 
   const apts = allAptsArr(conjunto.towers, conjunto.aptsPerTower);
-  const amountEnc = encryptPII(String(amount));
-  const rows = apts.map((a) => {
-    const [tower, apt] = a.id.split("-");
-    return {
-      conjuntoId: cid,
-      aptoKey: a.id,
-      tower,
-      apt,
-      period,
-      concept,
-      amountEnc,
-      dueDate,
-    };
-  });
+
+  let amountByApt: Map<string, number>;
+  if (mode === "coeficiente") {
+    const unitRows = await listUnits(cid);
+    amountByApt = distributeByCoefficient(amount, unitRows);
+    if (!amountByApt.size)
+      return {
+        ok: false,
+        error:
+          "No hay coeficientes asignados — guarda los coeficientes de copropiedad primero",
+      };
+  } else {
+    amountByApt = new Map(apts.map((a) => [a.id, amount]));
+  }
+
+  const rows = apts
+    .filter((a) => (amountByApt.get(a.id) ?? 0) > 0)
+    .map((a) => {
+      const [tower, apt] = a.id.split("-");
+      return {
+        conjuntoId: cid,
+        aptoKey: a.id,
+        tower,
+        apt,
+        period,
+        concept,
+        amountEnc: encryptPII(String(amountByApt.get(a.id))),
+        dueDate,
+      };
+    });
   if (rows.length) {
     // One row per (conjunto, apto, period) is desired; skip apts that
     // already have a charge for this period instead of erroring, so a
