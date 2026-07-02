@@ -101,9 +101,10 @@ async function main() {
   ]);
 
   // Parking
+  type SeedStatus = "resident" | "visitor";
   const carSeed: Record<
     string,
-    { status: string; plate: string; apto: string }
+    { status: SeedStatus; plate: string; apto: string }
   > = {
     "P-01": { status: "resident", plate: "ABC-123", apto: "T1-101" },
     "P-03": { status: "resident", plate: "DEF-456", apto: "T2-102" },
@@ -112,7 +113,7 @@ async function main() {
   };
   const motoSeed: Record<
     string,
-    { status: string; plate: string; apto: string }
+    { status: SeedStatus; plate: string; apto: string }
   > = {
     "M-01": { status: "resident", plate: "MOT-11A", apto: "T1-105" },
     "M-03": { status: "visitor", plate: "MOT-44B", apto: "T2-108" },
@@ -148,7 +149,7 @@ async function main() {
   const now = Date.now();
   const ev = (
     min: number,
-    type: string,
+    type: (typeof events.$inferSelect)["type"],
     tower: string,
     apto: string,
     detail: string,
