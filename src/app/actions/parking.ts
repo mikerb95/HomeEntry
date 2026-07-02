@@ -67,13 +67,26 @@ export async function assignParking(
     };
   }
 
+  // Conditional on the spot still being free: with two guards (or a stale
+  // panel) an unconditional update would silently overwrite an active
+  // assignment — losing the previous vehicle's entry and its exit charge.
   const status = input.kind === "visitor" ? "visitor" : "resident";
-  await db
+  const updated = await db
     .update(parkingSpots)
     .set({ status, plate, aptoKey: input.aptoKey, enteredAt: new Date() })
     .where(
-      and(eq(parkingSpots.conjuntoId, cid), eq(parkingSpots.id, input.spotId)),
-    );
+      and(
+        eq(parkingSpots.conjuntoId, cid),
+        eq(parkingSpots.id, input.spotId),
+        eq(parkingSpots.status, "free"),
+      ),
+    )
+    .returning({ id: parkingSpots.id });
+  if (updated.length === 0) {
+    revalidatePath(`/${slug}/porteria`);
+    revalidatePath(`/${slug}/admin`);
+    return { ok: false, error: "Ese parqueadero ya está ocupado" };
+  }
 
   const [tower, apt] = input.aptoKey.split("-");
   await db.insert(events).values({
