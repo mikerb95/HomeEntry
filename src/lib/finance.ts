@@ -72,6 +72,38 @@ export function computeAptBalance(
   };
 }
 
+// Splits a monthly budget among units proportionally to their coeficiente de
+// copropiedad (integer, percent × 10 000; see units.coefficient in the
+// schema). Distribution is over the actual sum of coefficients, so it still
+// works while the admin has only partially assigned them. Largest-remainder
+// rounding guarantees the per-unit amounts add up to exactly `budget`.
+// Zero-coefficient units get no charge.
+export function distributeByCoefficient(
+  budget: number,
+  coefficients: { aptoKey: string; coefficient: number }[],
+): Map<string, number> {
+  const out = new Map<string, number>();
+  const positive = coefficients.filter((c) => c.coefficient > 0);
+  const totalCoef = positive.reduce((a, c) => a + c.coefficient, 0);
+  if (budget <= 0 || totalCoef <= 0) return out;
+
+  let assigned = 0;
+  const shares = positive.map((c) => {
+    const exact = (budget * c.coefficient) / totalCoef;
+    const floor = Math.floor(exact);
+    assigned += floor;
+    return { aptoKey: c.aptoKey, floor, frac: exact - floor };
+  });
+
+  shares.sort((a, b) => b.frac - a.frac);
+  let remainder = budget - assigned;
+  for (const s of shares) {
+    out.set(s.aptoKey, s.floor + (remainder > 0 ? 1 : 0));
+    remainder--;
+  }
+  return out;
+}
+
 export type ConjuntoSummary = {
   aptBalances: AptBalance[];
   carteraTotal: number;
