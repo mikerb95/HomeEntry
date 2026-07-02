@@ -7,6 +7,7 @@ import {
   linkOwner,
   registerNotice,
   registerServiceRequest,
+  resetOwnerPin,
   setServiceRequestStatus,
   unlinkOwner,
 } from "@/app/actions/owners";
@@ -70,6 +71,9 @@ export function OwnersPanel({
   const [opApto, setOpApto] = useState(allApts[0]?.id ?? "");
   const [opPhone, setOpPhone] = useState("");
   const [opPin, setOpPin] = useState("");
+  // Row currently in "reset PIN" mode and the new PIN being typed.
+  const [pinOwner, setPinOwner] = useState<string | null>(null);
+  const [newPin, setNewPin] = useState("");
 
   const [ntApto, setNtApto] = useState(allApts[0]?.id ?? "");
   const [ntCategory, setNtCategory] = useState("otro");

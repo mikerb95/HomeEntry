@@ -4,8 +4,11 @@ import { revalidatePath } from "next/cache";
 import {
   createNotice,
   createServiceRequest,
+  logAccess,
+  ownerLinkedToConjunto,
   removeOwnerLink,
   resolveNotice,
+  updateOwnerPin,
   updateServiceRequestStatus,
   upsertOwnerLink,
 } from "@/db/queries";
@@ -14,10 +17,13 @@ import { clampText, digits } from "@/lib/format";
 
 type Result = { ok: boolean; error?: string };
 
+// `created:false` means the phone already belonged to an owner: the unit was
+// linked but the typed PIN was NOT applied (the owner keeps their current
+// one). The UI surfaces this so the admin isn't misled.
 export async function linkOwner(
   slug: string,
   input: { phone: string; pin: string; aptoKey: string; tower: string; apt: string },
-): Promise<Result> {
+): Promise<Result & { created?: boolean }> {
   const session = await requireAdmin(slug);
   const cid = session.conjuntoId;
   const phone = digits(input.phone);
@@ -30,7 +36,7 @@ export async function linkOwner(
   if (!input.tower || !input.apt) {
     return { ok: false, error: "Selecciona torre y apartamento" };
   }
-  await upsertOwnerLink({
+  const { created } = await upsertOwnerLink({
     phone,
     pin: digits(input.pin),
     conjuntoId: cid,
@@ -38,6 +44,28 @@ export async function linkOwner(
     tower: input.tower,
     apt: input.apt,
   });
+  revalidatePath(`/${slug}/admin`);
+  return { ok: true, created };
+}
+
+// Owners have no self-service recovery, so the admin is the escape hatch when
+// a PIN is forgotten. Scoped: only admins of a conjunto where the owner holds
+// a unit can reset, and the reset revokes the owner's active sessions.
+export async function resetOwnerPin(
+  slug: string,
+  ownerId: string,
+  pin: string,
+): Promise<Result> {
+  const session = await requireAdmin(slug);
+  const cid = session.conjuntoId;
+  if (digits(pin).length < 4) {
+    return { ok: false, error: "El PIN debe tener 4 dígitos" };
+  }
+  if (!(await ownerLinkedToConjunto(ownerId, cid))) {
+    return { ok: false, error: "Propietario no vinculado a este conjunto" };
+  }
+  await updateOwnerPin(ownerId, digits(pin));
+  await logAccess(cid, `admin:${session.username}`, "reset_owner_pin", ownerId);
   revalidatePath(`/${slug}/admin`);
   return { ok: true };
 }
