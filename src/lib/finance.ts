@@ -16,6 +16,15 @@ export type PaymentInput = {
   paidAt: Date;
 };
 
+// Past-due amounts bucketed by days overdue ("antigüedad de cartera").
+// Only unpaid remainders past their dueDate count; d90plus is > 90 days.
+export type Aging = {
+  d30: number;
+  d60: number;
+  d90: number;
+  d90plus: number;
+};
+
 export type AptBalance = {
   aptoKey: string;
   totalCargado: number;
@@ -24,6 +33,7 @@ export type AptBalance = {
   mora: number;
   total: number; // saldo + mora
   enMora: boolean;
+  aging: Aging;
 };
 
 const DAY_MS = 86_400_000;
@@ -46,6 +56,7 @@ export function computeAptBalance(
   const ordered = [...charges].sort((a, b) => a.period.localeCompare(b.period));
   let pool = totalPagado;
   let mora = 0;
+  const aging: Aging = { d30: 0, d60: 0, d90: 0, d90plus: 0 };
 
   for (const c of ordered) {
     const applied = Math.min(pool, c.amount);
@@ -58,6 +69,14 @@ export function computeAptBalance(
     if (daysOverdue > 0) {
       mora += remaining * (moraRatePct / 100 / 100) * (daysOverdue / 30);
     }
+
+    // Aging buckets ignore the grace period: they answer "how old is the
+    // debt", while mora answers "what does the delay cost".
+    const daysPastDue = (asOf.getTime() - c.dueDate.getTime()) / DAY_MS;
+    if (daysPastDue > 90) aging.d90plus += remaining;
+    else if (daysPastDue > 60) aging.d90 += remaining;
+    else if (daysPastDue > 30) aging.d60 += remaining;
+    else if (daysPastDue > 0) aging.d30 += remaining;
   }
 
   const saldo = totalCargado - totalPagado;
@@ -69,6 +88,7 @@ export function computeAptBalance(
     mora,
     total: saldo + mora,
     enMora: mora > 0,
+    aging,
   };
 }
 
@@ -112,6 +132,7 @@ export type ConjuntoSummary = {
   gastoTotal: number;
   parqueaderoTotal: number;
   balanceNeto: number;
+  agingTotals: Aging;
 };
 
 // `allParkingIncomes` are the COP amounts charged on visitor-parking exits
