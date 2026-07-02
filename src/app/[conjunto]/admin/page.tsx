@@ -146,6 +146,14 @@ export default async function AdminPanelPage({
           coefficient: u.coefficient,
         }))}
         agingTotals={financeSummary.agingTotals}
+        agreements={agreements.map((ag) => ({
+          id: ag.id,
+          aptoKey: ag.aptoKey,
+          totalAmount: ag.totalAmount,
+          installments: ag.installments,
+          startDateIso: ag.startDate.toISOString(),
+          status: ag.status,
+        }))}
         carteraTotal={financeSummary.carteraTotal}
         recaudoTotal={financeSummary.recaudoTotal}
         moraTotal={financeSummary.moraTotal}
