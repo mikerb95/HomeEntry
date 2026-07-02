@@ -521,4 +521,5 @@ export type PushSubscriptionRow = typeof pushSubscriptions.$inferSelect;
 export type Vendor = typeof vendors.$inferSelect;
 export type Charge = typeof charges.$inferSelect;
 export type Payment = typeof payments.$inferSelect;
+export type PaymentAgreement = typeof paymentAgreements.$inferSelect;
 export type Expense = typeof expenses.$inferSelect;
