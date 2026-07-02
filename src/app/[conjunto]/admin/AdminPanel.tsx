@@ -312,11 +312,21 @@ export function AdminPanel(props: Props) {
   const maxHours = usageArr.length ? usageArr[0].hours : 1;
   const rankRows = usageArr.slice(0, 6);
 
+  // Rates are edited locally and persisted on blur — saving on every
+  // keystroke spammed the server and raced against itself.
   function onRate(v: string, kind: "car" | "moto") {
     const value = Math.max(0, parseInt(v.replace(/\D/g, "") || "0", 10));
     (kind === "moto" ? setRateMoto : setRate)(value);
+  }
+
+  function saveRate(kind: "car" | "moto") {
+    const value = kind === "moto" ? rateMoto : rate;
+    const saved = kind === "moto" ? props.visitorRateMoto : props.visitorRate;
+    if (value === saved) return;
     start(async () => {
       await updateRate(props.slug, String(value), kind);
+      show("Tarifa guardada", "ok");
+      router.refresh();
     });
   }
 
@@ -489,21 +499,12 @@ export function AdminPanel(props: Props) {
   return (
     <div className="animate-pa-in">
       <div className="mb-[18px] flex flex-wrap items-center justify-between gap-4">
-        <div className="flex w-max max-w-full gap-1.5 overflow-x-auto rounded-[14px] border border-[#E3E8EF] bg-white p-[5px]">
-          {adminTabs.map((t) => (
-            <button
-              key={t.key}
-              onClick={() => setTab(t.key)}
-              className="whitespace-nowrap rounded-[10px] px-[18px] py-2.5 text-[14px] font-bold"
-              style={{
-                background: tab === t.key ? "#0F141A" : "transparent",
-                color: tab === t.key ? "#fff" : "#5B6675",
-              }}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
+        <TabBar
+          label="Secciones de administración"
+          tabs={adminTabs}
+          active={tab}
+          onChange={setTab}
+        />
         <button
           onClick={() => setCfgOpen(true)}
           className="flex items-center gap-2 rounded-[12px] border-[1.5px] border-[#E3E8EF] bg-white px-4 py-[11px] text-[14px] font-bold text-ink hover:bg-[#F6F8FB]"
@@ -705,6 +706,7 @@ export function AdminPanel(props: Props) {
                   <input
                     value={String(rate)}
                     onChange={(e) => onRate(e.target.value, "car")}
+                    onBlur={() => saveRate("car")}
                     inputMode="numeric"
                     className="w-[90px] bg-transparent px-1.5 py-2.5 text-[15px] font-bold outline-none"
                   />
