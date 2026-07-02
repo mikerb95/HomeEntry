@@ -11,6 +11,7 @@ import {
   listNotices,
   listOwnerUnitsForConjunto,
   listParking,
+  listPaymentAgreements,
   listPendingResidents,
   listRecentFinanceAccessLog,
   listResidents,
