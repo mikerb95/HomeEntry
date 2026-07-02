@@ -1468,7 +1468,7 @@ export function AdminPanel(props: Props) {
           body={
             <>
               Se eliminará <strong>{vendorToDelete.name}</strong> de la lista de
-              proveedores. Los gastos ya registrados se conservan.
+              proveedores. Si tiene gastos registrados no se podrá eliminar.
             </>
           }
           pending={pending}
