@@ -19,6 +19,18 @@ export const cities = pgTable("cities", {
   department: text("department").notNull(), // "Cundinamarca"
 });
 
+// Administradoras: property-management companies that run several conjuntos.
+// A conjunto may belong to at most one company (conjuntos.companyId); nulls
+// are self-managed conjuntos. NIT is encrypted like other PII fields.
+export const companies = pgTable("companies", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  nitEnc: text("nit_enc"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
 // One residential complex (tenant). Everything else is scoped by conjuntoId.
 // `slug` is what appears in the URL: ejemploapp.vercel.app/<slug>
 // `code` is the short public selector any role types to pick this conjunto:
@@ -49,10 +61,32 @@ export const conjuntos = pgTable("conjuntos", {
   // and a grace period in days before a past-due charge starts accruing it.
   moraRatePct: integer("mora_rate_pct").notNull().default(0),
   moraGraceDays: integer("mora_grace_days").notNull().default(0),
+  // Administradora that manages this conjunto; null = self-managed.
+  companyId: uuid("company_id").references(() => companies.id),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
 });
+
+// Units ("unidades privadas") and their coeficiente de copropiedad. Apartments
+// still derive from towers × aptsPerTower; a row exists here only once the
+// admin saves coefficients (missing rows behave as coefficient 0).
+// `coefficient` is an integer in percent × 10 000 (0.8542 % → 8542), so a
+// fully-assigned conjunto sums to 1 000 000 — integer math avoids float drift
+// when distributing the monthly budget into per-unit charges.
+export const units = pgTable(
+  "units",
+  {
+    conjuntoId: uuid("conjunto_id")
+      .notNull()
+      .references(() => conjuntos.id),
+    aptoKey: text("apto_key").notNull(),
+    tower: text("tower").notNull(),
+    apt: text("apt").notNull(),
+    coefficient: integer("coefficient").notNull().default(0),
+  },
+  (t) => [primaryKey({ columns: [t.conjuntoId, t.aptoKey] })],
+);
 
 // Residents = the WhatsApp registry + PINs, keyed by (conjuntoId, "T1-101").
 // Phone is stored encrypted (phoneEnc) plus a deterministic HMAC (phoneHash)
