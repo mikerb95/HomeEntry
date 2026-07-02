@@ -35,6 +35,10 @@ export function AuthorizeForm({ slug }: { slug: string }) {
   const showPlateError = plate.length > 0 && !plateOk;
 
   function generate() {
+    if (!visitor.trim()) {
+      show("Ingresa el nombre del visitante", "warn");
+      return;
+    }
     if (!plateOk) {
       show(
         foreign
@@ -95,16 +99,24 @@ export function AuthorizeForm({ slug }: { slug: string }) {
             Genera un QR para que la portería lo escanee al llegar tu visita.
           </p>
 
-          <Label>Nombre del visitante</Label>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              generate();
+            }}
+          >
+          <Label htmlFor="auth-visitor">Nombre del visitante</Label>
           <input
+            id="auth-visitor"
             value={visitor}
             onChange={(e) => setVisitor(e.target.value)}
             placeholder="Ej. Laura Restrepo"
             className={`mb-3.5 ${inputCls}`}
           />
 
-          <Label>Documento</Label>
+          <Label htmlFor="auth-doc">Documento</Label>
           <input
+            id="auth-doc"
             value={doc}
             onChange={(e) => setDoc(e.target.value)}
             placeholder="CC / CE"
@@ -113,8 +125,9 @@ export function AuthorizeForm({ slug }: { slug: string }) {
 
           <div className="mb-3.5 grid grid-cols-2 gap-3">
             <div>
-              <Label>Fecha</Label>
+              <Label htmlFor="auth-date">Fecha</Label>
               <input
+                id="auth-date"
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
@@ -122,8 +135,9 @@ export function AuthorizeForm({ slug }: { slug: string }) {
               />
             </div>
             <div>
-              <Label>Hora</Label>
+              <Label htmlFor="auth-time">Hora</Label>
               <input
+                id="auth-time"
                 type="time"
                 value={time}
                 onChange={(e) => setTime(e.target.value)}
@@ -133,7 +147,7 @@ export function AuthorizeForm({ slug }: { slug: string }) {
           </div>
 
           <div className="mb-2 flex items-center justify-between">
-            <Label>Placa del vehículo (opcional)</Label>
+            <Label htmlFor="auth-plate">Placa del vehículo (opcional)</Label>
             <label className="flex cursor-pointer items-center gap-1.5 text-[13px] font-semibold text-[#6B7585]">
               <input
                 type="checkbox"
