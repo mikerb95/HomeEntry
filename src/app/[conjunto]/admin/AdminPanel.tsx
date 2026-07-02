@@ -988,9 +988,19 @@ export function AdminPanel(props: Props) {
           </div>
 
           <div className="mb-5 rounded-[20px] border border-[#E8ECF2] bg-white p-[22px]">
-            <h2 className="mb-3.5 font-display text-[16px] font-bold">
-              Antigüedad de cartera vencida
-            </h2>
+            <div className="mb-3.5 flex flex-wrap items-center justify-between gap-3">
+              <h2 className="font-display text-[16px] font-bold">
+                Antigüedad de cartera vencida
+              </h2>
+              <button
+                onClick={() => setRemModal("confirm")}
+                disabled={pending || debtorCount === 0}
+                className="rounded-[11px] bg-blue px-4 py-[11px] text-[13.5px] font-extrabold text-white hover:bg-blue-dark disabled:opacity-50"
+              >
+                Enviar recordatorios de cobro
+                {debtorCount > 0 ? ` (${debtorCount})` : ""}
+              </button>
+            </div>
             <div className="grid grid-cols-2 gap-3.5 min-[680px]:grid-cols-4">
               {[
                 { label: "1–30 días", value: props.agingTotals.d30, fg: "#B45309" },
