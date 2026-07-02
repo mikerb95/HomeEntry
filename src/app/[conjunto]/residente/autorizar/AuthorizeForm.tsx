@@ -187,6 +187,7 @@ export function AuthorizeForm({ slug }: { slug: string }) {
             </div>
           )}
           <input
+            id="auth-plate"
             value={plate}
             onChange={(e) =>
               setPlate(
@@ -196,10 +197,15 @@ export function AuthorizeForm({ slug }: { slug: string }) {
               )
             }
             placeholder={platePlaceholder}
+            aria-invalid={showPlateError || undefined}
+            aria-describedby="auth-plate-hint"
             className={`uppercase tracking-[1px] ${inputCls} font-bold`}
             style={{ borderColor: showPlateError ? "#F43F5E" : undefined }}
           />
-          <div className="mb-5 mt-[6px] min-h-[16px] text-[12.5px] font-semibold">
+          <div
+            id="auth-plate-hint"
+            className="mb-5 mt-[6px] min-h-[16px] text-[12.5px] font-semibold"
+          >
             {showPlateError ? (
               <span className="text-[#E11D48]">
                 {foreign
