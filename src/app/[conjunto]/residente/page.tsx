@@ -103,6 +103,12 @@ export default async function ResidentDashboard({
               Cartelera
             </Link>
             <Link
+              href={`/${slug}/residente/cuenta`}
+              className="flex items-center gap-2 rounded-[13px] border-[1.5px] border-[#E3E8EF] bg-white px-[18px] py-[13px] text-[14.5px] font-bold text-ink hover:bg-[#F6F8FB]"
+            >
+              Estado de cuenta
+            </Link>
+            <Link
               href={`/${slug}/residente/registro`}
               className="flex items-center gap-2 rounded-[13px] border-[1.5px] border-[#E3E8EF] bg-white px-[18px] py-[13px] text-[14.5px] font-bold text-ink hover:bg-[#F6F8FB]"
             >
