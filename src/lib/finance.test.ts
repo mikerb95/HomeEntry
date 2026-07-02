@@ -149,7 +149,7 @@ describe("aging (antigüedad de cartera)", () => {
     const charges = [
       { id: "1", aptoKey: "T1-101", period: "2025-09", amount: 100000, dueDate: day(-95) },
       { id: "2", aptoKey: "T1-101", period: "2025-11", amount: 100000, dueDate: day(-45) },
-      { id: "3", aptoKey: "T1-101", period: "2026-01", amount: 100000, dueDate: day(5) },
+      { id: "3", aptoKey: "T1-101", period: "2026-01", amount: 100000, dueDate: day(15) },
     ];
     // Payment covers the oldest charge in full; the -45d one stays unpaid.
     const b = computeAptBalance(
@@ -161,7 +161,7 @@ describe("aging (antigüedad de cartera)", () => {
     );
     expect(b.aging.d90plus).toBe(0); // oldest was paid
     expect(b.aging.d60).toBe(100000); // 55 days past due
-    expect(b.aging.d30).toBe(0); // 2026-01 charge is not yet due (due day 5 vs asOf day 10 → 5 days past due)
+    expect(b.aging.d30).toBe(0); // 2026-01 charge is not yet due
   });
 
   it("a charge overdue 5 days lands in the 1-30 bucket", () => {
