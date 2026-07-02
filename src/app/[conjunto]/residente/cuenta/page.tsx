@@ -53,7 +53,12 @@ export default async function ResidentAccountPage({
     ...payments.map((p) => ({
       id: `p-${p.id}`,
       kind: "pago" as const,
-      concept: p.method === "efectivo" ? "Pago en efectivo" : "Pago",
+      concept:
+        p.method === "efectivo"
+          ? "Pago en efectivo"
+          : p.method === "acuerdo_pago"
+            ? "Consolidado en acuerdo de pago"
+            : "Pago",
       amount: p.amount,
       date: p.paidAt,
     })),
