@@ -1,5 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { encryptPII, decryptPII, piiHash } from "./crypto";
+import {
+  encryptPII,
+  decryptPII,
+  decryptAmount,
+  PIIDecryptError,
+  piiHash,
+} from "./crypto";
 
 describe("encryptPII / decryptPII", () => {
   it("round-trips a value", () => {
@@ -27,6 +33,28 @@ describe("encryptPII / decryptPII", () => {
     const blob = encryptPII("3014567890");
     const tampered = blob.slice(0, -4) + "AAAA"; // corrupt the ciphertext
     expect(decryptPII(tampered)).toBe("");
+  });
+});
+
+describe("decryptAmount", () => {
+  it("round-trips a COP amount", () => {
+    const blob = encryptPII("450000");
+    expect(decryptAmount(blob)).toBe(450000);
+  });
+
+  it("throws (never returns 0) on tampered or malformed input", () => {
+    // This is the behavior that differs from decryptPII: a broken decrypt
+    // must never be mistaken for a legitimate $0 charge/payment/expense.
+    expect(() => decryptAmount("garbage")).toThrow(PIIDecryptError);
+    expect(() => decryptAmount("")).toThrow(PIIDecryptError);
+    const blob = encryptPII("450000");
+    const tampered = blob.slice(0, -4) + "AAAA";
+    expect(() => decryptAmount(tampered)).toThrow(PIIDecryptError);
+  });
+
+  it("throws if the decrypted plaintext isn't a valid non-negative integer", () => {
+    const blob = encryptPII("not-a-number");
+    expect(() => decryptAmount(blob)).toThrow(PIIDecryptError);
   });
 });
 

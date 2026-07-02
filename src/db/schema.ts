@@ -61,6 +61,12 @@ export const conjuntos = pgTable("conjuntos", {
   // and a grace period in days before a past-due charge starts accruing it.
   moraRatePct: integer("mora_rate_pct").notNull().default(0),
   moraGraceDays: integer("mora_grace_days").notNull().default(0),
+  // Fondo de imprevistos (percent × 100, e.g. 100 = 1.00%): Ley 675/2001
+  // art. 35 requires copropiedades to set aside a minimum 1% of the
+  // presupuesto anual de gastos comunes into a reserve fund every year — the
+  // default and the floor enforced in updateFondoConfig are both the legal
+  // minimum, so a conjunto is compliant unless the admin explicitly raises it.
+  fondoImprevistosPct: integer("fondo_imprevistos_pct").notNull().default(100),
   // Administradora that manages this conjunto; null = self-managed.
   companyId: uuid("company_id").references(() => companies.id),
   createdAt: timestamp("created_at", { withTimezone: true })
