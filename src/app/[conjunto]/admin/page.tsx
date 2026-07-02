@@ -126,14 +126,14 @@ export default async function AdminPanelPage({
         }))}
         parking={parking.map((p) => ({
           id: p.id,
-          kind: p.kind as "car" | "moto",
-          status: p.status as "free" | "resident" | "visitor",
+          kind: p.kind,
+          status: p.status,
           plate: p.plate,
           aptoKey: p.aptoKey,
           enteredAtIso: p.enteredAt?.toISOString() ?? null,
         }))}
         sessions={sessions.map((s) => ({
-          type: s.type as "resident" | "visitor",
+          type: s.type,
           aptoKey: s.aptoKey,
           kind: s.kind,
           hours: s.hours,

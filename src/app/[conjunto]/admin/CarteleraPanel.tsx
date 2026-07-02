@@ -13,7 +13,7 @@ import { useToast } from "@/lib/toast";
 
 export type AnnouncementRow = {
   id: string;
-  category: string;
+  category: AnnouncementCategory;
   title: string;
   body: string;
   pinned: boolean;
@@ -163,9 +163,7 @@ export function CarteleraPanel({
         </h2>
         <div className="flex flex-col gap-2">
           {announcements.map((a) => {
-            const m =
-              announcementMeta[a.category as AnnouncementCategory] ??
-              announcementMeta.general;
+            const m = announcementMeta[a.category] ?? announcementMeta.general;
             return (
               <div
                 key={a.id}

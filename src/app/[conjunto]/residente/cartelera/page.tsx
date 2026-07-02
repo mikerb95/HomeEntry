@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 import { getConjuntoById, listAnnouncements } from "@/db/queries";
 import { Shell } from "@/components/Shell";
 import { IconMegaphone } from "@/components/icons";
-import { announcementMeta, AnnouncementCategory } from "@/lib/meta";
+import { announcementMeta } from "@/lib/meta";
 import { fmtDate } from "@/lib/format";
 
 export default async function CarteleraPage({
@@ -56,9 +56,7 @@ export default async function CarteleraPage({
 
         <div className="flex flex-col gap-3.5">
           {items.map((a) => {
-            const m =
-              announcementMeta[a.category as AnnouncementCategory] ??
-              announcementMeta.general;
+            const m = announcementMeta[a.category] ?? announcementMeta.general;
             return (
               <article
                 key={a.id}

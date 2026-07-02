@@ -89,8 +89,8 @@ export default async function GuardPanelPage({
         hasWhatsApp={hasWhatsApp}
         parking={parking.map((p) => ({
           id: p.id,
-          kind: p.kind as "car" | "moto",
-          status: p.status as "free" | "resident" | "visitor",
+          kind: p.kind,
+          status: p.status,
           plate: p.plate,
           aptoKey: p.aptoKey,
           enteredAtIso: p.enteredAt?.toISOString() ?? null,

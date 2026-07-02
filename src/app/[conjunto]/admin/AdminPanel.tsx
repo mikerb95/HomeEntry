@@ -61,7 +61,7 @@ import { useToast } from "@/lib/toast";
 
 type Ev = {
   id: string;
-  type: string;
+  type: EventType;
   tower: string;
   apto: string;
   detail: string;
@@ -672,7 +672,7 @@ export function AdminPanel(props: Props) {
                 </thead>
                 <tbody>
                   {pageEvents.map((e) => {
-                    const m = typeMeta[e.type as EventType] ?? typeMeta.mensaje;
+                    const m = typeMeta[e.type] ?? typeMeta.mensaje;
                     return (
                       <tr key={e.id} className="border-t border-[#F0F3F7]">
                         <td className="whitespace-nowrap px-[22px] py-3.5 text-[13.5px] font-semibold text-[#5B6675]">

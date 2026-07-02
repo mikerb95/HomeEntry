@@ -67,7 +67,7 @@ type Props = {
   // has collected so far at the gate — the guard's caja del día.
   rates: { car: number; moto: number };
   cajaHoy: number;
-  recent: { id: string; type: string; tower: string; apto: string; tsIso: string }[];
+  recent: { id: string; type: EventType; tower: string; apto: string; tsIso: string }[];
   incoming: Incoming[];
   pending: PendingResident[];
   mVisits: number;
@@ -377,7 +377,7 @@ export function GuardPanel(props: Props) {
                 Actividad reciente
               </h3>
               {props.recent.map((r) => {
-                const m = typeMeta[r.type as EventType] ?? typeMeta.mensaje;
+                const m = typeMeta[r.type] ?? typeMeta.mensaje;
                 return (
                   <div
                     key={r.id}

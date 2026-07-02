@@ -13,16 +13,7 @@ import {
 import { Shell } from "@/components/Shell";
 import { PushOptIn } from "@/components/PushOptIn";
 import { IconAuthorize, IconGear, IconMegaphone } from "@/components/icons";
-import {
-  announcementMeta,
-  AnnouncementCategory,
-  authStMeta,
-  GrantStatus,
-  notifMeta,
-  ParkingStatus,
-  statusMeta,
-  EventType,
-} from "@/lib/meta";
+import { announcementMeta, authStMeta, notifMeta, statusMeta } from "@/lib/meta";
 import {
   fmtDate,
   fmtDateTime,
@@ -151,7 +142,7 @@ export default async function ResidentDashboard({
             </div>
             <div>
               {notifs.map((n) => {
-                const m = notifMeta[n.type as EventType] ?? notifMeta.mensaje;
+                const m = notifMeta[n.type] ?? notifMeta.mensaje;
                 return (
                   <div
                     key={n.id}
@@ -201,8 +192,7 @@ export default async function ResidentDashboard({
               <div className="flex flex-col gap-2.5">
                 {boardPreview.map((a) => {
                   const m =
-                    announcementMeta[a.category as AnnouncementCategory] ??
-                    announcementMeta.general;
+                    announcementMeta[a.category] ?? announcementMeta.general;
                   return (
                     <Link
                       key={a.id}
@@ -243,7 +233,7 @@ export default async function ResidentDashboard({
               </h3>
               <div className="flex flex-col gap-2.5">
                 {myParkings.map((p) => {
-                  const m = statusMeta[p.status as ParkingStatus];
+                  const m = statusMeta[p.status];
                   return (
                     <div
                       key={p.id}
@@ -281,7 +271,7 @@ export default async function ResidentDashboard({
               </h3>
               <div className="flex flex-col gap-2.5">
                 {auths.map((a) => {
-                  const m = authStMeta[a.status as GrantStatus];
+                  const m = authStMeta[a.status];
                   return (
                     <div
                       key={a.id}
