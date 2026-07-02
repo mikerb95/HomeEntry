@@ -1900,6 +1900,13 @@ export function AdminPanel(props: Props) {
         />
       )}
 
+      {fondoModalOpen && (
+        <FondoMovementModal
+          slug={props.slug}
+          onClose={() => setFondoModalOpen(false)}
+        />
+      )}
+
       {expOpen && (
         <ExpenseModal
           slug={props.slug}
