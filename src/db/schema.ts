@@ -457,13 +457,18 @@ export const ownerUnits = pgTable(
   ],
 );
 
-// Acuerdos de pago: consolidates a unit's outstanding debt (saldo + mora at
-// creation time) into an installment plan. The admin action that creates one
-// also inserts a synthetic `payments` row for the consolidated amount (so the
-// old charges stop accruing mora — they're "paid" from the ledger's point of
-// view) and one `charges` row per installment. Mora then accrues normally on
-// any installment that goes unpaid past its due date, so no special handling
-// is needed elsewhere — this row is purely for display/tracking.
+// Acuerdos de pago: consolidates a unit's outstanding debt (saldo + mora)
+// into an installment plan. The admin *proposes* the agreement ("propuesto");
+// nothing changes in the ledger until the resident, authenticated in their
+// portal, accepts it. Acceptance recomputes the live balance, inserts a
+// synthetic `payments` row for the consolidated amount (so the old charges
+// stop accruing mora — they're "paid" from the ledger's point of view) and
+// one `charges` row per installment, and records the consent trail
+// (respondedAt + acceptedByEnc + acceptanceMetaEnc). Mora then accrues
+// normally on any installment that goes unpaid past its due date, so no
+// special handling is needed elsewhere. "rechazado" = resident declined;
+// "anulado" = admin cancelled the proposal (or the debt was cleared before
+// acceptance). Rows predating the consent flow default to "activo".
 export const paymentAgreements = pgTable(
   "payment_agreements",
   {
@@ -478,11 +483,25 @@ export const paymentAgreements = pgTable(
     installments: integer("installments").notNull(),
     startDate: timestamp("start_date", { withTimezone: true }).notNull(),
     status: text("status", {
-      enum: ["activo", "cumplido", "incumplido"],
+      enum: [
+        "propuesto",
+        "activo",
+        "cumplido",
+        "incumplido",
+        "rechazado",
+        "anulado",
+      ],
     })
       .notNull()
       .default("activo"),
     registeredBy: text("registered_by").notNull(),
+    // Consent trail, set when the resident accepts or rejects the proposal.
+    // acceptedByEnc holds the resident's identity (apto + phone) and
+    // acceptanceMetaEnc the request context (IP, user agent), both encrypted
+    // like all PII — this is the probative record of who agreed and how.
+    respondedAt: timestamp("responded_at", { withTimezone: true }),
+    acceptedByEnc: text("accepted_by_enc"),
+    acceptanceMetaEnc: text("acceptance_meta_enc"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
