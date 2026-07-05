@@ -506,11 +506,12 @@ export async function sendPaymentReminders(
 
 // --- Payment agreements (acuerdos de pago) --------------------------------------
 
-// Consolidates a unit's current debt (saldo + mora) into an installment plan:
-// inserts a synthetic payment for the consolidated amount (so the old charges
-// stop accruing further mora) plus one new charge per installment. From then
-// on the installments behave like any other charge — mora accrues normally
-// if one goes unpaid, so a broken agreement needs no special handling.
+// Proposes an installment plan for a unit's current debt (saldo + mora).
+// Nothing touches the ledger here: the resident has to accept the proposal
+// from their authenticated portal (respondToPaymentAgreement) before the
+// debt is consolidated — that acceptance is the consent record §6.3 of the
+// plan asks for. The stored total is a snapshot for display; the definitive
+// amount is recomputed at acceptance time (mora keeps accruing meanwhile).
 export async function createPaymentAgreement(
   slug: string,
   input: { aptoKey: string; installments: string; startDate: string },
@@ -534,6 +535,14 @@ export async function createPaymentAgreement(
   if (isNaN(startDate.getTime()))
     return { ok: false, error: "Fecha de inicio inválida" };
 
+  const pending = await getPendingAgreementForApt(cid, input.aptoKey);
+  if (pending)
+    return {
+      ok: false,
+      error:
+        "Ya hay una propuesta de acuerdo pendiente de respuesta para esta unidad. Anúlala antes de proponer otra.",
+    };
+
   const [aptCharges, aptPayments] = await Promise.all([
     listChargesForApt(cid, input.aptoKey),
     listPaymentsForApt(cid, input.aptoKey),
@@ -549,19 +558,125 @@ export async function createPaymentAgreement(
     return { ok: false, error: "La unidad no tiene saldo pendiente que acordar" };
 
   const [tower, apt] = input.aptoKey.split("-");
+
+  await db.insert(paymentAgreements).values({
+    conjuntoId: cid,
+    aptoKey: input.aptoKey,
+    tower,
+    apt,
+    totalAmountEnc: encryptPII(String(totalAmount)),
+    installments,
+    startDate,
+    status: "propuesto",
+    registeredBy: session.username,
+  });
+
+  // Best-effort heads-up; the proposal also shows in /residente/cuenta.
+  await sendPushToApt(cid, input.aptoKey, {
+    title: "Propuesta de acuerdo de pago",
+    body: `La administración te propone un acuerdo de pago a ${installments} cuotas. Revísalo y acéptalo en tu estado de cuenta.`,
+    url: `/${slug}/residente/cuenta`,
+    tag: "acuerdo-pago",
+  });
+
+  await logAccess(
+    cid,
+    `admin:${session.username}`,
+    "propose_payment_agreement",
+    input.aptoKey,
+  );
+  revalidatePath(`/${slug}/admin`);
+  return { ok: true };
+}
+
+// Resident answers a proposed agreement from their authenticated session.
+// Accepting is what consolidates the debt: recomputes the live balance (mora
+// kept accruing since the proposal), inserts the synthetic payment that stops
+// mora on the old charges plus one charge per installment, and stores the
+// consent trail (who accepted, when, from which IP/device) encrypted on the
+// agreement row. From then on the installments behave like any other charge —
+// mora accrues normally if one goes unpaid, so a broken agreement needs no
+// special handling.
+export async function respondToPaymentAgreement(
+  slug: string,
+  input: { agreementId: string; accept: boolean },
+): Promise<Result> {
+  const session = await requireResident(slug);
+  const cid = session.conjuntoId;
+
+  const [agreement] = await db
+    .select()
+    .from(paymentAgreements)
+    .where(
+      and(
+        eq(paymentAgreements.id, input.agreementId),
+        eq(paymentAgreements.conjuntoId, cid),
+        eq(paymentAgreements.aptoKey, session.aptoKey),
+      ),
+    );
+  if (!agreement) return { ok: false, error: "Propuesta no encontrada" };
+  if (agreement.status !== "propuesto")
+    return { ok: false, error: "Esta propuesta ya fue respondida" };
+
+  if (!input.accept) {
+    await db
+      .update(paymentAgreements)
+      .set({ status: "rechazado", respondedAt: new Date() })
+      .where(eq(paymentAgreements.id, agreement.id));
+    await logAccess(
+      cid,
+      `residente:${session.aptoKey}`,
+      "reject_payment_agreement",
+      session.aptoKey,
+    );
+    revalidatePath(`/${slug}/admin`);
+    revalidatePath(`/${slug}/residente/cuenta`);
+    return { ok: true };
+  }
+
+  const conjunto = await getConjuntoById(cid);
+  if (!conjunto) return { ok: false, error: "Conjunto no encontrado" };
+
+  const [aptCharges, aptPayments] = await Promise.all([
+    listChargesForApt(cid, session.aptoKey),
+    listPaymentsForApt(cid, session.aptoKey),
+  ]);
+  const balance = computeAptBalance(
+    aptCharges,
+    aptPayments,
+    conjunto.moraRatePct,
+    conjunto.moraGraceDays,
+  );
+  const totalAmount = Math.round(balance.total);
+  if (totalAmount <= 0) {
+    // Debt was cleared some other way since the proposal — nothing left to
+    // consolidate, so the proposal is void rather than accepted.
+    await db
+      .update(paymentAgreements)
+      .set({ status: "anulado", respondedAt: new Date() })
+      .where(eq(paymentAgreements.id, agreement.id));
+    revalidatePath(`/${slug}/admin`);
+    revalidatePath(`/${slug}/residente/cuenta`);
+    return {
+      ok: false,
+      error: "Tu saldo ya está en cero; el acuerdo quedó sin efecto.",
+    };
+  }
+
+  const { installments, startDate, tower, apt } = agreement;
   const cuotas = splitEvenly(totalAmount, installments);
 
   // Consolidating payment: offsets every existing overdue charge (oldest
   // first, per computeAptBalance's rules) so mora stops accruing on them.
   await db.insert(payments).values({
     conjuntoId: cid,
-    aptoKey: input.aptoKey,
+    aptoKey: session.aptoKey,
     tower,
     apt,
     amountEnc: encryptPII(String(totalAmount)),
     method: "acuerdo_pago",
     paidAt: new Date(),
-    registeredBy: session.username,
+    registeredBy: `residente:${session.aptoKey}`,
     noteEnc: encryptPII(`Consolidado en acuerdo de pago a ${installments} cuotas`),
   });
 
@@ -571,7 +686,7 @@ export async function createPaymentAgreement(
       dueDate.setMonth(dueDate.getMonth() + i);
       return {
         conjuntoId: cid,
-        aptoKey: input.aptoKey,
+        aptoKey: session.aptoKey,
         tower,
         apt,
         period: `${dueDate.getFullYear()}-${String(dueDate.getMonth() + 1).padStart(2, "0")}`,
@@ -582,22 +697,71 @@ export async function createPaymentAgreement(
     }),
   );
 
-  await db.insert(paymentAgreements).values({
-    conjuntoId: cid,
-    aptoKey: input.aptoKey,
-    tower,
-    apt,
-    totalAmountEnc: encryptPII(String(totalAmount)),
-    installments,
-    startDate,
-    registeredBy: session.username,
-  });
+  const resident = await getResident(cid, session.aptoKey);
+  const hdrs = await headers();
+  await db
+    .update(paymentAgreements)
+    .set({
+      status: "activo",
+      totalAmountEnc: encryptPII(String(totalAmount)),
+      respondedAt: new Date(),
+      acceptedByEnc: encryptPII(
+        JSON.stringify({
+          aptoKey: session.aptoKey,
+          phone: resident?.phone ?? null,
+        }),
+      ),
+      acceptanceMetaEnc: encryptPII(
+        JSON.stringify({
+          ip: hdrs.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null,
+          userAgent: hdrs.get("user-agent") ?? null,
+        }),
+      ),
+    })
+    .where(eq(paymentAgreements.id, agreement.id));
+
+  await logAccess(
+    cid,
+    `residente:${session.aptoKey}`,
+    "accept_payment_agreement",
+    session.aptoKey,
+  );
+  revalidatePath(`/${slug}/admin`);
+  revalidatePath(`/${slug}/residente/cuenta`);
+  return { ok: true };
+}
+
+// Admin withdraws a proposal the resident hasn't answered yet.
+export async function cancelPaymentAgreement(
+  slug: string,
+  agreementId: string,
+): Promise<Result> {
+  const session = await requireAdmin(slug);
+  const cid = session.conjuntoId;
+
+  const [agreement] = await db
+    .select()
+    .from(paymentAgreements)
+    .where(
+      and(
+        eq(paymentAgreements.id, agreementId),
+        eq(paymentAgreements.conjuntoId, cid),
+      ),
+    );
+  if (!agreement) return { ok: false, error: "Propuesta no encontrada" };
+  if (agreement.status !== "propuesto")
+    return { ok: false, error: "Solo se pueden anular propuestas pendientes" };
+
+  await db
+    .update(paymentAgreements)
+    .set({ status: "anulado", respondedAt: new Date() })
+    .where(eq(paymentAgreements.id, agreement.id));
 
   await logAccess(
     cid,
     `admin:${session.username}`,
-    "create_payment_agreement",
-    input.aptoKey,
+    "cancel_payment_agreement",
+    agreement.aptoKey,
   );
   revalidatePath(`/${slug}/admin`);
   return { ok: true };
