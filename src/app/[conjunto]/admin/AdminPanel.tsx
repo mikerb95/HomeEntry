@@ -13,6 +13,7 @@ import {
   updateMoraConfig,
   updateUnitCoefficients,
   generateMonthlyCharges,
+  cancelPaymentAgreement,
   createVendor,
   deleteVendor,
   sendPaymentReminders,

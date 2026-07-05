@@ -2,11 +2,13 @@ import Link from "next/link";
 import { requireResident } from "@/lib/auth";
 import {
   getConjuntoById,
+  getPendingAgreementForApt,
   listChargesForApt,
   listPaymentsForApt,
 } from "@/db/queries";
 import { computeAptBalance } from "@/lib/finance";
 import { Shell } from "@/components/Shell";
+import { AgreementConsentCard } from "@/components/AgreementConsentCard";
 import { BackLink } from "@/components/ui";
 import { fmtCOP, fmtDate } from "@/lib/format";
 
@@ -28,10 +30,11 @@ export default async function ResidentAccountPage({
   const { conjunto: slug } = await params;
   const session = await requireResident(slug);
   const cid = session.conjuntoId;
-  const [config, charges, payments] = await Promise.all([
+  const [config, charges, payments, pendingAgreement] = await Promise.all([
     getConjuntoById(cid),
     listChargesForApt(cid, session.aptoKey),
     listPaymentsForApt(cid, session.aptoKey),
+    getPendingAgreementForApt(cid, session.aptoKey),
   ]);
 
   const balance = computeAptBalance(
@@ -90,6 +93,16 @@ export default async function ResidentAccountPage({
             </Link>
           )}
         </div>
+
+        {pendingAgreement && balance.total > 0 && (
+          <AgreementConsentCard
+            slug={slug}
+            agreementId={pendingAgreement.id}
+            currentDebt={Math.round(balance.total)}
+            installments={pendingAgreement.installments}
+            startDateIso={pendingAgreement.startDate.toISOString()}
+          />
+        )}
 
         <div className="mb-[22px] grid grid-cols-1 gap-3.5 min-[680px]:grid-cols-3">
           <div className="rounded-[18px] border border-[#E8ECF2] bg-white p-[18px]">
