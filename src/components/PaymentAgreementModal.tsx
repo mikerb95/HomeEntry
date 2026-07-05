@@ -46,7 +46,7 @@ export function PaymentAgreementModal({
         show(res.error || "Error", "warn");
         return;
       }
-      show("Acuerdo de pago creado", "ok");
+      show("Propuesta enviada al residente", "ok");
       onClose();
       router.refresh();
     });
