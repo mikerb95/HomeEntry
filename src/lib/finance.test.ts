@@ -4,6 +4,7 @@ import {
   computeConjuntoSummary,
   computeFondoBalance,
   distributeByCoefficient,
+  monthlyCapFromIbcEa,
   splitEvenly,
 } from "./finance";
 
@@ -213,9 +214,9 @@ describe("computeFondoBalance", () => {
 
 describe("monthlyCapFromIbcEa", () => {
   it("derives the julio 2026 cap from the certified IBC (19.19% EA)", () => {
-    // usura = 1.5 × 19.19% = 28.785% EA → (1.28785)^(1/12) − 1 ≈ 2.128%/mes,
-    // floored to 2.12% so the enforced ceiling never exceeds the legal one.
-    expect(monthlyCapFromIbcEa(1919)).toBe(212);
+    // usura = 1.5 × 19.19% = 28.785% EA → (1.28785)^(1/12) − 1 ≈ 2.1315%/mes,
+    // floored to 2.13% so the enforced ceiling never exceeds the legal one.
+    expect(monthlyCapFromIbcEa(1919)).toBe(213);
   });
 
   it("floors instead of rounding (stays below the legal cap)", () => {
