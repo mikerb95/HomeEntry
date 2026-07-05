@@ -10,6 +10,7 @@ import {
   getResident,
   getResidentByPhone,
   getStaff,
+  listResidentAccountsByPhone,
 } from "@/db/queries";
 import { hashSecret, verifySecret } from "@/lib/password";
 import { encryptPII, piiHash } from "@/lib/crypto";
@@ -127,6 +128,131 @@ export async function residentLogin(
     v: resident.sessionVersion,
   });
   redirect(`/${slug}/residente`);
+}
+
+// One entry a resident can log into, offered when the same phone is
+// registered in more than one conjunto (or apartment).
+export type ResidentAccountChoice = {
+  slug: string;
+  conjuntoName: string;
+  aptoKey: string;
+  tower: string;
+  apt: string;
+};
+
+export type UnifiedLoginResult = Result & {
+  choices?: ResidentAccountChoice[];
+};
+
+// Unified resident login: the phone alone determines the conjunto, so nobody
+// types a conjunto code. If the phone+PIN matches accounts in more than one
+// conjunto (or apartment), the caller gets `choices` back and retries with the
+// chosen one via `pick`. Choices are revealed only after the PIN verifies, so
+// probing a phone number without its PIN learns nothing about where it lives.
+export async function unifiedResidentLogin(
+  phoneRaw: string,
+  pin: string,
+  pick?: { slug: string; aptoKey: string },
+): Promise<UnifiedLoginResult> {
+  const phone = digits(phoneRaw);
+  if (phone.length < 10)
+    return { ok: false, error: "Ingresa un celular válido (10 dígitos)" };
+
+  const accounts = await listResidentAccountsByPhone(phone);
+  const candidates = pick
+    ? accounts.filter(
+        (a) => a.conjuntoSlug === pick.slug && a.aptoKey === pick.aptoKey,
+      )
+    : accounts;
+  if (candidates.length === 0) {
+    return {
+      ok: false,
+      error: "No encontramos ese número. ¿Primera vez? Regístrate.",
+    };
+  }
+
+  const now = new Date();
+  const open = candidates.filter(
+    (a) => !(a.lockedUntil && a.lockedUntil > now),
+  );
+  if (open.length === 0) return { ok: false, error: LOCKED_MSG };
+
+  const matches = open.filter((a) => verifySecret(pin, a.pinHash));
+  if (matches.length === 0) {
+    // Same per-account brute-force accounting as the per-conjunto login.
+    let anyLocked = false;
+    for (const a of open) {
+      const failed = a.failedPins + 1;
+      const lockedUntil =
+        failed >= MAX_FAILED
+          ? new Date(Date.now() + LOCK_MINUTES * 60000)
+          : null;
+      if (lockedUntil) anyLocked = true;
+      await db
+        .update(residents)
+        .set({ failedPins: failed, lockedUntil })
+        .where(
+          and(
+            eq(residents.conjuntoId, a.conjuntoId),
+            eq(residents.aptoKey, a.aptoKey),
+          ),
+        );
+    }
+    return {
+      ok: false,
+      error: anyLocked
+        ? "PIN incorrecto. Cuenta bloqueada temporalmente."
+        : "PIN incorrecto.",
+    };
+  }
+
+  // PIN is correct — pending registrations still cannot enter. Checked after
+  // the PIN so the account's state isn't revealed without the credentials.
+  const active = matches.filter((a) => a.status === "active");
+  if (active.length === 0) {
+    return {
+      ok: false,
+      error:
+        "Tu registro está pendiente de aprobación por la portería o la administración.",
+    };
+  }
+
+  if (active.length > 1) {
+    return {
+      ok: true,
+      choices: active.map((a) => ({
+        slug: a.conjuntoSlug,
+        conjuntoName: a.conjuntoName,
+        aptoKey: a.aptoKey,
+        tower: a.tower,
+        apt: a.apt,
+      })),
+    };
+  }
+
+  const account = active[0];
+  if (account.failedPins !== 0 || account.lockedUntil) {
+    await db
+      .update(residents)
+      .set({ failedPins: 0, lockedUntil: null })
+      .where(
+        and(
+          eq(residents.conjuntoId, account.conjuntoId),
+          eq(residents.aptoKey, account.aptoKey),
+        ),
+      );
+  }
+
+  await setSessionCookie({
+    role: "resident",
+    conjuntoId: account.conjuntoId,
+    conjuntoSlug: account.conjuntoSlug,
+    aptoKey: account.aptoKey,
+    tower: account.tower,
+    apt: account.apt,
+    v: account.sessionVersion,
+  });
+  redirect(`/${account.conjuntoSlug}/residente`);
 }
 
 // Registration: validate, enforce the create-only ownership rule, and persist
