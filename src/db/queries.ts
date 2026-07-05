@@ -833,6 +833,29 @@ export async function listCompanies(): Promise<CompanyView[]> {
   }));
 }
 
+export async function getCompanyById(id: string): Promise<CompanyView | null> {
+  const [c] = await db
+    .select()
+    .from(companies)
+    .where(eq(companies.id, id))
+    .limit(1);
+  if (!c) return null;
+  return {
+    id: c.id,
+    name: c.name,
+    nit: c.nitEnc ? decryptPII(c.nitEnc) : "",
+    createdAt: c.createdAt,
+  };
+}
+
+export async function listConjuntosForCompany(companyId: string) {
+  return db
+    .select()
+    .from(conjuntos)
+    .where(eq(conjuntos.companyId, companyId))
+    .orderBy(asc(conjuntos.name));
+}
+
 // --- Units (coeficientes de copropiedad) ------------------------------------
 
 export type UnitView = {
