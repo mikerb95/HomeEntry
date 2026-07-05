@@ -173,6 +173,26 @@ export async function listPendingResidents(conjuntoId: string) {
   return rows.map(toView);
 }
 
+// Every account a phone can enter, across all conjuntos — powers the unified
+// login where the phone alone determines the conjunto. One row per
+// (conjunto, apartment); the same phone may hold several.
+export async function listResidentAccountsByPhone(phone: string) {
+  const rows = await db
+    .select({
+      resident: residents,
+      conjuntoSlug: conjuntos.slug,
+      conjuntoName: conjuntos.name,
+    })
+    .from(residents)
+    .innerJoin(conjuntos, eq(residents.conjuntoId, conjuntos.id))
+    .where(eq(residents.phoneHash, piiHash(phone)));
+  return rows.map((r) => ({
+    ...toView(r.resident),
+    conjuntoSlug: r.conjuntoSlug,
+    conjuntoName: r.conjuntoName,
+  }));
+}
+
 export async function getResidentByPhone(conjuntoId: string, phone: string) {
   const rows = await db
     .select()

@@ -126,6 +126,8 @@ export const residents = pgTable(
   (t) => [
     primaryKey({ columns: [t.conjuntoId, t.aptoKey] }),
     index("residents_phone_hash_idx").on(t.conjuntoId, t.phoneHash),
+    // Unified login looks a phone up across every conjunto.
+    index("residents_phone_hash_global_idx").on(t.phoneHash),
   ],
 );
 
