@@ -34,7 +34,6 @@ import {
   computeAptBalance,
   distributeByCoefficient,
   FONDO_IMPREVISTOS_MIN_PCT,
-  MORA_RATE_CAP_PCT,
   splitEvenly,
 } from "@/lib/finance";
 import { clampText, fmtCOP } from "@/lib/format";
