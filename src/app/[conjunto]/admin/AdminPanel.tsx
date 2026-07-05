@@ -581,6 +581,18 @@ export function AdminPanel(props: Props) {
     });
   }
 
+  function cancelAgreement(id: string) {
+    start(async () => {
+      const res = await cancelPaymentAgreement(props.slug, id);
+      if (!res.ok) {
+        show(res.error || "Error", "warn");
+        return;
+      }
+      show("Propuesta anulada", "ok");
+      router.refresh();
+    });
+  }
+
   // --- vigilantes ---
   function submitGuard() {
     start(async () => {
