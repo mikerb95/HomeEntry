@@ -125,19 +125,22 @@ export function LoginPortal({ conjuntos }: { conjuntos: ConjuntoOption[] }) {
   function submit() {
     setErr("");
     start(async () => {
+      if (role === "residente") {
+        const res = await unifiedResidentLogin(phone, pin);
+        if (!res) return;
+        if (!res.ok) setErr(res.error || "Error");
+        else if (res.choices) setChoices(res.choices);
+        return;
+      }
       const res =
-        role === "residente"
-          ? await unifiedResidentLogin(phone, pin)
-          : role === "propietario"
-            ? await ownerLogin(phone, pin)
-            : !conjunto
-              ? { ok: false as const, error: "Selecciona tu conjunto" }
-              : role === "porteria"
-                ? await guardLogin(conjunto.slug, user, pass)
-                : await adminLogin(conjunto.slug, user, pass);
-      if (!res) return;
-      if (!res.ok) setErr(res.error || "Error");
-      else if ("choices" in res && res.choices) setChoices(res.choices);
+        role === "propietario"
+          ? await ownerLogin(phone, pin)
+          : !conjunto
+            ? { ok: false, error: "Selecciona tu conjunto" }
+            : role === "porteria"
+              ? await guardLogin(conjunto.slug, user, pass)
+              : await adminLogin(conjunto.slug, user, pass);
+      if (res && !res.ok) setErr(res.error || "Error");
     });
   }
 
