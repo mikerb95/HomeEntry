@@ -16,6 +16,7 @@ import {
 import {
   countExpensesForVendor,
   getConjuntoById,
+  getEffectiveMoraCapPct,
   getFinancialSummary,
   getPendingAgreementForApt,
   getResident,
