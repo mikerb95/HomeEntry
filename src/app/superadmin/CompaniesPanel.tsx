@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createCompany, assignConjuntoCompany } from "@/app/actions/superadmin";
 import { Label } from "@/components/ui";
@@ -85,10 +86,18 @@ export function CompaniesPanel({
                   </div>
                 )}
               </div>
-              <span className="whitespace-nowrap text-[12.5px] font-bold text-[#6B7585]">
-                {countByCompany.get(c.id) ?? 0} conjunto
-                {(countByCompany.get(c.id) ?? 0) === 1 ? "" : "s"}
-              </span>
+              <div className="flex items-center gap-3.5">
+                <span className="whitespace-nowrap text-[12.5px] font-bold text-[#6B7585]">
+                  {countByCompany.get(c.id) ?? 0} conjunto
+                  {(countByCompany.get(c.id) ?? 0) === 1 ? "" : "s"}
+                </span>
+                <Link
+                  href={`/superadmin/portafolio/${c.id}`}
+                  className="whitespace-nowrap text-[12.5px] font-bold text-blue hover:underline"
+                >
+                  Portafolio →
+                </Link>
+              </div>
             </div>
           ))}
         </div>
