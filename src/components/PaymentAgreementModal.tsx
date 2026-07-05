@@ -106,8 +106,10 @@ export function PaymentAgreementModal({
           <p className="mb-5 text-[13px] text-[#6B7585]">
             {n} cuotas de aproximadamente{" "}
             <strong className="text-ink">{fmtCOP(cuotaPreview)}</strong>{" "}
-            mensuales, empezando el mes de la fecha elegida. La deuda actual
-            deja de generar mora; si una cuota del acuerdo se vence, sí
+            mensuales, empezando el mes de la fecha elegida. El residente
+            recibe la propuesta en su portal y debe aceptarla; solo entonces
+            se consolida la deuda (con la mora acumulada hasta ese día) y
+            deja de generar mora. Si una cuota del acuerdo se vence, sí
             empieza a generar mora normalmente.
           </p>
         )}
@@ -117,7 +119,7 @@ export function PaymentAgreementModal({
           disabled={pending}
           className="w-full rounded-[14px] bg-blue p-4 text-[15px] font-extrabold text-white hover:bg-blue-dark disabled:opacity-70"
         >
-          {pending ? "Creando…" : "Crear acuerdo de pago"}
+          {pending ? "Enviando…" : "Proponer acuerdo de pago"}
         </button>
       </div>
     </Modal>
