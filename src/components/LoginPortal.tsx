@@ -89,8 +89,8 @@ export function LoginPortal({ conjuntos }: { conjuntos: ConjuntoOption[] }) {
   const router = useRouter();
   const [role, setRole] = useState<RoleKey>("residente");
 
-  // Shared credential state. Phone/PIN serve residente y propietario; user y
-  // pass, portería y administración — switching roles keeps what ya escribiste.
+  // Shared credential state. Phone/PIN serve residente/propietario; user/pass
+  // serve portería/administración — switching roles keeps what was typed.
   const [phone, setPhone] = useState("");
   const [pin, setPin] = useState("");
   const [user, setUser] = useState("");
@@ -100,8 +100,8 @@ export function LoginPortal({ conjuntos }: { conjuntos: ConjuntoOption[] }) {
   const [err, setErr] = useState("");
   const [pinHelp, setPinHelp] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
-  // Set when el mismo celular+PIN existe en varios conjuntos/apartamentos:
-  // reemplaza el formulario por el selector de cuál gestionar.
+  // Set when the same phone+PIN exists in several conjuntos/apartments: the
+  // form is replaced by the picker of which one to manage.
   const [choices, setChoices] = useState<ResidentAccountChoice[] | null>(null);
   const [pending, start] = useTransition();
   const errRef = useRef<HTMLDivElement>(null);
@@ -170,12 +170,7 @@ export function LoginPortal({ conjuntos }: { conjuntos: ConjuntoOption[] }) {
 
       <div className="overflow-hidden rounded-[26px] border border-[#E6EBF2] bg-white shadow-[0_18px_44px_-26px_rgba(15,20,26,.34)] min-[840px]:grid min-[840px]:grid-cols-[300px_1fr]">
         {/* Role rail: vertical on desktop, horizontal chips on mobile. */}
-        <div
-          role="tablist"
-          aria-label="Tipo de usuario"
-          aria-orientation="vertical"
-          className="flex gap-2 overflow-x-auto border-b border-[#EDF1F6] bg-[#F8FAFC] p-3 min-[840px]:flex-col min-[840px]:border-b-0 min-[840px]:border-r min-[840px]:p-5"
-        >
+        <div className="flex gap-2 overflow-x-auto border-b border-[#EDF1F6] bg-[#F8FAFC] p-3 min-[840px]:flex-col min-[840px]:border-b-0 min-[840px]:border-r min-[840px]:p-5">
           <p className="hidden px-2 pb-1 text-[12.5px] font-bold uppercase tracking-[.5px] text-[#8A93A3] min-[840px]:block">
             ¿Quién ingresa?
           </p>
