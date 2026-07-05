@@ -262,7 +262,6 @@ export function LoginPortal({ conjuntos }: { conjuntos: ConjuntoOption[] }) {
                       autoComplete="username"
                       placeholder={role === "porteria" ? "portería" : "admin"}
                       className={`${inputCls} mb-4`}
-                      style={{ borderColor: undefined }}
                     />
                     <Label htmlFor="portal-pass">
                       {role === "porteria" ? "Clave" : "Contraseña"}
@@ -502,8 +501,8 @@ function ChooseAccount({
   );
 }
 
-// Searchable conjunto selector for staff (usernames viven por conjunto, así
-// que portería/administración sí deben decir cuál).
+// Searchable conjunto selector for staff. Usernames are scoped per conjunto,
+// so portería/administración do have to say which one — residents don't.
 function ConjuntoPicker({
   accent,
   conjuntos,
