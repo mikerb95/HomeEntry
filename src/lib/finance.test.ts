@@ -210,3 +210,20 @@ describe("computeFondoBalance", () => {
     expect(computeFondoBalance([])).toBe(0);
   });
 });
+
+describe("monthlyCapFromIbcEa", () => {
+  it("derives the julio 2026 cap from the certified IBC (19.19% EA)", () => {
+    // usura = 1.5 × 19.19% = 28.785% EA → (1.28785)^(1/12) − 1 ≈ 2.128%/mes,
+    // floored to 2.12% so the enforced ceiling never exceeds the legal one.
+    expect(monthlyCapFromIbcEa(1919)).toBe(212);
+  });
+
+  it("floors instead of rounding (stays below the legal cap)", () => {
+    // IBC 20.00% EA → usura 30% EA → monthly ≈ 2.2104% → 221, not 222.
+    expect(monthlyCapFromIbcEa(2000)).toBe(221);
+  });
+
+  it("returns 0 for a zero rate", () => {
+    expect(monthlyCapFromIbcEa(0)).toBe(0);
+  });
+});
