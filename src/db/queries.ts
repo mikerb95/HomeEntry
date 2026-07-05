@@ -974,6 +974,7 @@ export type PaymentAgreementView = {
   status: (typeof paymentAgreements.$inferSelect)["status"];
   registeredBy: string;
   createdAt: Date;
+  respondedAt: Date | null;
 };
 
 function toPaymentAgreementView(
@@ -990,6 +991,7 @@ function toPaymentAgreementView(
     status: a.status,
     registeredBy: a.registeredBy,
     createdAt: a.createdAt,
+    respondedAt: a.respondedAt,
   };
 }
 
@@ -1002,6 +1004,27 @@ export async function listPaymentAgreements(
     .where(eq(paymentAgreements.conjuntoId, conjuntoId))
     .orderBy(desc(paymentAgreements.createdAt));
   return rows.map(toPaymentAgreementView);
+}
+
+// The proposal awaiting the resident's answer, if any. createPaymentAgreement
+// blocks a second proposal while one is pending, so there is at most one.
+export async function getPendingAgreementForApt(
+  conjuntoId: string,
+  aptoKey: string,
+): Promise<PaymentAgreementView | null> {
+  const [row] = await db
+    .select()
+    .from(paymentAgreements)
+    .where(
+      and(
+        eq(paymentAgreements.conjuntoId, conjuntoId),
+        eq(paymentAgreements.aptoKey, aptoKey),
+        eq(paymentAgreements.status, "propuesto"),
+      ),
+    )
+    .orderBy(desc(paymentAgreements.createdAt))
+    .limit(1);
+  return row ? toPaymentAgreementView(row) : null;
 }
 
 // --- Reserve fund (fondo de imprevistos) --------------------------------------
