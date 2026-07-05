@@ -180,8 +180,7 @@ export function LoginPortal({ conjuntos }: { conjuntos: ConjuntoOption[] }) {
             return (
               <button
                 key={r.key}
-                role="tab"
-                aria-selected={selected}
+                aria-pressed={selected}
                 onClick={() => switchRole(r.key)}
                 className={`flex flex-none items-center gap-3 rounded-[15px] border-[1.5px] p-3 text-left transition-colors min-[840px]:w-full ${
                   selected
