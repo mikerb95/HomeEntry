@@ -1411,7 +1411,8 @@ export function AdminPanel(props: Props) {
                   Acuerdos de pago
                 </h2>
                 <div className="mt-0.5 text-[13px] text-[#6B7585]">
-                  Deuda consolidada en cuotas mensuales
+                  Deuda consolidada en cuotas mensuales. Las propuestas se
+                  activan cuando el residente las acepta desde su portal.
                 </div>
               </div>
               <div className="overflow-x-auto">
@@ -1426,40 +1427,45 @@ export function AdminPanel(props: Props) {
                     </tr>
                   </thead>
                   <tbody>
-                    {props.agreements.map((ag) => (
-                      <tr key={ag.id} className="border-t border-[#F0F3F7]">
-                        <td className="px-[22px] py-3.5 text-[14px] font-bold text-ink">
-                          {aptLabel(ag.aptoKey)}
-                        </td>
-                        <td className="px-3.5 py-3.5 text-right text-[14px] font-semibold text-[#3C4654]">
-                          {fmtCOP(ag.totalAmount)}
-                        </td>
-                        <td className="px-3.5 py-3.5 text-right text-[14px] font-semibold text-[#3C4654]">
-                          {ag.installments}
-                        </td>
-                        <td className="px-3.5 py-3.5 text-[13.5px] text-[#6B7585]">
-                          {new Date(ag.startDateIso).toLocaleDateString("es-CO")}
-                        </td>
-                        <td className="px-3.5 py-3.5 pr-[22px]">
-                          <span
-                            className="inline-block rounded-full px-[11px] py-1 text-[12.5px] font-bold"
-                            style={
-                              ag.status === "cumplido"
-                                ? { background: "#E9F8EE", color: "#16A34A" }
-                                : ag.status === "incumplido"
-                                  ? { background: "#FDECEF", color: "#E11D48" }
-                                  : { background: "#EAF1FF", color: "#2F6BFF" }
-                            }
-                          >
-                            {ag.status === "cumplido"
-                              ? "Cumplido"
-                              : ag.status === "incumplido"
-                                ? "Incumplido"
-                                : "Activo"}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
+                    {props.agreements.map((ag) => {
+                      const badge =
+                        AGREEMENT_BADGES[ag.status] ?? AGREEMENT_BADGES.activo;
+                      return (
+                        <tr key={ag.id} className="border-t border-[#F0F3F7]">
+                          <td className="px-[22px] py-3.5 text-[14px] font-bold text-ink">
+                            {aptLabel(ag.aptoKey)}
+                          </td>
+                          <td className="px-3.5 py-3.5 text-right text-[14px] font-semibold text-[#3C4654]">
+                            {fmtCOP(ag.totalAmount)}
+                          </td>
+                          <td className="px-3.5 py-3.5 text-right text-[14px] font-semibold text-[#3C4654]">
+                            {ag.installments}
+                          </td>
+                          <td className="px-3.5 py-3.5 text-[13.5px] text-[#6B7585]">
+                            {new Date(ag.startDateIso).toLocaleDateString(
+                              "es-CO",
+                            )}
+                          </td>
+                          <td className="px-3.5 py-3.5 pr-[22px]">
+                            <span
+                              className="inline-block rounded-full px-[11px] py-1 text-[12.5px] font-bold"
+                              style={{ background: badge.bg, color: badge.fg }}
+                            >
+                              {badge.label}
+                            </span>
+                            {ag.status === "propuesto" && (
+                              <button
+                                onClick={() => cancelAgreement(ag.id)}
+                                disabled={pending}
+                                className="ml-2.5 text-[12.5px] font-bold text-[#E11D48] hover:underline disabled:opacity-50"
+                              >
+                                Anular
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
