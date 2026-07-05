@@ -24,12 +24,15 @@ import {
   serviceRequests,
   staffUsers,
   units,
+  usuraRates,
   vendors,
 } from "./schema";
 import { decryptAmount, decryptPII, encryptPII, piiHash } from "@/lib/crypto";
 import { hashSecret } from "@/lib/password";
 import {
   computeConjuntoSummary,
+  monthlyCapFromIbcEa,
+  MORA_RATE_CAP_PCT,
   type ChargeInput,
   type PaymentInput,
 } from "@/lib/finance";
@@ -1139,4 +1142,48 @@ export async function getFinancialSummary(conjuntoId: string) {
     conjunto?.moraRatePct ?? 0,
     conjunto?.moraGraceDays ?? 0,
   );
+}
+
+// --- Tasa de usura / tope de mora ------------------------------------------
+
+export async function getLatestUsuraRate() {
+  const [row] = await db
+    .select()
+    .from(usuraRates)
+    .orderBy(desc(usuraRates.vigenciaDesde))
+    .limit(1);
+  return row ?? null;
+}
+
+// Records a certified IBC period (idempotent on vigenciaDesde, so the cron
+// can re-run safely within the same month).
+export async function upsertUsuraRate(input: {
+  vigenciaDesde: Date;
+  ibcEaPct: number;
+}) {
+  const usuraEaPct = Math.round(input.ibcEaPct * 1.5);
+  const monthlyCapPct = monthlyCapFromIbcEa(input.ibcEaPct);
+  await db
+    .insert(usuraRates)
+    .values({
+      vigenciaDesde: input.vigenciaDesde,
+      ibcEaPct: input.ibcEaPct,
+      usuraEaPct,
+      monthlyCapPct,
+    })
+    .onConflictDoUpdate({
+      target: usuraRates.vigenciaDesde,
+      set: { ibcEaPct: input.ibcEaPct, usuraEaPct, monthlyCapPct, fetchedAt: new Date() },
+    });
+  return { usuraEaPct, monthlyCapPct };
+}
+
+// The mora ceiling the app actually enforces: the freshest derived monthly
+// cap when the cron has data, but never above the conservative constant —
+// a bad fetch can lower the ceiling (harmless), never raise it past what a
+// human vetted.
+export async function getEffectiveMoraCapPct(): Promise<number> {
+  const latest = await getLatestUsuraRate();
+  if (!latest) return MORA_RATE_CAP_PCT;
+  return Math.min(MORA_RATE_CAP_PCT, latest.monthlyCapPct);
 }

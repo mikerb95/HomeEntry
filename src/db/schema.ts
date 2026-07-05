@@ -539,6 +539,26 @@ export const reserveFundMovements = pgTable(
   ],
 );
 
+// Monthly snapshots of the certified Interés Bancario Corriente (modalidad
+// "consumo y ordinario") fetched from the Superfinanciera dataset on
+// datos.gov.co by /api/cron/usura. From it derive the tasa de usura (1.5×
+// IBC, art. 884 C.Co) and the effective *monthly* mora ceiling the rest of
+// the app enforces. Not tenant data and not PII, so stored in the clear.
+// All pct fields use the same encoding as conjuntos.moraRatePct: % × 100.
+export const usuraRates = pgTable("usura_rates", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  // First day the certified rate is in force (unique: one row per period).
+  vigenciaDesde: timestamp("vigencia_desde", { withTimezone: true })
+    .notNull()
+    .unique(),
+  ibcEaPct: integer("ibc_ea_pct").notNull(), // efectivo anual
+  usuraEaPct: integer("usura_ea_pct").notNull(), // 1.5 × IBC, efectivo anual
+  monthlyCapPct: integer("monthly_cap_pct").notNull(), // efectivo mensual
+  fetchedAt: timestamp("fetched_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
 // Disciplinary/attention notices ("llamados de atención") raised by staff
 // against a unit. Detail is encrypted like other free-text PII fields.
 export const notices = pgTable(

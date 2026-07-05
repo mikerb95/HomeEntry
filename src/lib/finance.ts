@@ -10,15 +10,26 @@
 // quarterly). As of julio 2026 it's 28.79% EA (1.5× un IBC de 19.19% EA),
 // ≈ 2.13% efectivo mensual — https://www.superfinanciera.gov.co.
 //
-// That rate moves every month and isn't fetched live here, so this constant
-// is a deliberately conservative ceiling (below the current legal cap, not
-// at it) that blocks the UI from ever letting an admin configure an illegal
-// rate. Whoever maintains this must re-check the current certified rate
-// periodically — do NOT raise this constant without checking the current
-// tasa de usura first, since setting mora above the true legal cap doesn't
-// just risk a fine: art. 884 says the creditor loses ALL the interest, not
-// just the excess.
+// That rate moves every month. /api/cron/usura fetches the certified IBC
+// from the Superfinanciera dataset on datos.gov.co into `usura_rates`, and
+// getEffectiveMoraCapPct (src/db/queries.ts) enforces min(this constant,
+// latest derived monthly cap) — so this constant is the conservative
+// fallback for when the cron hasn't run yet, and a hard ceiling it can
+// never raise. Setting mora above the true legal cap doesn't just risk a
+// fine: art. 884 says the creditor loses ALL the interest, not just the
+// excess.
 export const MORA_RATE_CAP_PCT = 200; // 2.00% mensual (margen bajo ~2.13% actual)
+
+// Derives the monthly mora ceiling from a certified IBC (efectivo anual):
+// usura EA = 1.5 × IBC (art. 884 C.Co), converted to its monthly effective
+// equivalent (1 + EA)^(1/12) − 1. Input and output use the app-wide % × 100
+// encoding (19.19% EA → 1919 → returns 212 = 2.12% mensual). Math.floor,
+// not round: always err below the legal cap, never above it.
+export function monthlyCapFromIbcEa(ibcEaPct: number): number {
+  const usuraEaFrac = (ibcEaPct * 1.5) / 10000;
+  const monthlyFrac = Math.pow(1 + usuraEaFrac, 1 / 12) - 1;
+  return Math.floor(monthlyFrac * 10000);
+}
 
 export type ChargeInput = {
   id: string;
