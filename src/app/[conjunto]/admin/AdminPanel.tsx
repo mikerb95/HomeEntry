@@ -106,6 +106,17 @@ type Agreement = {
   startDateIso: string;
   status: string;
 };
+const AGREEMENT_BADGES: Record<
+  string,
+  { label: string; bg: string; fg: string }
+> = {
+  propuesto: { label: "Propuesto", bg: "#FFF4E5", fg: "#B45309" },
+  activo: { label: "Activo", bg: "#EAF1FF", fg: "#2F6BFF" },
+  cumplido: { label: "Cumplido", bg: "#E9F8EE", fg: "#16A34A" },
+  incumplido: { label: "Incumplido", bg: "#FDECEF", fg: "#E11D48" },
+  rechazado: { label: "Rechazado", bg: "#F0F3F8", fg: "#5B6675" },
+  anulado: { label: "Anulado", bg: "#F0F3F8", fg: "#5B6675" },
+};
 type FondoMovement = {
   id: string;
   type: "aporte" | "retiro";
