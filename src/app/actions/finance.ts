@@ -27,7 +27,7 @@ import {
   logAccess,
   upsertUnitCoefficients,
 } from "@/db/queries";
-import { requireAdmin } from "@/lib/auth";
+import { requireAdmin, requireResident } from "@/lib/auth";
 import { encryptPII } from "@/lib/crypto";
 import {
   computeAptBalance,
